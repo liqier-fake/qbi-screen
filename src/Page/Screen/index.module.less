@@ -1,0 +1,111 @@
+@import "./variables.less";
+
+.screen {
+  @bg-color: linear-gradient(180deg, #092359 0%, #071a42 100%);
+  @content-bg-color1: linear-gradient(
+    180deg,
+    rgba(6, 22, 43, 0.6) 0%,
+    #061627 100%
+  );
+  @content-bg-color2: linear-gradient(
+    180deg,
+    rgba(6, 22, 43, 0.6) 0%,
+    #061627 100%
+  );
+  width: 6144px;
+  height: 2160px;
+  background: @bg-color;
+  //   border: 1px solid #979797;
+  overflow: auto;
+  .flex-column();
+
+  .header {
+    font-family: "PangMenZhengDao";
+    height: 112px;
+    width: 100%;
+    background: url("./img/header_bg.svg") no-repeat center center;
+    background-size: 100% calc(100% + 156px - 112px);
+    .flex-center();
+    .title {
+      font-size: 100px;
+      color: #fff;
+      height: 84px;
+      font-size: 64px;
+      color: #ffffff;
+      line-height: 83px;
+      text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      font-style: normal;
+      text-transform: none;
+    }
+  }
+
+  .contentWrap {
+    width: 100%;
+    height: 100%;
+    padding: 0 95px;
+    .flex-between();
+    .left {
+      width: calc(968.71px * 2 + 37px);
+      .flex-between();
+      flex-wrap: wrap;
+      height: 100%;
+      .leftItem {
+        width: calc((100% - 37px) / 2);
+        // width: 968.71px;
+        height: 626.56px;
+        .flex-column();
+        .leftItemContent {
+          height: 100%;
+          background: linear-gradient(
+            180deg,
+            rgba(6, 22, 43, 0.6) 0%,
+            #061627 100%
+          );
+        }
+        margin-right: 37px;
+        margin-bottom: 53px;
+      }
+
+      .leftItem:nth-child(2n) {
+        margin-right: 0;
+        margin-bottom: 0;
+      }
+    }
+
+    .center {
+      flex: 1;
+      height: 100%;
+    }
+
+    .right {
+      width: calc(968.71px * 2 + 37px);
+      height: 100%;
+      .rightItem {
+        margin-bottom: 49px;
+        height: 629.84px;
+        .rightItemContent {
+          height: 100%;
+        }
+        .rightItemLeft,
+        .rightItemRight {
+          height: 626.56px;
+          width: 968.71px;
+          background: linear-gradient(
+            180deg,
+            rgba(6, 22, 43, 0.6) 0%,
+            #061627 100%
+          );
+        }
+        .rightItemLeft {
+          margin-right: 37px;
+        }
+        .rightItemRight {
+        }
+      }
+      .rightItemSpecial {
+        .flex-between();
+      }
+    }
+  }
+}
