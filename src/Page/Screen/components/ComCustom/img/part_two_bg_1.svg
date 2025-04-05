@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="293px" height="120px" viewBox="0 0 293 120" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 37</title>
+    <defs>
+        <linearGradient x1="100%" y1="50%" x2="-0%" y2="50%" id="linearGradient-1">
+            <stop stop-color="#00A597" stop-opacity="0.200000003" offset="0%"></stop>
+            <stop stop-color="#00FF87" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <radialGradient cx="81.4252%" cy="0.8626%" fx="81.4252%" fy="0.8626%" r="81.5418001%" gradientTransform="translate(0.8143, 0.0086), scale(0.3978, 1), rotate(93.3339), scale(1, 3.4626), translate(-0.8143, -0.0086)" id="radialGradient-2">
+            <stop stop-color="#00FFE6" stop-opacity="0.250980407" offset="0%"></stop>
+            <stop stop-color="#00FF93" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <radialGradient cx="37.0404%" cy="100%" fx="37.0404%" fy="100%" r="17.7307%" gradientTransform="translate(0.3704, 1), scale(0.3978, 1), rotate(90), scale(1, 9.0752), translate(-0.3704, -1)" id="radialGradient-3">
+            <stop stop-color="#00FFE0" stop-opacity="0.160784319" offset="0%"></stop>
+            <stop stop-color="#00C9FF" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <linearGradient x1="97.1955%" y1="56.6116891%" x2="22.4034%" y2="44.3212063%" id="linearGradient-4">
+            <stop stop-color="#8AFFC7" offset="0%"></stop>
+            <stop stop-color="#08B83D" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <path d="M232.852284,9 C233.24121,9 233.60391,9.312576 233.816508,9.831057 C233.816508,9.831057 248.490141,45.609206 277.837407,117.165504 C278.337375,118.384506 277.787745,120 276.873183,120 C276.873183,120 184.966026,120 1.151712,120 C0.515592,120 0,119.179488 0,118.167279 C0,118.167279 0,82.389093 0,10.832721 C0,9.820512 0.515592,9 1.151712,9 C1.151712,9 78.385236,9 232.852284,9 L232.852284,9 Z" id="path-5"></path>
+        <mask id="mask-6" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="279" height="111" fill="white">
+            <use xlink:href="#path-5"></use>
+        </mask>
+        <linearGradient x1="100%" y1="50.0001%" x2="0%" y2="50.0001%" id="linearGradient-7">
+            <stop stop-color="#00A597" stop-opacity="0.200000003" offset="0%"></stop>
+            <stop stop-color="#00FF87" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <radialGradient cx="81.4252%" cy="0.8626%" fx="81.4252%" fy="0.8626%" r="81.5407136%" gradientTransform="translate(0.8143, 0.0086), scale(0.3993, 1), rotate(93.322), scale(1, 3.4626), translate(-0.8143, -0.0086)" id="radialGradient-8">
+            <stop stop-color="#00FFE6" stop-opacity="0.250980407" offset="0%"></stop>
+            <stop stop-color="#00FF93" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <radialGradient cx="37.0404%" cy="100%" fx="37.0404%" fy="100%" r="17.7306%" gradientTransform="translate(0.3704, 1), scale(0.3993, 1), rotate(90), scale(1, 9.0753), translate(-0.3704, -1)" id="radialGradient-9">
+            <stop stop-color="#00FFE0" stop-opacity="0.160784319" offset="0%"></stop>
+            <stop stop-color="#00C9FF" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <linearGradient x1="-9.2460359%" y1="50%" x2="30.293032%" y2="51.067977%" id="linearGradient-10">
+            <stop stop-color="#041A37" offset="0%"></stop>
+            <stop stop-color="#000000" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="97.1955%" y1="56.6593408%" x2="22.4035%" y2="44.2802941%" id="linearGradient-11">
+            <stop stop-color="#8AFFC7" offset="0%"></stop>
+            <stop stop-color="#08B83D" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <path d="M236.794174,0.831057 C236.794174,0.831057 251.466405,36.609206 280.810868,108.165504 C281.310788,109.384506 280.76121,111 279.846736,111 C279.846736,111 187.948358,111 4.15160199,111 C3.51554275,111 3,110.179488 3,109.167279 C3,109.167279 3,73.389093 3,1.832721 C3,0.820512 3.51554275,0 4.15160199,0 C4.15160199,0 81.3777485,0 235.830042,0 C236.218931,0 236.581596,0.312576 236.794174,0.831057 Z" id="path-12"></path>
+        <mask id="mask-13" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="278" height="111" fill="white">
+            <use xlink:href="#path-12"></use>
+        </mask>
+        <linearGradient x1="25.3791%" y1="0.602175705%" x2="83.7552%" y2="93.7406867%" id="linearGradient-14">
+            <stop stop-color="#38FFB2" stop-opacity="0.501960814" offset="0%"></stop>
+            <stop stop-color="#72F7C8" stop-opacity="0.200000003" offset="51.3511419%"></stop>
+            <stop stop-color="#66F3C1" stop-opacity="0.101960786" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="49.9998%" y1="0%" x2="49.9998%" y2="99.9997%" id="linearGradient-15">
+            <stop stop-color="#A1D7FF" offset="0%"></stop>
+            <stop stop-color="#318BFF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-16">
+            <stop stop-color="#047422" stop-opacity="0.0588235296" offset="0%"></stop>
+            <stop stop-color="#00837E" stop-opacity="0.200000003" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="99.3459%" x2="50%" y2="-0.0001%" id="linearGradient-17">
+            <stop stop-color="#27CA3E" stop-opacity="0.819607854" offset="0%"></stop>
+            <stop stop-color="#29E9D9" offset="100%"></stop>
+        </linearGradient>
+        <radialGradient cx="73.5542%" cy="92.9733%" fx="73.5542%" fy="92.9733%" r="24.1916663%" gradientTransform="translate(0.7355, 0.9297), scale(0.994, 1), rotate(74.7454), scale(1, 2.1685), translate(-0.7355, -0.9297)" id="radialGradient-18">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#00FFB9" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <radialGradient cx="32.4156%" cy="5.1769%" fx="32.4156%" fy="5.1769%" r="24.745335%" gradientTransform="translate(0.3242, 0.0518), scale(0.994, 1), rotate(78.4946), scale(1, 2.1685), translate(-0.3242, -0.0518)" id="radialGradient-19">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#00FF87" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <path d="M47.4611363,89.8360438 C24.7254437,89.8360438 6.29446732,71.5163902 6.29446732,48.9180208 C6.29446732,26.3196514 24.7254437,7.99999782 47.4611363,7.99999782 C70.1968289,7.99999782 88.6278053,26.3196514 88.6278053,48.9180208 C88.6278053,71.5163902 70.1968289,89.8360438 47.4611363,89.8360438 C47.4611363,89.8360438 47.4611363,89.8360438 47.4611363,89.8360438 Z" id="path-20"></path>
+        <mask id="mask-21" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="82.333338" height="81.836046" fill="white">
+            <use xlink:href="#path-20"></use>
+        </mask>
+        <mask id="mask-22" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="82.333338" height="81.836046" fill="white">
+            <use xlink:href="#path-20"></use>
+        </mask>
+        <mask id="mask-23" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="82.333338" height="81.836046" fill="white">
+            <use xlink:href="#path-20"></use>
+        </mask>
+        <linearGradient x1="49.9999%" y1="100%" x2="49.9999%" y2="-0.0001%" id="linearGradient-24">
+            <stop stop-color="#09FFD0" stop-opacity="0.349019617" offset="0%"></stop>
+            <stop stop-color="#00DD60" stop-opacity="0.278431386" offset="100%"></stop>
+        </linearGradient>
+        <radialGradient cx="32.4156%" cy="5.1769%" fx="32.4156%" fy="5.1769%" r="24.7453349%" gradientTransform="translate(0.3242, 0.0518), scale(0.994, 1), rotate(78.4946), scale(1, 2.1685), translate(-0.3242, -0.0518)" id="radialGradient-25">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#00FF86" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <path d="M47.4999651,86.6945477 C26.4369388,86.6945477 9.36193046,69.7226717 9.36193046,48.786865 C9.36193046,27.8510584 26.4369388,10.8791823 47.4999651,10.8791823 C68.5629914,10.8791823 85.6379997,27.8510584 85.6379997,48.786865 C85.6379997,69.7226717 68.5629914,86.6945477 47.4999651,86.6945477 C47.4999651,86.6945477 47.4999651,86.6945477 47.4999651,86.6945477 Z" id="path-26"></path>
+        <filter x="-13.6%" y="-13.7%" width="127.2%" height="127.4%" filterUnits="objectBoundingBox" id="filter-27">
+            <feGaussianBlur stdDeviation="3.45600009" in="SourceGraphic"></feGaussianBlur>
+        </filter>
+        <mask id="mask-28" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="76.2760692" height="75.8153654" fill="white">
+            <use xlink:href="#path-26"></use>
+        </mask>
+        <mask id="mask-29" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="76.2760692" height="75.8153654" fill="white">
+            <use xlink:href="#path-26"></use>
+        </mask>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-30">
+            <stop stop-color="#B0FFEA" offset="0%"></stop>
+            <stop stop-color="#CFFFF5" offset="47.036167%"></stop>
+            <stop stop-color="#ABFFF2" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-31">
+            <stop stop-color="#BBFFF0" offset="0%"></stop>
+            <stop stop-color="#5AFF9C" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="可视化大屏" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="民呼我为" transform="translate(-966, -242)">
+            <g id="编组-37" transform="translate(967, 242)">
+                <g id="编组-17备份-2" transform="translate(11, 0)" stroke-dasharray="0,0">
+                    <g id="路径" opacity="0.300000012">
+                        <use fill="url(#linearGradient-1)" xlink:href="#path-5"></use>
+                        <use fill="url(#radialGradient-2)" xlink:href="#path-5"></use>
+                        <use stroke="url(#linearGradient-4)" mask="url(#mask-6)" stroke-width="1.72800004" fill="url(#radialGradient-3)" xlink:href="#path-5"></use>
+                    </g>
+                    <g id="路径">
+                        <use fill="url(#linearGradient-7)" xlink:href="#path-12"></use>
+                        <use fill="url(#radialGradient-8)" xlink:href="#path-12"></use>
+                        <use fill="url(#radialGradient-9)" xlink:href="#path-12"></use>
+                        <use stroke="url(#linearGradient-11)" mask="url(#mask-13)" stroke-width="1.72800004" fill="url(#linearGradient-10)" xlink:href="#path-12"></use>
+                    </g>
+                </g>
+                <g id="ico_企业" transform="translate(0, 5)">
+                    <path d="M47.5,1.57379979 C21.26651,1.57379979 0,22.7118601 0,48.7868999 C0,74.8619397 21.26651,96 47.5,96 C73.73349,96 95,74.8619397 95,48.7868999" id="路径" stroke="url(#linearGradient-14)" stroke-width="1.72800004" stroke-dasharray="0,0"></path>
+                    <path d="M47.5000027,3.14754019 C46.6255531,3.14754019 45.9166694,2.44293814 45.9166694,1.57377009 C45.9166694,0.704602052 46.6255531,0 47.5000027,0 C48.3744524,0 49.083336,0.704602052 49.083336,1.57377009 C49.083336,2.44293814 48.3744524,3.14754019 47.5000027,3.14754019 C47.5000027,3.14754019 47.5000027,3.14754019 47.5000027,3.14754019 Z" id="路径" fill="url(#linearGradient-15)"></path>
+                    <g id="路径" stroke-dasharray="0,0" stroke-width="5.18400002">
+                        <use stroke="url(#linearGradient-17)" mask="url(#mask-21)" fill="url(#linearGradient-16)" fill-rule="evenodd" xlink:href="#path-20"></use>
+                        <use stroke="url(#radialGradient-18)" mask="url(#mask-22)" xlink:href="#path-20"></use>
+                        <use stroke="url(#radialGradient-19)" mask="url(#mask-23)" xlink:href="#path-20"></use>
+                    </g>
+                    <g id="路径" stroke-dasharray="0,0" filter="url(#filter-27)" stroke-width="5.18400002">
+                        <use stroke="url(#linearGradient-24)" mask="url(#mask-28)" xlink:href="#path-26"></use>
+                        <use stroke="url(#radialGradient-25)" mask="url(#mask-29)" xlink:href="#path-26"></use>
+                    </g>
+                </g>
+                <g id="编组-30" transform="translate(19, 26)">
+                    <path d="M26,12 L39.7642225,12 C43.077931,12 45.7642225,14.6862915 45.7642225,18 L45.7642225,48 L45.7642225,48 L26,48 C22.6862915,48 20,45.3137085 20,42 L20,18 C20,14.6862915 22.6862915,12 26,12 Z" id="矩形备份-86" fill="url(#linearGradient-30)"></path>
+                    <path d="M7.02024324,7.60028481 L20.7844657,2.78920539 C23.9125903,1.69581592 27.3348036,3.34529465 28.4281931,6.47341925 C28.6506221,7.10977577 28.7642225,7.77906603 28.7642225,8.45317601 L28.7642225,48 L28.7642225,48 L3,48 L3,13.2642554 C3,10.7136801 4.61251263,8.44187127 7.02024324,7.60028481 Z" id="矩形" fill="url(#linearGradient-31)"></path>
+                    <rect id="矩形" fill="#64FFA5" x="0" y="44" width="50" height="6" rx="3"></rect>
+                    <rect id="矩形" fill="#FFFFFF" x="8" y="17" width="16" height="4" rx="2"></rect>
+                    <rect id="矩形备份-87" fill="#FFFFFF" x="8" y="25" width="16" height="4" rx="2"></rect>
+                    <rect id="矩形备份-88" fill="#FFFFFF" x="8" y="33" width="16" height="4" rx="2"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
