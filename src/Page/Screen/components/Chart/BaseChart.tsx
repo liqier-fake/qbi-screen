@@ -26,7 +26,7 @@ interface BaseChartProps {
  */
 const BaseChart: React.FC<BaseChartProps> = ({
   option,
-  style = { height: "300px", width: "100%" },
+  style = { height: "100%", width: "100%" },
   className,
   theme,
   autoResize = true,

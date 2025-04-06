@@ -29,6 +29,7 @@ const Heatmap: React.FC = () => {
   const data = yData
     .map((y, yi) => {
       return xData.map((x, xi) => {
+        console.log(y, x);
         return [xi, yi, Math.floor(Math.random() * 5000)];
       });
     })

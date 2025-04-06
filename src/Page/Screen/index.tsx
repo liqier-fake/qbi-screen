@@ -18,12 +18,10 @@ import {
 } from "./mock";
 import LineChart from "./components/Chart/LineChart.tsx";
 import Heatmap from "./components/Chart/Heatmap.tsx";
-import RelationChart from "./components/Chart/RelationChart.tsx";
 import ComSelect from "./components/ComSelect/index.tsx";
 import ComTable from "./components/ComTable/index.tsx";
 import { columns1, columns2, columns3 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
-import WordCloudRingDemo from "./components/Chart/WordCloudRingDemo.tsx";
 const Screen = () => {
   const [trendKey, setTrendKey] = useState("");
 
@@ -225,9 +223,9 @@ const Screen = () => {
                     className={styles.select}
                     options={peopleOption}
                     onChange={(value) => {
-                      setTrendKey(value);
+                      setRequestKey(value);
                     }}
-                    value={trendKey}
+                    value={requestKey}
                   />
                   <ComTable columns={columns2} dataSource={dataSource2} />
                 </div>
@@ -276,7 +274,7 @@ const Screen = () => {
                       {
                         type: "graph",
                         layout: "none",
-                        coordinateSystem: null,
+                        coordinateSystem: undefined,
                         label: {
                           show: true,
                           color: "#fff",
