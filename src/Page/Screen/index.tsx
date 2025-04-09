@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ComTitle from "./components/ComTitle";
 import styles from "./index.module.less";
 import { LeftRenderListType } from "./common.ts";
@@ -35,6 +35,8 @@ const Screen = () => {
     createMockData()
   );
 
+  const timer = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     const updateData = async () => {
       try {
@@ -44,8 +46,8 @@ const Screen = () => {
       }
     };
 
-    const intervalId = setInterval(updateData, 3000);
-    return () => clearInterval(intervalId);
+    timer.current = setInterval(updateData, 3000);
+    return () => clearInterval(timer.current!);
   }, []);
 
   const pieOption = useMemo(() => {
@@ -315,7 +317,14 @@ const Screen = () => {
     <div className={styles.screen}>
       {/* 标题 */}
       <div className={styles.header}>
-        <span className={styles.title}>苏州工业园区“智汇民意”民情分析平台</span>
+        <span
+          className={styles.title}
+          onClick={() => {
+            clearInterval(timer.current!);
+          }}
+        >
+          苏州工业园区“智汇民意”民情分析平台
+        </span>
       </div>
       {/* 内容 */}
       <div className={styles.contentWrap}>
