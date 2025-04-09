@@ -55,13 +55,15 @@
       width: calc(968.71px * 2 + 37px);
       .flex-between();
       flex-wrap: wrap;
-      height: 100%;
+      height: auto;
+      align-items: flex-start;
       .leftItem {
         width: calc((100% - 37px) / 2);
         // width: 968.71px;
         height: 626.56px;
         .flex-column();
         .leftItemContent {
+          min-height: 0;
           height: 100%;
           background: linear-gradient(
             180deg,
@@ -101,6 +103,7 @@
         }
         .rightItemLeft,
         .rightItemRight {
+          .flex-column();
           height: 626.56px;
           width: 968.71px;
           background: linear-gradient(
@@ -133,11 +136,16 @@
   }
 
   .warp {
+    min-height: 0;
     .flex-column();
     padding: 40px;
     height: 100%;
     .select {
       margin-bottom: 20px;
+    }
+    .table {
+      height: 100%;
+      min-height: 0;
     }
   }
   .twoTrend {
@@ -155,6 +163,8 @@
       border-radius: 6px;
       border: 1px solid #0b43a2;
     }
+    height: 100%;
+    overflow: hidden;
   }
 
   .cloud {

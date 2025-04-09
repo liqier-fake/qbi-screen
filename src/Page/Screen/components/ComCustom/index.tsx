@@ -25,6 +25,7 @@ const ComCustom = ({ type, data }: ComData) => {
   const { list = [], total } = data;
 
   const totalList = useMemo(() => {
+    console.log(total, "total");
     return total?.split("");
   }, [total]);
 
@@ -43,9 +44,7 @@ const ComCustom = ({ type, data }: ComData) => {
                   <span>总计</span>
                   <div className={styles.totalList}>
                     {totalList?.map((t) => (
-                      <div key={t} className={styles.totalItem}>
-                        {t}
-                      </div>
+                      <div className={styles.totalItem}>{t}</div>
                     ))}
                   </div>
                   <span>数据</span>

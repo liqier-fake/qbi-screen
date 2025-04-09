@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import styles from "./index.module.less";
+import { memo } from "react";
 
 interface ComSelectProps {
   options: { label: string; value: string }[];
@@ -31,4 +32,4 @@ const ComSelect = ({ options, onChange, value, className }: ComSelectProps) => {
   );
 };
 
-export default ComSelect;
+export default memo(ComSelect);

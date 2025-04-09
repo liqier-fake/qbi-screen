@@ -1,13 +1,27 @@
 .tableWrapper {
   width: 100%;
   height: 100%;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 0;
+  }
+  &::-webkit-scrollbar-thumb {
+    display: none !important;
+  }
+  &::-webkit-scrollbar-track {
+    display: none !important;
+  }
+
   .table {
     width: 100%;
     height: 100%;
   }
+
   table {
     border-collapse: collapse;
   }
+
   td,
   th {
     padding: 12px 40px;
@@ -26,8 +40,14 @@
     line-height: 28px;
   }
 
+  thead {
+    position: sticky;
+    top: 0;
+    background: #071836;
+    z-index: 1;
+  }
+
   tbody {
-    overflow-y: auto;
     height: 100%;
     tr:hover {
       background: #092046;
