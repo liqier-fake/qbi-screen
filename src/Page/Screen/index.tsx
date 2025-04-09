@@ -22,22 +22,24 @@ import ComTable from "./components/ComTable/index.tsx";
 import { columns1, columns2, columns3 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
+import AutoScreen from "./components/AutoScreen/index.tsx";
 
+/**
+ * 大屏组件
+ * 展示各种数据可视化图表和信息
+ */
 const Screen = () => {
   const [trendKey, setTrendKey] = useState("");
-
   const [categoryKey, setCategoryKey] = useState("");
-
   const [focusKey, setFocusKey] = useState("");
-
   const [requestKey, setRequestKey] = useState("");
-
   const [screenData, setScreenData] = useState<ScreenDataType>(
     createMockData()
   );
 
   const timer = useRef<NodeJS.Timeout | null>(null);
 
+  // 定时更新数据
   useEffect(() => {
     const updateData = async () => {
       try {
@@ -51,6 +53,7 @@ const Screen = () => {
     return () => clearInterval(timer.current!);
   }, []);
 
+  // 饼图配置
   const pieOption: EChartsOption = useMemo(() => {
     return {
       backgroundColor: "#0b1e3a",
@@ -102,6 +105,8 @@ const Screen = () => {
       ],
     };
   }, []);
+
+  // 词云图配置
   const cloudOption: EChartsOption = useMemo(() => {
     return {
       backgroundColor: "transparent",
@@ -209,6 +214,7 @@ const Screen = () => {
     };
   }, []);
 
+  // 左侧渲染列表
   const leftRenderList: LeftRenderListType[] = useMemo(
     () => [
       {
@@ -295,6 +301,8 @@ const Screen = () => {
       pieOption,
     ]
   );
+
+  // 右侧渲染列表
   const rightRenderList: LeftRenderListType[] = useMemo(
     () => [
       {
@@ -314,7 +322,8 @@ const Screen = () => {
     [screenData.lineData, screenData.threeData]
   );
 
-  return (
+  // 大屏内容
+  const screenContent = (
     <div className={styles.screen}>
       {/* 标题 */}
       <div className={styles.header}>
@@ -324,27 +333,19 @@ const Screen = () => {
             clearInterval(timer.current!);
           }}
         >
-          苏州工业园区“智汇民意”民情分析平台
+          苏州工业园区"智汇民意"民情分析平台
         </span>
       </div>
       {/* 内容 */}
       <div className={styles.contentWrap}>
         {/* 左侧 */}
         <div className={styles.left}>
-          {
-            <div className={styles.left}>
-              {leftRenderList.map((item) => (
-                <div className={styles.leftItem} key={item.title}>
-                  <ComTitle
-                    key={item.title}
-                    title={item.title}
-                    type={"default"}
-                  />
-                  <div className={styles.leftItemContent}>{item.render}</div>
-                </div>
-              ))}
+          {leftRenderList.map((item) => (
+            <div className={styles.leftItem} key={item.title}>
+              <ComTitle key={item.title} title={item.title} type={"default"} />
+              <div className={styles.leftItemContent}>{item.render}</div>
             </div>
-          }
+          ))}
         </div>
         {/* 中间 */}
         <div className={styles.center}>
@@ -384,7 +385,6 @@ const Screen = () => {
 
             <div className={styles.rightItemRight}>
               <ComTitle title="词云" type={"default"} />
-
               <div className={styles.cloud}>
                 <BaseChart
                   style={{ width: "100%", height: "100%" }}
@@ -396,6 +396,18 @@ const Screen = () => {
         </div>
       </div>
     </div>
+  );
+
+  // 使用ScreenWrapper包装大屏内容，实现自适应
+  return (
+    <AutoScreen
+      designWidth={6144}
+      designHeight={2292} // 头部112px + 内容2180px
+      keepRatio={true}
+      autoCenter={false}
+    >
+      {screenContent}
+    </AutoScreen>
   );
 };
 

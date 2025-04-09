@@ -1,0 +1,29 @@
+/**
+ * ScreenWrapper组件样式
+ * 使用transform实现大屏自适应
+ */
+
+.screenWrapper {
+  /* 占满整个视口 */
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  /* 背景色与大屏背景保持一致 */
+  background: linear-gradient(180deg, #092359 0%, #071a42 100%);
+  /* 使用flexbox实现水平垂直居中 */
+  // display: flex;
+  // justify-content: center;
+  // align-items: flex-start;
+}
+
+.screenContent {
+  /* 绝对定位，用于精确控制位置 */
+  position: absolute;
+  /* transform-origin设置为左上角，以确保缩放正确 */
+  transform-origin: left top;
+  /* 有固定宽高，将根据设计稿设置，由JS动态指定 */
+  will-change: transform; /* 性能优化，提示浏览器该元素的transform会频繁变化 */
+}
