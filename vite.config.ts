@@ -19,7 +19,7 @@ export default defineConfig({
         postcssPxtorem({
           rootValue: 614.4, // 设计稿宽度/10（如设计稿375px，则写37.5）
           propList: ["*"], // 转换所有属性的px单位
-          selectorBlackList: [".norem"], // 过滤掉.norem开头的class
+          selectorBlackList: [".chat-wrap"], // 过滤掉.norem开头的class
         }),
       ],
     },
