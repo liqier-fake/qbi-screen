@@ -6,13 +6,266 @@
   .flex-center();
   align-items: flex-end;
   color: #fff;
+
   .AIChatIframe {
     width: 100%;
     height: 1049px;
     margin-bottom: 94px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
   }
+
+  /* Chat组件的包装容器 */
+  .chatWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+
+    /* 完全没有聊天内容时，确保输入区域依然在底部 */
+    :global(.empty-conversation) {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    /* 确保聊天窗口的输入区域固定在底部，多种选择器提高特异性 */
+    :global(.input-container),
+    :global([class*="composer"]),
+    :global([class*="message-input"]),
+    :global([class*="input-area"]) {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: linear-gradient(
+        180deg,
+        rgba(6, 22, 43, 0.8) 0%,
+        #061627 100%
+      );
+      padding: 10px;
+      border-top: 1px solid rgba(0, 247, 255, 0.15);
+      box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+      margin-top: auto !important;
+    }
+
+    /* 聊天框组件的根元素强制使用相对定位，以便内部元素使用绝对定位 */
+    :global(.chat-container) {
+      position: relative !important;
+      min-height: 100%;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* 消息区域样式，始终为输入框留出空间 */
+    :global(.message-container) {
+      flex: 1 !important;
+      overflow-y: auto !important;
+      padding-bottom: 85px !important; /* 确保有足够空间给输入框 */
+      margin-bottom: 0 !important;
+    }
+  }
+
+  /* 全屏状态下的样式调整 */
+  .AIChatIframe:fullscreen {
+    background: linear-gradient(180deg, rgba(6, 22, 43, 0.95) 0%, #061627 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 100vw;
+    height: 100vh;
+    margin-bottom: 0;
+
+    .chatWrapper {
+      width: 90%;
+      max-width: 1200px;
+      height: 90vh;
+    }
+  }
+
+  /* 支持Webkit浏览器的全屏 */
+  .AIChatIframe:-webkit-full-screen {
+    background: linear-gradient(180deg, rgba(6, 22, 43, 0.95) 0%, #061627 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 100vw;
+    height: 100vh;
+    margin-bottom: 0;
+
+    .chatWrapper {
+      width: 90%;
+      max-width: 1200px;
+      height: 90vh;
+    }
+  }
+
+  /* 支持Mozilla浏览器的全屏 */
+  .AIChatIframe:-moz-full-screen {
+    background: linear-gradient(180deg, rgba(6, 22, 43, 0.95) 0%, #061627 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 100vw;
+    height: 100vh;
+    margin-bottom: 0;
+
+    .chatWrapper {
+      width: 90%;
+      max-width: 1200px;
+      height: 90vh;
+    }
+  }
+
+  /* 支持MS浏览器的全屏 */
+  .AIChatIframe:-ms-fullscreen {
+    background: linear-gradient(180deg, rgba(6, 22, 43, 0.95) 0%, #061627 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 100vw;
+    height: 100vh;
+    margin-bottom: 0;
+
+    .chatWrapper {
+      width: 90%;
+      max-width: 1200px;
+      height: 90vh;
+    }
+  }
+
+  /* 退出全屏按钮 */
+  .exitFullscreenBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 247, 255, 0.15);
+    color: #fff;
+    border: 1px solid rgba(0, 247, 255, 0.4);
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    z-index: 100;
+
+    /* 悬停效果 */
+    &:hover {
+      background: rgba(0, 247, 255, 0.3);
+      box-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+    }
+
+    /* 点击效果 */
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  /* 数字人图像容器 */
+  .imgContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 提示文本样式 */
+  .promptText {
+    position: absolute;
+    top: -45px;
+    padding: 8px 16px;
+    background: rgba(0, 247, 255, 0.2);
+    border: 1px solid rgba(0, 247, 255, 0.4);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 20px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 247, 255, 0.3);
+    pointer-events: none;
+    text-shadow: 0 0 5px rgba(0, 247, 255, 0.8);
+  }
+
+  /* 当悬停在容器上时显示提示文本 */
+  .imgContainer:hover .promptText {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   .img {
     width: 555.16px;
     height: 788px;
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    position: relative;
+
+    /* 添加闪光提示效果 */
+    &::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: radial-gradient(
+        circle,
+        rgba(0, 247, 255, 0.2) 0%,
+        rgba(0, 247, 255, 0) 70%
+      );
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      animation: pulse 3s infinite;
+      pointer-events: none;
+    }
+
+    &:hover {
+      transform: scale(1.03);
+      filter: brightness(1.2) drop-shadow(0 0 10px rgba(0, 247, 255, 0.5));
+
+      &::after {
+        opacity: 0.7;
+      }
+    }
+  }
+
+  /* 脉冲动画效果 */
+  @keyframes pulse {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .modalChatContainer {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .chatModal {
+    :global {
+      // 可以在这里覆盖Chat组件的一些样式
+    }
   }
 }
