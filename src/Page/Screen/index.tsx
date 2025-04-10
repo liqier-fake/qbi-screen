@@ -39,6 +39,7 @@ const Screen = () => {
   const timer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    return;
     const updateData = async () => {
       try {
         setScreenData((prevData) => updateMockData(prevData));
@@ -231,7 +232,12 @@ const Screen = () => {
               }}
               value={trendKey}
             />
-            <LineChart {...screenData.lineData} />
+            <LineChart
+              {...screenData.lineData}
+              enableSlide={true}
+              slideInterval={2000}
+              visibleDataPoints={8}
+            />
           </div>
         ),
       },
@@ -280,7 +286,12 @@ const Screen = () => {
         title: "三级趋势与预测",
         render: (
           <div className={styles.warp}>
-            <LineChart {...screenData.lineData} />
+            <LineChart
+              {...screenData.lineData}
+              enableSlide={true}
+              slideInterval={2000}
+              visibleDataPoints={8}
+            />
           </div>
         ),
       },
@@ -305,8 +316,17 @@ const Screen = () => {
         title: "治理画像",
         render: (
           <div className={styles.manageChart}>
-            <Heatmap />
-            <LineChart {...screenData.lineData} />
+            <Heatmap
+              enableSlide={true}
+              slideInterval={3500}
+              visibleDataPoints={3}
+            />
+            <LineChart
+              {...screenData.lineData}
+              enableSlide={true}
+              slideInterval={2000}
+              visibleDataPoints={8}
+            />
           </div>
         ),
       },
@@ -324,7 +344,7 @@ const Screen = () => {
             clearInterval(timer.current!);
           }}
         >
-          苏州工业园区“智汇民意”民情分析平台
+          苏州工业园区"智汇民意"民情分析平台
         </span>
       </div>
       {/* 内容 */}

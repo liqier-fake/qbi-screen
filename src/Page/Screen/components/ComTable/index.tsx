@@ -21,8 +21,10 @@ export interface ComTableProps<T extends TableRecord = TableRecord> {
   dataSource: T[]; // 数据源
   className?: string; // 自定义类名
   autoScroll?: boolean; // 是否开启自动滚动
-  scrollSpeed?: number; // 滚动速度(px/s)
+  scrollSpeed?: number; // 滚动间隔(ms)，表示每行滚动的时间间隔
   scrollHeight?: number; // 容器高度
+  scrollByRow?: boolean; // 是否按行滚动
+  scrollDuration?: number; // 滚动动画持续时间(ms)
 }
 
 const ComTable = <T extends TableRecord = TableRecord>({
@@ -30,12 +32,16 @@ const ComTable = <T extends TableRecord = TableRecord>({
   dataSource,
   className,
   autoScroll = true,
-  scrollSpeed = 50,
+  scrollSpeed = 3000, // 默认3秒滚动一行，增加间隔时间
+  scrollByRow = true, // 默认按行滚动
+  scrollDuration = 1200, // 默认滚动动画持续1.2秒
 }: ComTableProps<T>) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLTableSectionElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [currentRowIndex, setCurrentRowIndex] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false); // 新增状态，标记是否正在滚动
 
   // 创建双倍数据以实现无缝滚动
   const doubleData = [...dataSource, ...dataSource];
@@ -43,60 +49,142 @@ const ComTable = <T extends TableRecord = TableRecord>({
   useEffect(() => {
     if (!autoScroll || !containerRef.current || !contentRef.current) return;
 
-    // 动画帧id
-    let animationFrameId: number;
-    // 上一次时间戳，计算滚动距离
-    let lastTimestamp: number;
+    let timerId: NodeJS.Timeout | null = null;
+    let animationFrameId: number | null = null;
 
-    const scroll = (timestamp: number) => {
-      if (!containerRef.current || !contentRef.current || isPaused) {
-        lastTimestamp = timestamp;
-        animationFrameId = requestAnimationFrame(scroll);
-        return;
-      }
+    // 按行滚动
+    if (scrollByRow) {
+      const scrollToNextRow = () => {
+        if (isPaused || isScrolling) return; // 如果正在滚动或暂停，则不执行下一次滚动
 
-      if (!lastTimestamp) {
-        lastTimestamp = timestamp;
-      }
+        setIsScrolling(true); // 标记开始滚动
 
-      // 间隔时间
-      const deltaTime = timestamp - lastTimestamp;
-      // 滚动距离
-      const pixelsToScroll = (scrollSpeed * deltaTime) / 1000;
+        // 计算下一行索引
+        const nextRowIndex = (currentRowIndex + 1) % dataSource.length;
+        setCurrentRowIndex(nextRowIndex);
 
-      // 设置滚动距离
-      setScrollTop((prevScrollTop) => {
-        const content = contentRef.current!;
-        const maxScroll = content.scrollHeight / 2; // 只需要滚动一半的高度
+        // 获取行元素
+        const rowElements = contentRef.current?.querySelectorAll("tr");
+        if (rowElements && rowElements.length > 0) {
+          // 计算下一行的位置
+          const rowToScrollTo = rowElements[nextRowIndex];
+          if (rowToScrollTo) {
+            // 设置滚动位置，使用自定义CSS动画实现更平滑的滚动
+            const customScrollBehavior = () => {
+              const startTime = performance.now();
+              const startScrollTop = containerRef.current!.scrollTop;
+              const targetScrollTop = rowToScrollTo.offsetTop;
+              const scrollDistance = targetScrollTop - startScrollTop;
 
-        let newScrollTop = prevScrollTop + pixelsToScroll;
+              // 使用 easeInOutQuad 缓动函数使滚动更平滑
+              const easeInOutQuad = (t: number): number => {
+                return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+              };
 
-        // 当滚动到第一组数据的底部时，重置到顶部
-        if (newScrollTop >= maxScroll) {
-          newScrollTop = 0;
+              const animateScroll = (currentTime: number) => {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / scrollDuration, 1);
+                const easedProgress = easeInOutQuad(progress);
+
+                containerRef.current!.scrollTop =
+                  startScrollTop + scrollDistance * easedProgress;
+
+                if (progress < 1) {
+                  requestAnimationFrame(animateScroll);
+                } else {
+                  // 滚动完成
+                  setTimeout(() => {
+                    setIsScrolling(false); // 标记滚动结束
+                  }, 100); // 小延迟确保滚动完全结束
+
+                  // 当滚动到最后一行时，无缝切换到第一组数据
+                  if (nextRowIndex === dataSource.length - 1) {
+                    // 延迟重置，等待滚动动画完成
+                    setTimeout(() => {
+                      containerRef.current?.scrollTo({
+                        top: 0,
+                        behavior: "auto",
+                      });
+                    }, 200);
+                  }
+                }
+              };
+
+              requestAnimationFrame(animateScroll);
+            };
+
+            customScrollBehavior();
+          }
+        }
+      };
+
+      // 开始定时滚动
+      timerId = setInterval(scrollToNextRow, scrollSpeed);
+    } else {
+      // 平滑滚动逻辑，降低滚动速度
+      let lastTimestamp: number;
+
+      const scroll = (timestamp: number) => {
+        if (!containerRef.current || !contentRef.current || isPaused) {
+          lastTimestamp = timestamp;
+          animationFrameId = requestAnimationFrame(scroll);
+          return;
         }
 
-        return newScrollTop;
-      });
+        if (!lastTimestamp) {
+          lastTimestamp = timestamp;
+        }
 
-      lastTimestamp = timestamp;
+        // 间隔时间
+        const deltaTime = timestamp - lastTimestamp;
+        // 滚动距离，降低滚动速度系数 (从1/2000改为1/5000)
+        const pixelsToScroll = (1 * deltaTime) / 5000;
+
+        // 设置滚动距离
+        setScrollTop((prevScrollTop) => {
+          const content = contentRef.current!;
+          const maxScroll = content.scrollHeight / 2; // 只需要滚动一半的高度
+
+          let newScrollTop = prevScrollTop + pixelsToScroll;
+
+          // 当滚动到第一组数据的底部时，重置到顶部
+          if (newScrollTop >= maxScroll) {
+            newScrollTop = 0;
+          }
+
+          return newScrollTop;
+        });
+
+        lastTimestamp = timestamp;
+        animationFrameId = requestAnimationFrame(scroll);
+      };
+
+      // 开始滚动
       animationFrameId = requestAnimationFrame(scroll);
-    };
-
-    // 开始滚动
-    animationFrameId = requestAnimationFrame(scroll);
+    }
 
     return () => {
-      // 取消动画帧
-      cancelAnimationFrame(animationFrameId);
+      // 清理定时器和动画帧
+      if (timerId) clearInterval(timerId);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
-  }, [autoScroll, isPaused, scrollSpeed]);
+  }, [
+    autoScroll,
+    isPaused,
+    scrollSpeed,
+    currentRowIndex,
+    dataSource.length,
+    scrollByRow,
+    isScrolling,
+    scrollDuration,
+  ]);
 
+  // 同步滚动位置到容器 (用于平滑滚动模式)
   useEffect(() => {
-    if (containerRef.current) {
+    if (!scrollByRow && containerRef.current) {
       containerRef.current.scrollTop = scrollTop;
     }
-  }, [scrollTop]);
+  }, [scrollTop, scrollByRow]);
 
   return (
     <div

@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import BaseChart from "./BaseChart";
-import type { EChartsOption } from "echarts";
+import type { EChartsOption, SetOptionOpts, ECharts } from "echarts";
 
 // 折线数据类型定义
 interface LineData {
@@ -15,6 +15,12 @@ interface LineChartProps {
   xData: string[] | number[];
   className?: string;
   style?: React.CSSProperties;
+  // 是否启用平移动画效果
+  enableSlide?: boolean;
+  // 平移速度（毫秒）
+  slideInterval?: number;
+  // 可视区域宽度（显示多少个数据点）
+  visibleDataPoints?: number;
 }
 
 const LineChart: React.FC<LineChartProps> = ({
@@ -22,9 +28,32 @@ const LineChart: React.FC<LineChartProps> = ({
   xData = [],
   className,
   style,
+  enableSlide = false,
+  slideInterval = 2000,
+  visibleDataPoints = 10,
 }) => {
+  // 图表实例引用
+  const chartInstanceRef = useRef<ECharts | null>(null);
+  // 定时器引用
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // 当前视图起始索引
+  const startIndexRef = useRef<number>(0);
+
   const option = useMemo(() => {
     const colorList = ["#00FFC3", "#7D00FF", "#00AEFF", "#FF3B3B", "#5FFF00"];
+
+    // 计算当前视图的数据范围
+    const endIndex = Math.min(
+      startIndexRef.current + visibleDataPoints,
+      xData.length
+    );
+    const visibleXData = xData.slice(startIndexRef.current, endIndex);
+
+    // 对每个线条做同样的截取处理
+    const visibleLineData = lineData.map((line) => ({
+      ...line,
+      data: line.data.slice(startIndexRef.current, endIndex),
+    }));
 
     return {
       // backgroundColor: "#001529",
@@ -51,7 +80,7 @@ const LineChart: React.FC<LineChartProps> = ({
       },
       xAxis: {
         type: "category" as const,
-        data: xData,
+        data: visibleXData,
         boundaryGap: false,
         axisLine: {
           lineStyle: {
@@ -89,7 +118,7 @@ const LineChart: React.FC<LineChartProps> = ({
           },
         },
       },
-      series: lineData.map((item, i) => ({
+      series: visibleLineData.map((item, index) => ({
         name: item.name,
         type: "line",
         data: item.data,
@@ -99,20 +128,93 @@ const LineChart: React.FC<LineChartProps> = ({
           width: 2,
         },
         itemStyle: {
-          color: item.color || colorList[i],
+          color: item.color || colorList[index],
         },
         areaStyle: {
           opacity: 0.1,
         },
       })),
+      // 添加 dataZoom 组件以支持区间滑动
+      dataZoom: [
+        {
+          type: "inside",
+          start: 0,
+          end: 100,
+        },
+      ],
     } as EChartsOption;
-  }, [lineData, xData]);
+  }, [lineData, xData, visibleDataPoints, startIndexRef.current]);
+
+  // 处理图表平移效果
+  useEffect(() => {
+    if (!enableSlide || xData.length <= visibleDataPoints) return;
+
+    // 清除之前的定时器
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // 设置新的定时器实现平移效果
+    timerRef.current = setInterval(() => {
+      if (chartInstanceRef.current) {
+        // 更新起始索引，实现平移效果
+        startIndexRef.current =
+          (startIndexRef.current + 1) % (xData.length - visibleDataPoints + 1);
+
+        // 计算新的可见数据范围
+        const endIndex = Math.min(
+          startIndexRef.current + visibleDataPoints,
+          xData.length
+        );
+        const visibleXData = xData.slice(startIndexRef.current, endIndex);
+
+        // 对每个线条做同样的截取处理
+        const visibleLineData = lineData.map((line) => ({
+          ...line,
+          data: line.data.slice(startIndexRef.current, endIndex),
+        }));
+
+        // 更新图表数据，应用动画效果
+        chartInstanceRef.current.setOption(
+          {
+            xAxis: {
+              data: visibleXData,
+            },
+            series: visibleLineData.map((item) => ({
+              data: item.data,
+            })),
+          },
+          {
+            // 指定动画相关配置
+            animation: true,
+            animationDuration: Math.floor(slideInterval * 0.5),
+            animationEasing: "linear",
+          } as SetOptionOpts
+        );
+      }
+    }, slideInterval);
+
+    // 组件卸载时清除定时器
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [enableSlide, slideInterval, lineData, xData, visibleDataPoints]);
+
+  // 获取图表实例的回调函数
+  const handleChartReady = (instance: ECharts) => {
+    chartInstanceRef.current = instance;
+  };
 
   return (
     <BaseChart
       option={option}
       style={{ width: "100%", height: "100%", ...style }}
       className={className}
+      onChartReady={handleChartReady}
     />
   );
 };
