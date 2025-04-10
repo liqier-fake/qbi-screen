@@ -88,8 +88,8 @@ const Heatmap: React.FC<HeatmapProps> = ({
     // 生成热力图数据，使数据分布更加明显
     const generateData = () => {
       return yData
-        .map((y, yi) => {
-          return xData.map((x, xi) => {
+        .map((_, yi) => {
+          return xData.map((_, xi) => {
             // 生成更有区分度的数据
             const baseValue = Math.floor(Math.random() * 3000);
             const bonus = Math.floor(Math.random() * 2000);

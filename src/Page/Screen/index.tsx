@@ -317,6 +317,7 @@ const Screen = () => {
         render: (
           <div className={styles.manageChart}>
             <Heatmap
+              className={styles.manageChartItem}
               enableSlide={true}
               slideInterval={3500}
               visibleDataPoints={3}
@@ -326,6 +327,7 @@ const Screen = () => {
               enableSlide={true}
               slideInterval={2000}
               visibleDataPoints={8}
+              className={styles.manageChartItem}
             />
           </div>
         ),
@@ -374,8 +376,13 @@ const Screen = () => {
         </div>
         {/* 右侧 */}
         <div className={styles.right}>
-          {rightRenderList.map((item) => (
-            <div className={styles.rightItem} key={item.title}>
+          {rightRenderList.map((item, i) => (
+            <div
+              className={classNames(styles.rightItem, {
+                [styles.one]: i === 0,
+              })}
+              key={item.title}
+            >
               <ComTitle key={item.title} title={item.title} type={"middle"} />
               <div className={styles.rightItemContent}>{item.render}</div>
             </div>
