@@ -4,6 +4,236 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* index.module.less */
+  --title-height: 84px;
+  --title-font-size: 64px;
+  --title-line-height: 83px;
+  --content-wrap-padding: 0 95px;
+
+  --left-item-height: 30%;
+  --left-item-margin-right: 37px;
+  --left-item-margin-bottom: 53px;
+
+  --center-item-padding: 0 42px 0 58px;
+
+  --right-item-one-width: 24vh;
+  --right-item-height: calc((90vh - 24vh) / 2);
+  --right-item-margin-bottom: 49px;
+
+  --right-item-right-width: calc(50% - 37px);
+
+  --manage-chart-item-width: calc(50% - 10px);
+
+  --warp-padding: 40px 10px;
+
+  --select-margin-bottom: 20px;
+
+  --two-trend-margin-top: 20px;
+
+  --pie-wrap-width: 245px;
+  --pie-wrap-height: 343px;
+
+  /* comtitle.module.less */
+  --comtitle-height: 68.49px;
+  --comtitle-font-size: 30px;
+  --comtitle-line-height: 34px;
+  --comtitle-letter-spacing: 2px;
+  --comtitle-padding-left: 68px;
+  --comtitle-padding-top: 24px;
+  --comtitle-padding-bottom: 15px;
+
+  /* comtable.module.less */
+  --table-padding: 12px 40px;
+  --table-font-size: 20px;
+
+  /* comselect.module.less */
+  --select-padding: 10px 22px;
+  --select-font-size: 20px;
+  --select-line-height: 28px;
+  --select-arrow-width: 6px;
+  --select-arrow-margin-left: 14px;
+  --select-arrow-margin-top: -3px;
+
+  /* comcustom.module.less */
+
+  /* cardOne.module.less */
+  --flap-item-padding: 0 65px;
+  --flap-item-font-size: 28px;
+  --flap-item-line-height: 40px;
+  --flap-item-total-list-padding: 0 16px;
+  --flap-item-total-item-width: 76px;
+  --flap-item-total-item-height: 108px;
+  --flap-item-total-item-line-height: 108px;
+  --flap-item-total-item-margin-right: 16px;
+  --flap-item-total-item-font-size: 70px;
+
+  --card-one-icon-list-margin-top: 56px;
+  --card-one-icon-list-margin-left: 52px;
+  --card-one-icon-list-margin-bottom: 43px;
+  --card-one-icon-list-item-width: calc(100% / 3);
+  --card-one-icon-list-item-img-width: 81px;
+  --card-one-icon-list-item-img-height: 76px;
+  --card-one-icon-list-item-img-margin-right: 7px;
+
+  --card-one-icon-item-content-height: 76px;
+
+  --card-one-icon-item-title-font-size: 22px;
+  --card-one-icon-item-title-margin-bottom: 3px;
+
+  --card-one-icon-item-value-font-size: 30px;
+  --card-one-icon-item-value-line-height: 34px;
+  --card-one-icon-item-value-letter-spacing: 2px;
+
+  /* cardTwo.module.less */
+  --card-two-margin-top: 94px;
+  --card-two-margin-left: 80px;
+  --card-two-show-item-content-width: calc(100% / 2 - 61px);
+  --card-two-show-item-content-height: 120px;
+  --card-two-show-item-content-padding-left: 145px;
+  --card-two-show-item-content-padding-bottom: 35px;
+  --card-two-show-item-content-padding-top: calc(22px + 7px);
+  --card-two-show-item-content-margin-bottom: 60px;
+  --card-two-show-item-title-font-size: 30px;
+  --card-two-show-item-title-line-height: 60px;
+  --card-two-show-item-value-font-size: 22px;
+  --card-two-show-item-value-line-height: 28px;
+
+  /* cardThree.module.less */
+  --card-three-width: 326px;
+  --card-three-height: 401px;
+  --card-three-padding-top: 28px;
+  --card-three-img-width: 160px;
+  --card-three-img-height: 160px;
+  --card-three-img-margin-bottom: 11px;
+  --card-three-title-font-size: 48px;
+  --card-three-title-line-height: 98px;
+  --card-three-value-font-size: 30px;
+  --card-three-value-line-height: 24px;
+  --card-three-value-margin-top: 2px;
+
+  /* AIChat.module.less */
+  --AIChat-img-width: 555.16px;
+  --AIChat-img-height: 788px;
+}
+
+@media screen and (max-width: 100000px) {
+  :root {
+    /* index.module.less */
+    --title-height: 50px;
+    --title-font-size: 20px;
+    --title-line-height: 50px;
+
+    --content-wrap-padding: 0 16px;
+
+    --left-item-height: 300px;
+    --left-item-margin-right: 8px;
+    --left-item-margin-bottom: 8px;
+
+    --center-item-padding: 0 16px 0 16px;
+
+    --right-item-one-height: 200px;
+    --right-item-height: 350px;
+    --right-item-margin-bottom: 10px;
+
+    --right-item-right-width: calc(50% - 10px);
+
+    --manage-chart-item-width: calc(50% - 10px);
+
+    --warp-padding: 16px;
+
+    --select-margin-bottom: 5px;
+
+    --two-trend-margin-top: 20px;
+
+    --pie-wrap-width: 80px;
+    --pie-wrap-height: 343px;
+
+    /* comtitle.module.less */
+    --comtitle-height: 30px;
+    --comtitle-font-size: 14px;
+    --comtitle-line-height: 30px;
+    --comtitle-letter-spacing: 2px;
+    --comtitle-padding-left: 10px;
+    --comtitle-padding-top: 3px;
+    --comtitle-padding-bottom: 10px;
+
+    /* comtable.module.less */
+    --table-padding: 10px;
+    --table-font-size: 10px;
+
+    /* comselect.module.less */
+    --select-padding: 5px;
+    --select-font-size: 10px;
+    --select-line-height: 28px;
+    --select-arrow-width: 2px;
+    --select-arrow-margin-left: 3px;
+    --select-arrow-margin-top: -3px;
+
+    /* comcustom.module.less */
+
+    /* cardOne.module.less */
+    --flap-item-margin-top: 20px;
+    --flap-item-padding: 0 10px;
+    --flap-item-font-size: 16px;
+    --flap-item-line-height: 50px;
+    --flap-item-total-list-padding: 0 16px;
+    --flap-item-total-item-width: 40px;
+    --flap-item-total-item-height: 50px;
+    --flap-item-total-item-line-height: 50px;
+    --flap-item-total-item-margin-right: 10px;
+    --flap-item-total-item-font-size: 24px;
+
+    --card-one-icon-list-margin-top: 20px;
+    --card-one-icon-list-margin-left: 16px;
+    --card-one-icon-list-margin-bottom: 5px;
+    --card-one-icon-list-item-width: calc(100% / 3);
+    --card-one-icon-list-item-img-width: 30px;
+    --card-one-icon-list-item-img-height: 30px;
+    --card-one-icon-list-item-img-margin-right: 2px;
+
+    --card-one-icon-item-content-height: 76px;
+
+    --card-one-icon-item-title-font-size: 14px;
+    --card-one-icon-item-title-margin-bottom: 3px;
+
+    --card-one-icon-item-value-font-size: 12px;
+    --card-one-icon-item-value-line-height: 12px;
+    --card-one-icon-item-value-letter-spacing: 2px;
+
+    /* cardTwo.module.less */
+    --card-two-margin-top: 20px;
+    --card-two-margin-left: 20px;
+    --card-two-show-item-content-width: calc(100% / 2 - 20px);
+    --card-two-show-item-content-height: 120px;
+    --card-two-show-item-content-padding-left: 15%;
+    --card-two-show-item-content-padding-bottom: 35px;
+    --card-two-show-item-content-padding-top: calc(22px + 7px);
+    --card-two-show-item-content-margin-bottom: 0px;
+    --card-two-show-item-title-font-size: 14px;
+    --card-two-show-item-title-line-height: 40px;
+    --card-two-show-item-value-font-size: 14px;
+    --card-two-show-item-value-line-height: 14px;
+
+    /* cardThree.module.less */
+    --card-three-width: 100px;
+    --card-three-height: 120px;
+    --card-three-padding-top: 10px;
+    --card-three-img-width: 30px;
+    --card-three-img-height: 30px;
+    --card-three-img-margin-bottom: 8px;
+    --card-three-title-font-size: 10px;
+    --card-three-title-line-height: 20px;
+    --card-three-value-font-size: 10px;
+    --card-three-value-line-height: 10px;
+    --card-three-value-margin-top: 2px;
+
+    /* AIChat.module.less */
+    --AIChat-img-width: 200px;
+    --AIChat-img-height: 788px;
+  }
+}
+
 .app {
   width: 100vw;
   height: 100vh;
@@ -37,6 +267,10 @@
   /* 添加滚动条样式 */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.ant-flex:empty {
+  display: flex;
 }
 
 /* 自定义滚动条样式（WebKit浏览器） */

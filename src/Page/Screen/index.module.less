@@ -54,7 +54,6 @@
   // 容器包装器
   .contentWrap {
     position: relative;
-    border: 1px solid rgba(11, 67, 162, 0.3);
 
     // 添加流动边框效果
     &::before {
@@ -153,12 +152,14 @@
     background-size: 100% calc(100% + 156px - 112px);
     .flex-center();
     .title {
-      font-size: 100px;
       color: #fff;
-      height: 84px;
-      font-size: 64px;
-      color: #ffffff;
-      line-height: 83px;
+      // height: 84px;
+      // font-size: 64px;
+      // color: #ffffff;
+      // line-height: 83px;
+      height: var(--title-height);
+      font-size: var(--title-font-size);
+      line-height: var(--title-line-height);
       text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
       text-align: center;
       font-style: normal;
@@ -167,13 +168,14 @@
   }
 
   .contentWrap {
+    width: 100%;
     box-sizing: border-box;
     // height: 2180px;
     background-image: url("./img/map-bg.png"), @bg-color;
     background-size: 50%, 100% 100%;
     background-position: center, 0 0;
     background-repeat: no-repeat;
-    padding: 0 95px;
+    padding: var(--content-wrap-padding);
     .flex-between();
 
     .left {
@@ -185,12 +187,13 @@
       height: auto;
       align-items: flex-start;
       .leftItem {
+        overflow: hidden;
         // width: calc((100% - 37px) / 2);
-        flex: 1 1 calc(50% - 37px);
+        flex: 1 1 calc(50% - var(--left-item-margin-right));
         // width: 968.71px;
         // height: 626.56px;
         // height: 30%;
-        height: 30vh;
+        height: var(--left-item-height);
         .flex-column();
         .leftItemContent {
           min-height: 0;
@@ -204,8 +207,8 @@
           border-radius: 8px;
           overflow: hidden;
         }
-        margin-right: 37px;
-        margin-bottom: 53px;
+        margin-right: var(--left-item-margin-right);
+        margin-bottom: var(--left-item-margin-bottom);
       }
 
       .leftItem:nth-child(2n) {
@@ -223,20 +226,25 @@
       .centerItem {
         width: 100%;
       }
-      padding: 0 42px 0 58px;
+      padding: var(--center-item-padding);
     }
 
     .right {
+      overflow: hidden;
       // width: calc(968.71px * 2 + 37px);
       flex: 3 1;
       // height: 100%;
+      .flex-column();
+      justify-content: space-between;
+
       .one {
-        height: 24vh !important;
+        height: var(--right-item-one-height) !important;
       }
 
       .rightItem {
-        height: calc((90vh - 24vh) / 2);
-        margin-bottom: 49px;
+        overflow: hidden;
+        height: var(--right-item-height);
+        margin-bottom: var(--right-item-margin-bottom);
         // height: 629.84px;
         .rightItemContent {
           height: 100%;
@@ -248,7 +256,7 @@
           // height: 626.56px;
           // height: 30vh;
           // width: 968.71px;
-          width: calc(50% - 37px);
+          width: var(--right-item-right-width);
           background: linear-gradient(
             180deg,
             rgba(6, 22, 43, 0.6) 0%,
@@ -268,22 +276,23 @@
   .manageChart {
     background: linear-gradient(180deg, rgba(4, 18, 45, 0) 0%, #061627 100%);
     height: 100%;
+    height: 90%;
     min-height: 0;
     overflow: hidden;
     .flex-between();
     // padding: 40px 10px;
     .manageChartItem {
-      width: calc(50% - 10px);
+      width: var(--manage-chart-item-width);
     }
   }
 
   .warp {
     min-height: 0;
     .flex-column();
-    padding: 40px;
+    padding: var(--warp-padding);
     height: 100%;
     .select {
-      margin-bottom: 20px;
+      margin-bottom: var(--select-margin-bottom);
     }
     .table {
       height: 100%;
@@ -291,12 +300,16 @@
     }
   }
   .twoTrend {
-    margin-top: 20px;
+    margin-top: var(--two-trend-margin-top);
     .flex-between();
     .pieWrap {
       flex-shrink: 0;
-      width: 245px;
-      height: 343px;
+      // width: 245px;
+      // height: 343px;
+
+      width: var(--pie-wrap-width);
+      height: var(--pie-wrap-height);
+      aspect-ratio: 245/343;
       background: linear-gradient(
         rgba(8, 20, 37, 0.54) 0%,
         rgba(47, 61, 82, 0.09) 100%
@@ -312,6 +325,6 @@
 
   .cloud {
     width: 100%;
-    height: 626.56px;
+    height: 100%;
   }
 }

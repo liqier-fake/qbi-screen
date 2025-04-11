@@ -10,17 +10,17 @@
   .option {
     .flex-center();
     cursor: pointer;
-    padding: 10px 22px;
+    padding: var(--select-padding);
     background: linear-gradient(180deg, #092450 0%, #071b41 100%);
     border-radius: 4px;
     transform: skewX(-20deg);
-    font-size: 20px;
+    font-size: var(--select-font-size);
     color: #77a4ed;
   }
   .active {
     background: linear-gradient(180deg, #0c4bb1 0%, #0a378d 100%);
     .arrow {
-      border-top: 6px solid #fff;
+      border-top: var(--select-arrow-width) solid #fff;
     }
     .label {
       color: #fff;
@@ -31,10 +31,10 @@
   }
   .arrow {
     // 三角形
-    margin-left: 14px;
-    border: 6px solid transparent;
-    border-top: 6px solid #77a4ed;
+    margin-left: var(--select-arrow-margin-left);
+    border: var(--select-arrow-width) solid transparent;
+    border-top: var(--select-arrow-width) solid #77a4ed;
     transform: skewX(20deg) translateY(50%);
-    margin-top: -3px;
+    margin-top: var(--select-arrow-margin-top);
   }
 }

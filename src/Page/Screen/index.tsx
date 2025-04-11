@@ -67,12 +67,12 @@ const Screen = () => {
       legend: {
         orient: "vertical",
         left: "center",
-        bottom: "10%",
+        bottom: "0",
         itemWidth: 14,
         itemHeight: 14,
         textStyle: {
           color: "#fff",
-          fontSize: 14,
+          fontSize: 10,
         },
         data: [
           { name: "高 5个", icon: "circle" },
@@ -85,7 +85,7 @@ const Screen = () => {
         {
           name: "等级分布",
           type: "pie",
-          center: ["50%", "40%"],
+          center: ["50%", "20%"],
           radius: ["50%", "20%"],
           avoidLabelOverlap: false,
           label: {
