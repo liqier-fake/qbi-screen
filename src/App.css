@@ -312,7 +312,10 @@
 .chat-sender {
   margin-top: 10px;
   border-top: 1px solid #eee;
-  padding-top: 15px;
+}
+
+.ant-sender .ant-sender-content {
+  padding-block: 6px;
 }
 
 /* 确保输入框中的文字是白色 */
@@ -394,5 +397,5 @@
 
 textarea::-webkit-input-placeholder {
   /* WebKit browsers */
-  color: #fff;
+  color: #fff !important;
 }

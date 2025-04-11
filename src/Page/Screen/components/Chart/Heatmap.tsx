@@ -36,7 +36,7 @@ interface EChartsGraphicItem {
 const Heatmap: React.FC<HeatmapProps> = ({
   enableSlide = false,
   slideInterval = 2000,
-  visibleDataPoints = 6,
+  visibleDataPoints = 20,
   style = { height: "100%", width: "100%" },
   className = "heatmap-example",
 }) => {
@@ -155,19 +155,6 @@ const Heatmap: React.FC<HeatmapProps> = ({
           color: "#fff",
         },
       },
-      title: enableSlide
-        ? {
-            text: "数据展示中",
-            textStyle: {
-              color: "#fff",
-              fontSize: 16,
-              fontWeight: "bold",
-            },
-            left: "center",
-            top: 10,
-            show: true,
-          }
-        : undefined,
       graphic: graphic,
       grid: {
         left: "3%",
@@ -235,6 +222,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
         orient: "horizontal",
         left: "center",
         bottom: "2%",
+        show: false,
         textStyle: {
           color: "#fff",
         },
@@ -250,14 +238,6 @@ const Heatmap: React.FC<HeatmapProps> = ({
             "#d73027",
             "#a50026",
           ],
-        },
-        controller: {
-          inRange: {
-            color: ["#313695", "#a50026"],
-          },
-          outOfRange: {
-            color: "#ccc",
-          },
         },
         textGap: 10,
       },
@@ -305,6 +285,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
 
   // 处理图表平移效果
   useEffect(() => {
+    return;
     if (
       !enableSlide ||
       xData.length <= visibleDataPoints ||
