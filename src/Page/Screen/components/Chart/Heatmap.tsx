@@ -285,7 +285,6 @@ const Heatmap: React.FC<HeatmapProps> = ({
 
   // 处理图表平移效果
   useEffect(() => {
-    return;
     if (
       !enableSlide ||
       xData.length <= visibleDataPoints ||
