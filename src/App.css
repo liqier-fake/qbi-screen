@@ -147,7 +147,7 @@
     --two-trend-margin-top: 20px;
 
     --pie-wrap-width: 80px;
-    --pie-wrap-height: 343px;
+    --pie-wrap-height: 150px;
 
     /* comtitle.module.less */
     --comtitle-height: 30px;
@@ -328,6 +328,9 @@
 }
 
 .ant-typography {
+  color: #fff !important;
+}
+.ant-typography h3 {
   color: #fff !important;
 }
 

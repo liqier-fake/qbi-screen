@@ -39,6 +39,11 @@ const AIChat = () => {
           <Chat
             apiUrl={import.meta.env.VITE_BASE_URL}
             apiKey={import.meta.env.VITE_CHAT_TOKEN}
+            tips={[
+              "请帮我分析一下胜浦街道，民生诉求最高的几类事项",
+              "请帮我从新市民劳动者群体中，筛选10条含极端扬言的工单",
+              " 按月统计”违规占用消防通道“，工单量数据的变化情况",
+            ]}
           />
         </div>
       </Modal>
