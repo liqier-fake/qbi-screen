@@ -16,11 +16,11 @@ export default defineConfig({
     postcss: {
       plugins: [
         autoprefixer(), // 自动添加浏览器前缀
-        postcssPxtorem({
-          rootValue: 614.4, // 设计稿宽度/10（如设计稿375px，则写37.5）
-          propList: ["*"], // 转换所有属性的px单位
-          selectorBlackList: [".chat-wrap"], // 过滤掉.norem开头的class
-        }),
+        // postcssPxtorem({
+        //   rootValue: 614.4, // 设计稿宽度/10（如设计稿375px，则写37.5）
+        //   propList: ["*"], // 转换所有属性的px单位
+        //   selectorBlackList: [".chat-wrap"], // 过滤掉.norem开头的class
+        // }),
       ],
     },
   },

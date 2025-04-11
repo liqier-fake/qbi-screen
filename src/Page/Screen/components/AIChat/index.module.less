@@ -8,18 +8,18 @@
   color: #fff;
   .AIChatIframe {
     width: 100%;
-    height: 1049px;
-    margin-bottom: 94px;
+    // height: 1049px;
+    // margin-bottom: 94px;
     display: none;
   }
   .img {
-    width: 555.16px;
-    height: 788px;
+    width: var(--AIChat-img-width);
+    // height: var(--AIChat-img-height);
+    aspect-ratio: 555.16 / 788;
   }
   .img:hover {
     display: block;
-    border: 1px solid green;
-    box-shadow: 0 0 10px 0 green;
+    box-shadow: 0 20px 20px 10px rgb(48, 216, 255);
   }
 }
 :global {

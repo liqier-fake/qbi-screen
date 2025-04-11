@@ -12,34 +12,33 @@
     height: 100%;
 
     .flapItem {
-      margin-top: 55px;
+      margin-top: var(--flap-item-margin-top);
       display: flex;
       justify-content: center;
       align-items: center;
       color: #ffffff;
-      padding: 0 65px;
-
+      padding: var(--flap-item-padding);
       span {
-        font-size: 28px;
-        line-height: 40px;
+        font-size: var(--flap-item-font-size);
+        line-height: var(--flap-item-line-height);
       }
       .totalList {
         color: #ffffff;
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 0 16px;
+        padding: var(--flap-item-total-list-padding);
         .totalItem {
-          width: 76px;
-          height: 108px;
-          line-height: 108px;
+          width: var(--flap-item-total-item-width);
+          height: var(--flap-item-total-item-height);
+          line-height: var(--flap-item-total-item-line-height);
           background-image: url("./img/flap_bg.svg");
           background-size: 100% 100%;
           background-repeat: no-repeat;
           background-position: center center;
           text-align: center;
-          font-size: 70px;
-          margin-right: 16px;
+          font-size: var(--flap-item-total-item-font-size);
+          margin-right: var(--flap-item-total-item-margin-right);
           font-weight: 600;
         }
         .totalItem:last-child {
@@ -49,21 +48,21 @@
     }
 
     .iconList {
-      margin-top: 56px;
-      margin-left: 52px;
+      margin-top: var(--card-one-icon-list-margin-top);
+      margin-left: var(--card-one-icon-list-margin-left);
       display: flex;
       align-items: center;
       flex-wrap: wrap;
       .iconItem {
         display: flex;
         align-items: center;
-        margin-bottom: 43px;
-        width: calc(100% / 3);
+        margin-bottom: var(--card-one-icon-list-item-margin-bottom);
+        width: var(--card-one-icon-list-item-width);
         flex-shrink: 0;
         img {
-          width: 81px;
-          height: 76px;
-          margin-right: 7px;
+          width: var(--card-one-icon-list-item-img-width);
+          height: var(--card-one-icon-list-item-img-height);
+          margin-right: var(--card-one-icon-list-item-img-margin-right);
         }
 
         .iconItemContent {
@@ -71,25 +70,25 @@
           flex-direction: column;
           justify-content: center;
           align-items: flex-start;
-          height: 76px;
+          height: var(--card-one-icon-item-content-height);
         }
         .iconItemTitle {
-          font-size: 22px;
+          font-size: var(--card-one-icon-item-title-font-size);
           color: @text-color;
-          margin-bottom: 3px;
+          margin-bottom: var(--card-one-icon-item-title-margin-bottom);
         }
         .iconItemValue {
-          font-size: 30px;
+          font-size: var(--card-one-icon-item-value-font-size);
           color: @number-color;
-          line-height: 34px;
-          letter-spacing: 2px;
+          line-height: var(--card-one-icon-item-value-line-height);
+          letter-spacing: var(--card-one-icon-item-value-letter-spacing);
         }
       }
     }
   }
   .cardTwo {
-    margin-top: 94px;
-    margin-left: 80px;
+    // margin-top: var(--card-two-margin-top);
+    margin-left: var(--card-two-margin-left);
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -98,26 +97,25 @@
       flex-direction: column;
       justify-content: center;
       align-items: flex-start;
-      width: calc(100% / 2 - 61px);
-      height: 120px;
+      width: var(--card-two-show-item-content-width);
+      height: var(--card-two-show-item-content-height);
       background-size: 100% 100%;
       background-repeat: no-repeat;
       background-position: center center;
-      background-size: 100% 100%;
-      padding-left: 145px;
-      padding-bottom: 35px;
-      padding-top: calc(22px + 7px);
-      margin-bottom: 60px;
+      padding-left: var(--card-two-show-item-content-padding-left);
+      padding-bottom: var(--card-two-show-item-content-padding-bottom);
+      padding-top: var(--card-two-show-item-content-padding-top);
+      margin-bottom: var(--card-two-show-item-content-margin-bottom);
       .showItemTitle {
-        font-size: 30px;
+        font-size: var(--card-two-show-item-title-font-size);
         color: @number-color;
-        line-height: 60px;
+        // line-height: var(--card-two-show-item-title-line-height);
         text-align: left;
       }
       .showItemValue {
-        font-size: 22px;
+        font-size: var(--card-two-show-item-value-font-size);
         color: @text-color;
-        line-height: 28px;
+        // line-height: var(--card-two-show-item-value-line-height);
       }
     }
     .showItemContent:nth-child(4n + 1) {
@@ -145,34 +143,34 @@
     .listItem {
       .bgimg-100();
       background-image: url("./img/three_bg.png");
-      width: 326px;
-      height: 401px;
+      width: var(--card-three-width);
+      height: var(--card-three-height);
       .flex-column();
-      padding-top: 28px;
+      padding-top: var(--card-three-padding-top);
       justify-content: flex-start;
       align-items: center;
       color: @number-color;
       img {
-        width: 160px;
-        height: 160px;
-        margin-bottom: 11px;
+        width: var(--card-three-img-width);
+        height: var(--card-three-img-height);
+        margin-bottom: var(--card-three-img-margin-bottom);
       }
       .title {
-        height: 98px;
+        height: var(--card-three-title-height);
         font-weight: 600;
-        font-size: 48px;
+        font-size: var(--card-three-title-font-size);
         color: @number-color;
-        line-height: 98px;
+        line-height: var(--card-three-title-line-height);
         text-align: center;
         text-transform: none;
       }
       .value {
-        height: 24px;
+        height: var(--card-three-value-height);
         font-weight: 300;
-        font-size: 30px;
+        font-size: var(--card-three-value-font-size);
         color: @number-color;
-        line-height: 24px;
-        margin-top: 2px;
+        line-height: var(--card-three-value-line-height);
+        margin-top: var(--card-three-value-margin-top);
       }
     }
   }
