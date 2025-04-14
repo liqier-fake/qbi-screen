@@ -14,12 +14,13 @@ import {
   ScreenDataType,
   dataSource1,
   dataSource2,
+  dataSource4,
 } from "./mock";
 import LineChart from "./components/Chart/LineChart.tsx";
 import Heatmap from "./components/Chart/Heatmap.tsx";
 import ComSelect from "./components/ComSelect/index.tsx";
 import ComTable from "./components/ComTable/index.tsx";
-import { columns1, columns2, columns3 } from "./columns.tsx";
+import { columns1, columns2, columns3, columns4 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
 
@@ -283,14 +284,13 @@ const Screen = () => {
         ),
       },
       {
-        title: "三级趋势与预测",
+        title: "社会攻坚项目",
         render: (
           <div className={styles.warp}>
-            <LineChart
-              {...screenData.lineData}
-              enableSlide={true}
-              slideInterval={2000}
-              visibleDataPoints={8}
+            <ComTable
+              className={styles.table}
+              columns={columns4}
+              dataSource={dataSource4}
             />
           </div>
         ),

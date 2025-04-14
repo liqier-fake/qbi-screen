@@ -53,7 +53,6 @@ const Heatmap: React.FC<HeatmapProps> = ({
 
   // 数据配置
   const yData = [
-    "京沪高速",
     "新市民劳动者",
     "新就业群体",
     "困境群体",

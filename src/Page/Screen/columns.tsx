@@ -29,6 +29,32 @@ export const columns1: Column<any>[] = [
     ),
   },
 ];
+export const columns4: Column<any>[] = [
+  {
+    title: "街道",
+    dataIndex: "street",
+    width: 150,
+    align: "left",
+  },
+  {
+    title: "责任社区",
+    dataIndex: "community",
+    width: 150,
+    align: "left",
+  },
+  {
+    title: "攻坚项目",
+    dataIndex: "project",
+    width: 300,
+    align: "left",
+  },
+  {
+    title: "热点事项",
+    dataIndex: "content",
+    width: 400,
+    align: "left",
+  },
+];
 export const columns2: Column<any>[] = [
   {
     title: "时间",

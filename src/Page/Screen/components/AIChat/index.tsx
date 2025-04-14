@@ -25,9 +25,16 @@ const AIChat = () => {
           apiKey={import.meta.env.VITE_CHAT_TOKEN}
         />
       </div>
-      <img src={digitalman} alt="" className={styles.img} onClick={showModal} />
+      {!isModalOpen && (
+        <img
+          src={digitalman}
+          alt=""
+          className={styles.img}
+          onClick={showModal}
+        />
+      )}
       <Modal
-        width={"50%"}
+        width={"60%"}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={() => setIsModalOpen(false)}
