@@ -34,7 +34,7 @@ const AIChat = () => {
         />
       )}
       <Modal
-        width={"60%"}
+        width={"80%"}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={() => setIsModalOpen(false)}

@@ -422,3 +422,11 @@ textarea::-webkit-input-placeholder {
   /* WebKit browsers */
   color: #fff !important;
 }
+
+.digital-human {
+  display: none;
+}
+
+.voice-control-button {
+  display: none;
+}
