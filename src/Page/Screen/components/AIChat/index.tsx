@@ -2,7 +2,7 @@ import styles from "./index.module.less";
 import digitalman from "./digitalman.png";
 
 // @ts-expect-error Chat组件可能来自外部库，类型定义不完整
-import { Chat } from "../../../qbiChat/code-web";
+import { Chat } from "../../../qbiChat/code-web.js";
 import { Modal } from "antd";
 import { useState } from "react";
 
