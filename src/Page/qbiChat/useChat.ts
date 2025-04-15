@@ -174,7 +174,7 @@ function useChat(apiUrl: string, apiKey: string) {
 
         // 如果需要清空消息列表，应该由外部明确触发
         // 而不是在异步回调中自动进行
-        // setMsgList([]);
+        setMsgList([]);
       },
       onerror(err) {
         console.error("请求出错:", err);
