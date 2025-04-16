@@ -345,7 +345,7 @@ function Chat({
           ))}
         </Flex>
 
-        <Flex justify="space-between">
+        <Flex justify="space-between" className="chat-sender-wrap">
           {bubbleList.length > 0 && (
             <div className="chat-actions" onClick={handleDelete}>
               <img src={clearChat} alt="clearChat" />
@@ -378,7 +378,7 @@ function Chat({
                     background:
                       "linear-gradient(270deg, #43CDFF 0%, #03FCE3 100%)",
                     fontWeight: 600,
-                    padding: "3px 10px",
+                    padding: "3px 15px",
                     height: "auto",
                     color: "#000",
                   }}

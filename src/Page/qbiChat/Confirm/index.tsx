@@ -10,7 +10,7 @@ function Confirm(props: ConfirmProps) {
   return (
     <Modal
       {...props}
-      width={"350px"}
+      width={"400px"}
       className={styles.confirm}
       closeIcon={null}
       footer={
