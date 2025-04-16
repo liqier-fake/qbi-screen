@@ -1,7 +1,12 @@
 import { Bubble, Sender } from "@ant-design/x";
-import { Button, Flex } from "antd";
+import { Flex } from "antd";
 import { useState, useEffect, useRef, useCallback, memo } from "react";
-import { DislikeOutlined, LikeOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  DislikeOutlined,
+  LikeOutlined,
+  SendOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { BubbleType, ChatProps } from "../common";
 
 import "./chat.less";
@@ -12,7 +17,8 @@ import VoicePlayer from "../voice";
 // 引入类型但不使用组件
 import DigitalHuman, { DigitalHumanInstance } from "../voice/DigitalHuman";
 import broadcaster from "./digital.webm";
-
+import clearChat from "./delete.png";
+import Confirm from "../Confirm";
 // 定义消息类型
 interface MessageItem {
   type: string;
@@ -143,7 +149,11 @@ function Chat({
   const onSubmit = (value: string) => {
     try {
       const trimmedValue = value.trim();
-      if (!trimmedValue) return; // 防止发送空消息
+      if (!trimmedValue) {
+        alert("请先输入搜索信息");
+        setIsClearModalOpen(true);
+        return;
+      } // 防止发送空消息
 
       console.log("准备发送消息:", trimmedValue);
       setMessage("");
@@ -233,6 +243,7 @@ function Chat({
     setSendOver(false);
     // 停止所有播放
     setIsAudioPlaying(false);
+    setIsDeleteModalOpen(false);
   };
 
   const askAvatar: React.CSSProperties = {
@@ -245,8 +256,16 @@ function Chat({
     backgroundColor: "#87d068",
   };
 
+  // 视频启动播放
   const handleAudioPlayStatusChange = (isPlaying: boolean) => {
     setIsAudioPlaying(isPlaying);
+  };
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true);
   };
 
   return (
@@ -281,20 +300,12 @@ function Chat({
               </Flex>
             </div>
           )}
-
-          {bubbleList.length > 0 && (
-            <div className="chat-actions">
-              <button onClick={clearChatHistory} className="clear-history-btn">
-                清空聊天记录
-              </button>
-            </div>
-          )}
         </Flex>
         <Flex vertical gap="middle" className="chat-list" ref={chatRef}>
           {bubbleList.map(({ type, msg }, index) => (
             <div key={index} className={`chat-bubble-item`}>
               <Bubble
-                className="chat-bubule"
+                className={`chat-bubule ${type === "ask" ? "ask" : "replay"}`}
                 placement={type === "ask" ? "end" : "start"}
                 content={type === "ask" ? msg : JSON.stringify(msg)}
                 messageRender={
@@ -312,53 +323,75 @@ function Chat({
                   content: { maxWidth: "80%" },
                 }}
                 loading={type === "replay" && !msg.msg?.length}
-                footer={
-                  type === "replay" &&
-                  msg.msg?.length &&
-                  msg.sendOver && (
-                    <Flex align="center" gap="small">
-                      <VoicePlayer
-                        text={(msg as ReplayMessage).msg
-                          .filter((item) => item.type === "normal")
-                          .map((item) => item.content)
-                          .join(" ")}
-                        onError={(error) => console.error("播放错误:", error)}
-                        onPlayStatusChange={handleAudioPlayStatusChange}
-                      />
-                      <Button
-                        size="large"
-                        type="text"
-                        style={{
-                          color: "#fff",
-                        }}
-                        icon={<LikeOutlined />}
-                      />
-                      <Button
-                        size="large"
-                        type="text"
-                        style={{
-                          color: "#fff",
-                        }}
-                        icon={<DislikeOutlined />}
-                      />
-                    </Flex>
-                  )
-                }
               />
+              {(type === "replay" && msg.msg?.length && msg.sendOver && (
+                <Flex align="center" gap="small" className="chat-bubble-footer">
+                  <VoicePlayer
+                    text={(msg as ReplayMessage).msg
+                      .filter((item) => item.type === "normal")
+                      .map((item) => item.content)
+                      .join(" ")}
+                    onError={(error) => console.error("播放错误:", error)}
+                    onPlayStatusChange={handleAudioPlayStatusChange}
+                  />
+                  <LikeOutlined style={{ color: "#fff", cursor: "pointer" }} />
+                  <DislikeOutlined
+                    style={{ color: "#fff", cursor: "pointer" }}
+                  />
+                </Flex>
+              )) ||
+                ""}
             </div>
           ))}
         </Flex>
 
-        <Sender
-          className="chat-sender"
-          placeholder="询问任何问题"
-          loading={isSending && !sendOver}
-          disabled={isSending && !sendOver}
-          value={message}
-          onChange={onChange}
-          onSubmit={onSubmit}
-          onCancel={onCancel}
-        />
+        <Flex justify="space-between">
+          {bubbleList.length > 0 && (
+            <div className="chat-actions" onClick={handleDelete}>
+              <img src={clearChat} alt="clearChat" />
+            </div>
+          )}
+          <Sender
+            className="chat-sender"
+            placeholder="请输入你的问题"
+            loading={isSending && !sendOver}
+            disabled={isSending && !sendOver}
+            value={message}
+            onChange={onChange}
+            onSubmit={onSubmit}
+            onCancel={onCancel}
+            actions={(_, info) => {
+              const { SendButton, LoadingButton } = info.components;
+
+              if (isSending && !sendOver) {
+                return <LoadingButton type="default" disabled />;
+              }
+              return (
+                <SendButton
+                  onClick={() => {
+                    if (!message) {
+                      setIsClearModalOpen(true);
+                      return;
+                    }
+                  }}
+                  style={{
+                    background:
+                      "linear-gradient(270deg, #43CDFF 0%, #03FCE3 100%)",
+                    fontWeight: 600,
+                    padding: "3px 10px",
+                    height: "auto",
+                    color: "#000",
+                  }}
+                  icon={<SendOutlined />}
+                  shape="default"
+                  iconPosition="end"
+                >
+                  发送
+                </SendButton>
+              );
+            }}
+          />
+        </Flex>
       </Flex>
 
       {/* 右侧数字人区域 */}
@@ -373,6 +406,23 @@ function Chat({
           play={isAudioPlaying}
         />
       </div>
+
+      <Confirm
+        centered
+        open={isDeleteModalOpen}
+        titleText="永久删除对话"
+        contentText="删除后，该对话将不可恢复。确认删除吗？"
+        onOk={clearChatHistory}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
+      <Confirm
+        centered
+        open={isClearModalOpen}
+        titleText="提示"
+        contentText="请先输入搜索信息"
+        onOk={() => setIsClearModalOpen(false)}
+        onCancel={() => setIsClearModalOpen(false)}
+      />
     </Flex>
   );
 }

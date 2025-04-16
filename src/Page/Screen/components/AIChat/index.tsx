@@ -4,6 +4,8 @@ import { Modal } from "antd";
 import { useState } from "react";
 import { Chat } from "../../../qbiChat";
 
+import close from "./close.png";
+
 // import { Chat } from "../../../qbiChat/index.ts";
 // import { Chat } from "../../../qbiChat";
 
@@ -51,9 +53,11 @@ const AIChat = () => {
         onOk={handleOk}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        maskClosable={true}
+        maskClosable={false}
         closable={false}
         destroyOnClose={true}
+        centered={true}
+        transitionName=""
       >
         <div className={styles.chatModalContent}>
           <Chat
@@ -65,6 +69,12 @@ const AIChat = () => {
               '按月统计"违规占用消防通道"，工单量数据的变化情况',
             ]}
           />
+          <div
+            className={styles.closeIcon}
+            onClick={() => setIsModalOpen(false)}
+          >
+            <img src={close} alt="关闭" />
+          </div>
         </div>
       </Modal>
     </div>

@@ -18,9 +18,22 @@
     aspect-ratio: 555.16 / 788;
     cursor: pointer;
   }
-  .img:hover {
-    // display: block;
-    // box-shadow: 0 20px 20px 10px rgb(48, 216, 255);
+}
+
+.chatModalContent {
+  position: relative;
+  .closeIcon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(calc(100% + 10px), -10px);
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    img {
+      width: 100%;
+      height: 100%;
+    }
   }
 }
 :global {
