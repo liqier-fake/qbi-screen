@@ -53,6 +53,7 @@ const AIChat = () => {
         footer={null}
         maskClosable={true}
         closable={false}
+        destroyOnClose={true}
       >
         <div className={styles.chatModalContent}>
           <Chat

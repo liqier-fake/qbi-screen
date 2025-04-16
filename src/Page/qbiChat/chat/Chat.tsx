@@ -11,7 +11,7 @@ import useChat from "../useChat";
 import VoicePlayer from "../voice";
 // 引入类型但不使用组件
 import DigitalHuman, { DigitalHumanInstance } from "../voice/DigitalHuman";
-import broadcaster from "./digital.mp4";
+import broadcaster from "./digital.webm";
 
 // 定义消息类型
 interface MessageItem {
