@@ -22,9 +22,12 @@ interface VoicePlayerProps {
   onPlayStatusChange?: (isPlaying: boolean) => void;
 }
 
+// 全局音频缓存，用于存储已请求过的文本对应的音频URL
+const audioCache: Record<string, string> = {};
+
 /**
  * 语音播报组件
- * 提供文本转语音播放功能，支持播放、暂停操作
+ * 提供文本转语音播放功能，支持播放、暂停操作，自动缓存已请求的音频
  */
 const VoicePlayer: React.FC<VoicePlayerProps> = ({
   text,
@@ -38,113 +41,91 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState<boolean>(false); // 是否正在播放
   const [isLoading, setIsLoading] = useState<boolean>(false); // 是否正在加载
   const [audioUrl, setAudioUrl] = useState<string>(""); // 音频URL
-  const [audioError, setAudioError] = useState<boolean>(false); // 音频加载是否出错
-  const [audioFinished, setAudioFinished] = useState<boolean>(false); // 音频是否播放完成
 
   // 引用
   const audioRef = useRef<HTMLAudioElement | null>(null); // 音频元素引用
 
-  // 当文本变化时，重置状态
-  useEffect(() => {
-    setIsPlaying(false);
-    setAudioUrl("");
-    setAudioError(false);
-    setAudioFinished(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    // 通知播放状态变化
-    if (onPlayStatusChange) {
-      onPlayStatusChange(false);
-    }
-  }, [text, onPlayStatusChange]);
-
-  // 处理音频播放结束
+  /**
+   * 处理音频播放结束
+   */
   const handleAudioEnded = () => {
     console.log("音频播放完成");
     setIsPlaying(false);
-    setAudioFinished(true);
-
-    // 延迟调用播放结束回调，确保数字人视频能完整播放完最后一个动作
-    setTimeout(() => {
-      // 通知播放状态变化
-      if (onPlayStatusChange) {
-        onPlayStatusChange(false);
-      }
-      if (onPlayEnd) {
-        onPlayEnd();
-      }
-    }, 500); // 增加500ms延迟，让视频动作完成
-  };
-
-  // 处理音频错误
-  const handleAudioError = (e: Event) => {
-    console.error("音频播放错误:", e);
-    setIsPlaying(false);
-    setIsLoading(false);
-    setAudioError(true);
-    setAudioFinished(true);
 
     // 通知播放状态变化
     if (onPlayStatusChange) {
       onPlayStatusChange(false);
     }
+
+    // 延迟调用播放结束回调，确保数字人视频能完整播放完最后一个动作
+    if (onPlayEnd) {
+      setTimeout(() => {
+        onPlayEnd();
+      }, 500); // 增加500ms延迟，让视频动作完成
+    }
+  };
+
+  /**
+   * 处理音频错误
+   */
+  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    console.error("音频播放错误:", e);
+    setIsPlaying(false);
+    setIsLoading(false);
+
+    // 通知播放状态变化
+    if (onPlayStatusChange) {
+      onPlayStatusChange(false);
+    }
+
     if (onError) {
       onError(new Error("音频播放错误"));
     }
   };
 
-  // 处理音频加载事件
-  const handleAudioCanPlay = () => {
-    // 音频已加载并可以播放
-    if (audioRef.current && !isPlaying && !audioError) {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setIsLoading(false);
-          setAudioFinished(false);
+  /**
+   * 尝试播放音频
+   */
+  const playAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-          // 通知播放状态变化
-          if (onPlayStatusChange) {
-            onPlayStatusChange(true);
-          }
+    audio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        setIsLoading(false);
 
-          if (onPlayStart) {
-            onPlayStart();
-          }
-        })
-        .catch((err) => {
-          console.error("播放时出错:", err);
-          setIsPlaying(false);
-          setIsLoading(false);
-          setAudioError(true);
-          setAudioFinished(true);
+        // 通知播放状态变化
+        if (onPlayStatusChange) {
+          onPlayStatusChange(true);
+        }
 
-          // 通知播放状态变化
-          if (onPlayStatusChange) {
-            onPlayStatusChange(false);
-          }
+        if (onPlayStart) {
+          onPlayStart();
+        }
+      })
+      .catch((err) => {
+        console.error("播放时出错:", err);
+        setIsPlaying(false);
+        setIsLoading(false);
 
-          if (onError) {
-            onError(err instanceof Error ? err : new Error(String(err)));
-          }
-        });
-    }
+        // 通知播放状态变化
+        if (onPlayStatusChange) {
+          onPlayStatusChange(false);
+        }
+
+        if (onError) {
+          onError(err instanceof Error ? err : new Error(String(err)));
+        }
+      });
   };
 
-  // 处理音频播放进度
-  const handleTimeUpdate = () => {
-    if (audioRef.current && onPlayStatusChange && isPlaying) {
-      // 每次时间更新时确保播放状态为true
-      // 这样可以防止数字人视频在音频播放过程中意外停止
-      onPlayStatusChange(true);
-    }
-  };
-
-  // 调用TTS API获取音频
+  /**
+   * 调用TTS API获取音频
+   */
   const fetchAudio = async () => {
+    // 检查文本是否有效
     if (!text || text.trim() === "") {
       if (onError) {
         onError(new Error("无有效文本内容"));
@@ -152,16 +133,24 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
       return;
     }
 
+    // 检查缓存中是否已存在该文本对应的音频
+    if (audioCache[text]) {
+      setAudioUrl(audioCache[text]);
+      if (audioRef.current) {
+        audioRef.current.src = audioCache[text];
+        playAudio();
+      }
+      return;
+    }
+
     setIsLoading(true);
-    setAudioError(false);
-    setAudioFinished(false);
+
+    // 先通知外部开始加载
+    // if (onPlayStatusChange) {
+    //   onPlayStatusChange(true);
+    // }
 
     try {
-      // 先通知外部开始加载
-      if (onPlayStatusChange) {
-        onPlayStatusChange(true);
-      }
-
       const response = await fetch("https://qbi-dev.ifqb.com/v1/tts", {
         method: "POST",
         headers: {
@@ -185,21 +174,20 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
       // 创建音频URL
       const url = URL.createObjectURL(audioBlob);
 
-      // 设置音频URL（加载音频）
+      // 缓存音频URL
+      audioCache[text] = url;
+
+      // 设置音频URL并加载
       setAudioUrl(url);
 
-      // 音频加载和播放将通过事件监听器处理
       if (audioRef.current) {
-        audioRef.current.pause();
         audioRef.current.src = url;
-        // play() 将在 canplay 事件中调用
+        playAudio();
       }
     } catch (error) {
       console.error("获取音频失败:", error);
       setIsPlaying(false);
       setIsLoading(false);
-      setAudioError(true);
-      setAudioFinished(true);
 
       // 通知播放状态变化
       if (onPlayStatusChange) {
@@ -212,86 +200,66 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
     }
   };
 
-  // 播放/暂停切换
+  /**
+   * 播放/暂停切换
+   */
   const togglePlay = () => {
+    // 加载中不允许操作
     if (isLoading) return;
 
     if (isPlaying && audioRef.current) {
       // 暂停播放
       audioRef.current.pause();
       setIsPlaying(false);
+
       // 通知播放状态变化
       if (onPlayStatusChange) {
         onPlayStatusChange(false);
       }
-      // 如果已经播放完成，重置状态
-      if (audioFinished) {
-        setAudioFinished(false);
-      }
-    } else if (audioUrl && audioRef.current && !audioError) {
+    } else if (audioUrl && audioRef.current) {
       // 继续播放已加载的音频
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setAudioFinished(false);
-
-          // 通知播放状态变化
-          if (onPlayStatusChange) {
-            onPlayStatusChange(true);
-          }
-
-          if (onPlayStart) {
-            onPlayStart();
-          }
-        })
-        .catch((err) => {
-          console.error("播放时出错:", err);
-          setIsPlaying(false);
-          setAudioError(true);
-          setAudioFinished(true);
-
-          // 通知播放状态变化
-          if (onPlayStatusChange) {
-            onPlayStatusChange(false);
-          }
-
-          if (onError) {
-            onError(err instanceof Error ? err : new Error(String(err)));
-          }
-        });
+      playAudio();
     } else {
       // 开始新的播放 (获取并加载新音频)
       fetchAudio();
     }
   };
 
-  // 设置音频事件监听器
+  // 当文本变化时，重置播放状态但保留URL（如果缓存中有）
   useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.addEventListener("canplay", handleAudioCanPlay);
-      audio.addEventListener("error", handleAudioError);
-      audio.addEventListener("timeupdate", handleTimeUpdate);
+    setIsPlaying(false);
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
 
-    return () => {
-      if (audio) {
-        audio.removeEventListener("canplay", handleAudioCanPlay);
-        audio.removeEventListener("error", handleAudioError);
-        audio.removeEventListener("timeupdate", handleTimeUpdate);
+    // 从缓存中获取URL（如果有）
+    if (audioCache[text]) {
+      setAudioUrl(audioCache[text]);
+      if (audioRef.current) {
+        audioRef.current.src = audioCache[text];
       }
-    };
-  }, [audioRef.current, isPlaying]); // 添加isPlaying作为依赖
+    } else {
+      setAudioUrl("");
+    }
+
+    // 通知播放状态变化
+    if (onPlayStatusChange) {
+      onPlayStatusChange(false);
+    }
+  }, [text]);
 
   // 组件卸载时清理资源
   useEffect(() => {
     return () => {
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
+      // 注意：不清除全局缓存，只释放组件实例相关资源
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
       }
     };
-  }, [audioUrl]);
+  }, []);
 
   return (
     <div className={`voice-player ${className}`}>
@@ -313,6 +281,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
       <audio
         ref={audioRef}
         onEnded={handleAudioEnded}
+        onError={handleAudioError}
         style={{ display: "none" }}
       />
     </div>

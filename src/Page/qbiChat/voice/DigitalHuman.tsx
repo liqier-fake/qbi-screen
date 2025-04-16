@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Button } from "antd";
+import React, { useRef, useEffect } from "react";
 import "./index.less";
 
 /**
@@ -12,22 +11,20 @@ export interface DigitalHumanProps {
   width?: string | number;
   /** 视频容器高度 */
   height?: string | number;
-  /** 是否显示播放控制按钮 */
-  showControls?: boolean;
-  /** 播放开始回调 */
-  onPlayStart?: () => void;
-  /** 播放结束回调 */
-  onPlayEnd?: () => void;
-  /** 播放错误回调 */
-  onError?: (error: Error | Event) => void;
-  /** 是否自动播放 */
-  autoPlay?: boolean;
   /** 是否循环播放 */
   loop?: boolean;
   /** 是否静音 */
   muted?: boolean;
   /** 组件自定义类名 */
   className?: string;
+  /** 控制播放状态，true播放，false暂停 */
+  play?: boolean;
+  /** 播放开始回调 */
+  onPlayStart?: () => void;
+  /** 播放结束回调 */
+  onPlayEnd?: () => void;
+  /** 播放错误回调 */
+  onError?: (error: Error | Event) => void;
 }
 
 /**
@@ -38,14 +35,12 @@ export interface DigitalHumanInstance {
   playVideo: () => void;
   /** 暂停视频 */
   pauseVideo: () => void;
-  /** 切换视频播放状态 */
-  toggleVideoPlay: () => void;
 }
 
 /**
  * 数字人视频组件
  *
- * 用于展示数字人视频，提供播放控制功能
+ * 用于展示数字人视频，通过play属性控制播放状态
  */
 const DigitalHuman = React.forwardRef<DigitalHumanInstance, DigitalHumanProps>(
   (
@@ -53,75 +48,33 @@ const DigitalHuman = React.forwardRef<DigitalHumanInstance, DigitalHumanProps>(
       videoSrc,
       width = "300px",
       height = "500px",
-      showControls = false,
+      loop = false,
+      muted = true,
+      className = "",
+      play = false,
       onPlayStart,
       onPlayEnd,
       onError,
-      autoPlay = false,
-      loop = true,
-      muted = true,
-      className = "",
     },
     ref
   ) => {
     // 视频引用
     const videoRef = useRef<HTMLVideoElement>(null);
-    // 视频是否正在播放
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
-
-    // 处理视频加载完成
-    const handleVideoLoaded = () => {
-      console.log("数字人视频加载完成");
-
-      // 如果需要自动播放，尝试播放视频
-      if (autoPlay) {
-        playVideo();
-      }
-    };
-
-    // 处理视频播放开始
-    const handleVideoPlayStart = () => {
-      console.log("数字人视频开始播放");
-      setIsPlaying(true);
-      if (onPlayStart) {
-        onPlayStart();
-      }
-    };
-
-    // 处理视频播放结束
-    const handleVideoPlayEnd = () => {
-      console.log("数字人视频播放结束");
-      setIsPlaying(false);
-      if (onPlayEnd) {
-        onPlayEnd();
-      }
-    };
-
-    // 处理视频错误
-    const handleVideoError = (
-      error: React.SyntheticEvent<HTMLVideoElement, Event>
-    ) => {
-      console.error("数字人视频错误:", error);
-      setIsPlaying(false);
-      if (onError) {
-        // 传递原始错误对象
-        onError(error.nativeEvent || new Error("视频播放错误"));
-      }
-    };
 
     // 播放视频
     const playVideo = () => {
-      if (videoRef.current && !isPlaying) {
-        // 不每次都重置播放位置，保持连贯性
-        // 只有当视频已经结束或者刚初始化时才重置
-        if (videoRef.current.ended || videoRef.current.currentTime === 0) {
+      if (videoRef.current) {
+        // 如果视频已结束，先重置时间
+        if (videoRef.current.ended) {
           videoRef.current.currentTime = 0;
         }
 
         videoRef.current
           .play()
           .then(() => {
-            setIsPlaying(true);
+            if (onPlayStart) {
+              onPlayStart();
+            }
           })
           .catch((err) => {
             console.error("视频播放失败:", err);
@@ -134,23 +87,8 @@ const DigitalHuman = React.forwardRef<DigitalHumanInstance, DigitalHumanProps>(
 
     // 暂停视频
     const pauseVideo = () => {
-      if (videoRef.current && isPlaying) {
-        // 延迟暂停视频，给一个完成当前动作的缓冲时间
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.pause();
-            setIsPlaying(false);
-          }
-        }, 200);
-      }
-    };
-
-    // 切换视频播放状态
-    const toggleVideoPlay = () => {
-      if (isPlaying) {
-        pauseVideo();
-      } else {
-        playVideo();
+      if (videoRef.current) {
+        videoRef.current.pause();
       }
     };
 
@@ -158,14 +96,30 @@ const DigitalHuman = React.forwardRef<DigitalHumanInstance, DigitalHumanProps>(
     React.useImperativeHandle(ref, () => ({
       playVideo,
       pauseVideo,
-      toggleVideoPlay,
     }));
+
+    // 根据play属性控制视频播放/暂停
+    useEffect(() => {
+      if (play) {
+        playVideo();
+      } else {
+        pauseVideo();
+      }
+    }, [play]);
+
+    // 处理视频播放结束
+    const handleVideoPlayEnd = () => {
+      if (onPlayEnd) {
+        onPlayEnd();
+      }
+    };
 
     // 组件卸载时暂停视频
     useEffect(() => {
       return () => {
         if (videoRef.current) {
           videoRef.current.pause();
+          videoRef.current.src = "";
         }
       };
     }, []);
@@ -178,24 +132,15 @@ const DigitalHuman = React.forwardRef<DigitalHumanInstance, DigitalHumanProps>(
           loop={loop}
           muted={muted}
           playsInline
-          onLoadedData={handleVideoLoaded}
-          onPlay={handleVideoPlayStart}
+          onPlay={onPlayStart}
           onEnded={handleVideoPlayEnd}
-          onError={handleVideoError}
+          onError={(e) =>
+            onError && onError(e.nativeEvent || new Error("视频播放错误"))
+          }
         >
           <source src={videoSrc} type="video/webm" />
           您的浏览器不支持 WebM 视频格式。
         </video>
-
-        {showControls && (
-          <Button
-            type="primary"
-            onClick={toggleVideoPlay}
-            className="video-control-button"
-          >
-            {isPlaying ? "暂停" : "播放"}
-          </Button>
-        )}
       </div>
     );
   }

@@ -169,12 +169,17 @@ function useChat(apiUrl: string, apiKey: string) {
       onclose() {
         mtd?.close?.();
 
+        console.log("结束");
+
         // 直接更新状态，但保留消息列表
         setSendOver(true);
 
         // 如果需要清空消息列表，应该由外部明确触发
         // 而不是在异步回调中自动进行
-        setMsgList([]);
+
+        setTimeout(() => {
+          setMsgList([]);
+        });
       },
       onerror(err) {
         console.error("请求出错:", err);
@@ -200,7 +205,6 @@ function useChat(apiUrl: string, apiKey: string) {
       ctrl.abort(); // 终止请求
       setCtrl(null); // 避免多次取消
     }
-    setSendOver(false);
   };
 
   return {

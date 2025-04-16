@@ -9,6 +9,7 @@ import "./chat.less";
 import RenderBubbleContent from "./RenderBubbleContent";
 import useChat from "../useChat";
 import VoicePlayer from "../voice";
+// 引入类型但不使用组件
 import DigitalHuman, { DigitalHumanInstance } from "../voice/DigitalHuman";
 import broadcaster from "./digital.mp4";
 
@@ -54,9 +55,9 @@ function Chat({
   // 聊天区域引用，用于滚动操作
   const chatRef = useRef<HTMLDivElement>(null);
   // 当前选中的消息索引，用于语音播放
-  const [selectedMessageIndex, setSelectedMessageIndex] = useState<number>(-1);
+  // const [selectedMessageIndex, setSelectedMessageIndex] = useState<number>(-1);
   // 当前正在播放的消息索引
-  const [playingMessageIndex, setPlayingMessageIndex] = useState<number>(-1);
+  // const [playingMessageIndex, setPlayingMessageIndex] = useState<number>(-1);
   // 数字人组件引用
   const videoRef = useRef<DigitalHumanInstance>(null);
   // 是否有语音在播放
@@ -103,31 +104,8 @@ function Chat({
         top: chatRef.current.scrollHeight,
         behavior: "smooth",
       });
-    }, 100);
+    }, 200);
   }, []);
-
-  // 监听音频播放状态，控制数字人播放
-  useEffect(() => {
-    if (isAudioPlaying) {
-      // 如果有音频在播放，启动数字人
-      if (videoRef.current) {
-        videoRef.current.playVideo();
-        console.log("启动数字人视频");
-      }
-    } else {
-      // 如果没有音频在播放，添加延迟再暂停数字人
-      // 这样可以确保数字人的动作完成
-      if (videoRef.current) {
-        // 延迟暂停，确保动作完整性
-        const timer = setTimeout(() => {
-          videoRef.current?.pauseVideo();
-          console.log("暂停数字人视频");
-        }, 800); // 延迟800ms暂停，确保动作完成
-
-        return () => clearTimeout(timer); // 清理定时器
-      }
-    }
-  }, [isAudioPlaying]);
 
   useEffect(() => {
     if (msgList.length) {
@@ -140,13 +118,23 @@ function Chat({
             type: "replay",
             msg: { sendOver, msg: msgList },
           };
+
+          // 有消息更新时，确保不会干扰当前播放状态
+          // // 如果当前没有播放中的消息，且有正在播放的音频，强制停止
+          // if (playingMessageIndex === -1 && isAudioPlaying) {
+          //   console.log(
+          //     "检测到状态不一致：没有选中消息但有音频在播放，强制停止"
+          //   );
+          //   setIsAudioPlaying(false);
+          // }
+
           scrollToBottom();
           return newList;
         }
         return bl;
       });
     }
-  }, [msgList, sendOver, scrollToBottom]);
+  }, [msgList, sendOver, scrollToBottom, isAudioPlaying]);
 
   /**
    * 提交消息处理函数
@@ -229,6 +217,7 @@ function Chat({
    * 取消发送消息
    */
   const onCancel = () => {
+    console.log("取消发送消息");
     cancelMessage();
     setIsSending(false);
   };
@@ -242,52 +231,8 @@ function Chat({
     setConversationId("");
     setIsSending(false);
     setSendOver(false);
-    setSelectedMessageIndex(-1);
     // 停止所有播放
     setIsAudioPlaying(false);
-  };
-
-  // 处理音频播放状态变化
-  const handleAudioPlayStatusChange = (isPlaying: boolean) => {
-    console.log("音频播放状态变化:", isPlaying);
-    setIsAudioPlaying(isPlaying);
-
-    // 如果开始播放，强制启动数字人视频
-    if (isPlaying && videoRef.current) {
-      videoRef.current.playVideo();
-    }
-  };
-
-  // 处理消息播放开始
-  const handlePlayStart = (index: number) => {
-    setPlayingMessageIndex(index);
-    setSelectedMessageIndex(index);
-
-    // 暂停其他正在播放的消息
-    if (playingMessageIndex !== -1 && playingMessageIndex !== index) {
-      setSelectedMessageIndex(-1);
-    }
-  };
-
-  // 处理消息播放结束
-  const handlePlayEnd = () => {
-    setPlayingMessageIndex(-1);
-    setSelectedMessageIndex(-1);
-  };
-
-  // 处理右侧数字人视频播放开始
-  const handleMainVideoPlayStart = () => {
-    console.log("右侧数字人视频开始播放");
-  };
-
-  // 处理右侧数字人视频播放结束
-  const handleMainVideoPlayEnd = () => {
-    console.log("右侧数字人视频播放结束");
-  };
-
-  // 处理右侧数字人视频错误
-  const handleMainVideoError = (error: Error | Event) => {
-    console.error("右侧数字人视频错误:", error);
   };
 
   const askAvatar: React.CSSProperties = {
@@ -300,15 +245,13 @@ function Chat({
     backgroundColor: "#87d068",
   };
 
+  const handleAudioPlayStatusChange = (isPlaying: boolean) => {
+    setIsAudioPlaying(isPlaying);
+  };
+
   return (
     <Flex justify="space-between" className="chat-container">
-      <Flex
-        gap="0"
-        vertical
-        justify="space-between"
-        className="chat-wrap"
-        ref={chatRef}
-      >
+      <Flex gap="0" vertical justify="space-between" className="chat-wrap">
         <Flex vertical>
           {bubbleList.length === 0 && (
             <div className="chat-welcome">
@@ -347,14 +290,9 @@ function Chat({
             </div>
           )}
         </Flex>
-        <Flex vertical gap="middle" className="chat-list">
+        <Flex vertical gap="middle" className="chat-list" ref={chatRef}>
           {bubbleList.map(({ type, msg }, index) => (
-            <div
-              key={index}
-              className={`chat-bubble-item ${
-                selectedMessageIndex === index ? "selected" : ""
-              }`}
-            >
+            <div key={index} className={`chat-bubble-item`}>
               <Bubble
                 className="chat-bubule"
                 placement={type === "ask" ? "end" : "start"}
@@ -376,6 +314,7 @@ function Chat({
                 loading={type === "replay" && !msg.msg?.length}
                 footer={
                   type === "replay" &&
+                  msg.msg?.length &&
                   msg.sendOver && (
                     <Flex align="center" gap="small">
                       <VoicePlayer
@@ -383,8 +322,6 @@ function Chat({
                           .filter((item) => item.type === "normal")
                           .map((item) => item.content)
                           .join(" ")}
-                        onPlayStart={() => handlePlayStart(index)}
-                        onPlayEnd={handlePlayEnd}
                         onError={(error) => console.error("播放错误:", error)}
                         onPlayStatusChange={handleAudioPlayStatusChange}
                       />
@@ -431,12 +368,9 @@ function Chat({
           videoSrc={broadcaster}
           width="100%"
           height="100%"
-          loop={false}
+          loop={true}
           muted={true}
-          onPlayStart={handleMainVideoPlayStart}
-          onPlayEnd={handleMainVideoPlayEnd}
-          onError={handleMainVideoError}
-          showControls={false}
+          play={isAudioPlaying}
         />
       </div>
     </Flex>
