@@ -159,7 +159,6 @@ const RenderBubbleContent: BubbleProps["messageRender"] = (content: string) => {
 
   return (
     <div>
-      {JSON.stringify(sendOver)}
       {thinkList.length > 0 && (
         <Collapse defaultActiveKey={["thinking"]}>
           <Collapse.Panel

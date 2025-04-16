@@ -144,6 +144,7 @@ function useChat(apiUrl: string, apiKey: string) {
     });
 
     if (finish_reason === "stop") {
+      setSendOver(true);
       console.log("生成结束");
     }
   };
