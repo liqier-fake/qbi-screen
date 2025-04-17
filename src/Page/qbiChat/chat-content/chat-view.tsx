@@ -15,6 +15,8 @@ function ChartView({
   sql: string;
 }) {
   const [showChart, setShowChart] = useState<boolean>(false);
+  console.log(showChart);
+
   const columns = data?.[0]
     ? Object.keys(data?.[0])?.map((item) => {
         return {
@@ -56,7 +58,7 @@ function ChartView({
   const TabItems: TabsProps["items"] =
     type === "response_table"
       ? [DataItem]
-      : compact([showChart && ChartItem, DataItem, SqlItem]);
+      : compact([ChartItem, DataItem, SqlItem]);
 
   return (
     <Tabs
