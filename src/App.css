@@ -117,23 +117,27 @@
   --AIChat-img-height: 788px;
 }
 
-@media screen and (max-width: 3000px) {
+@media screen and (max-width: 100000px) {
   :root {
     /* index.module.less */
+
+    --header-height: 40px;
+    --header-background-size: 100% calc(100% + 10px);
+
     --title-height: 50px;
-    --title-font-size: 20px;
+    --title-font-size: 22px;
     --title-line-height: 50px;
 
     --content-wrap-padding: 0 16px;
 
-    --left-item-height: calc(30vh - 10px);
+    --left-item-height: calc(30vh);
     --left-item-margin-right: 8px;
     --left-item-margin-bottom: 8px;
 
     --center-item-padding: 0 16px 0 16px;
 
-    --right-item-one-height: 20vh;
-    --right-item-height: 35vh;
+    --right-item-one-height: 30vh;
+    --right-item-height: 30vh;
     --right-item-margin-bottom: 10px;
 
     --right-item-right-width: calc(50% - 10px);
@@ -222,9 +226,9 @@
     --card-three-img-width: 30px;
     --card-three-img-height: 30px;
     --card-three-img-margin-bottom: 8px;
-    --card-three-title-font-size: 10px;
+    --card-three-title-font-size: 16px;
     --card-three-title-line-height: 20px;
-    --card-three-value-font-size: 10px;
+    --card-three-value-font-size: 14px;
     --card-three-value-line-height: 10px;
     --card-three-value-margin-top: 2px;
 

@@ -1,0 +1,187 @@
+/* 翻牌容器 */
+.flipNumberContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px; /* 启用3D视角 */
+}
+
+/* 单个翻牌容器 */
+.flipper {
+  position: relative;
+  margin: 0 2px;
+  perspective: 1000px; /* 启用3D视角 */
+  transform-style: preserve-3d; /* 保留3D效果 */
+}
+
+/* 静态上半部分 */
+.staticTop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform-origin: bottom center;
+
+  /* 上半部分仅显示数字上半部分 */
+  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+}
+
+/* 静态下半部分 */
+.staticBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform-origin: top center;
+
+  /* 下半部分仅显示数字下半部分 */
+  clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+}
+
+/* 动画上半部分 */
+.flipTop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform-origin: bottom center;
+  backface-visibility: hidden;
+
+  /* 上半部分仅显示数字上半部分 */
+  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+
+  /* 平滑过渡效果 */
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+}
+
+/* 动画下半部分 */
+.flipBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform-origin: top center;
+  backface-visibility: hidden;
+
+  /* 下半部分仅显示数字下半部分 */
+  clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+
+  /* 平滑过渡效果 */
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+}
+
+/* 翻转动画样式 - 上半部分 */
+.flippingTop {
+  animation: flipTop ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+/* 翻转动画样式 - 下半部分 */
+.flippingBottom {
+  animation: flipBottom ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+/* 上半部分翻转动画关键帧 */
+@keyframes flipTop {
+  0% {
+    z-index: 3;
+    transform: rotateX(0deg);
+  }
+  50%,
+  100% {
+    z-index: 3;
+    transform: rotateX(90deg);
+  }
+}
+
+/* 下半部分翻转动画关键帧 */
+@keyframes flipBottom {
+  0% {
+    z-index: 2;
+    transform: rotateX(-90deg);
+  }
+  50%,
+  100% {
+    z-index: 2;
+    transform: rotateX(0deg);
+  }
+}
+
+/* 为数字卡片添加渐变背景，提高立体感 */
+.staticTop::before,
+.staticBottom::before,
+.flipTop::before,
+.flipBottom::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none; /* 确保不影响交互 */
+}
+
+/* 上半部分渐变 */
+.staticTop::before,
+.flipTop::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+/* 下半部分渐变 */
+.staticBottom::before,
+.flipBottom::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.15)
+  );
+}
+
+/* 添加分割线 */
+.flipper::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  pointer-events: none; /* 确保不影响交互 */
+}

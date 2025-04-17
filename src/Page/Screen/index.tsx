@@ -23,6 +23,8 @@ import ComTable from "./components/ComTable/index.tsx";
 import { columns1, columns2, columns3, columns4 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
+import { Flex } from "antd";
+// import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
 
 const Screen = () => {
   const [trendKey, setTrendKey] = useState("");
@@ -310,7 +312,11 @@ const Screen = () => {
     () => [
       {
         title: "人群画像",
-        render: <ComCustom type="cardThree" data={screenData.threeData} />,
+        render: (
+          <Flex justify="center" align="center" className={styles.peopleDraw}>
+            <ComCustom type="cardThree" data={screenData.threeData} />
+          </Flex>
+        ),
       },
       {
         title: "治理画像",
@@ -370,6 +376,7 @@ const Screen = () => {
         </div>
         {/* 中间 */}
         <div className={styles.center}>
+          {/* <FlipNumberDemo /> */}
           <div className={styles.centerItem}>
             <AIChat />
           </div>
