@@ -565,7 +565,7 @@ const Screen = () => {
         }}
         workAiComment={workAiComment}
         workDetail={workDetail}
-        textTitle={`${workRecord.street}${workRecord?.category}事项`}
+        textTitle={`${workRecord?.street}${workRecord?.category}事项`}
       />
     </div>
   );
