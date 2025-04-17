@@ -10,18 +10,39 @@
     }
 
     .ant-modal-mask {
-      background-color: rgba(0, 0, 0, 0.6) !important;
+      background-color: rgba(0, 0, 0, 0.8) !important;
     }
 
-    .ant-table-body::-webkit-scrollbar {
+    .ant-table-body {
+      overflow: auto !important;
+    }
+
+    // 确保表格容器的滚动条样式也被设置
+    .ant-table-container::-webkit-scrollbar {
       width: 8px;
+      height: 8px; // 添加水平滚动条高度
     }
 
-    .ant-table-body::-webkit-scrollbar-track {
+    .ant-table-container::-webkit-scrollbar-track {
       background: transparent;
     }
 
-    .ant-table-body::-webkit-scrollbar-thumb {
+    .ant-table-container::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+
+    // 处理内部滚动容器
+    .ant-table-body-inner::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .ant-table-body-inner::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .ant-table-body-inner::-webkit-scrollbar-thumb {
       background-color: rgba(0, 0, 0, 0.2);
       border-radius: 3px;
     }
@@ -31,6 +52,7 @@
   background-image: url("./bg.png");
   background-size: 100% 100%;
   width: 100%;
+  max-height: 85vh;
   padding: 40px 98px 69px 60px;
   background-repeat: no-repeat;
   position: relative;
@@ -39,7 +61,6 @@
     font-size: 24px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 20px;
   }
   .closeIcon {
     z-index: 100000;
@@ -60,7 +81,7 @@
     font-size: 16px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 20px;
+    margin: 5px 0;
     position: relative;
     padding-left: 20px;
     &::before {
@@ -90,7 +111,6 @@
   }
 
   .workMsg {
-    margin: 20px 0;
     font-size: 14px !important;
     line-height: 16px !important;
     padding: 20px;
@@ -98,10 +118,31 @@
     border-radius: 12px 8px 0px 12px;
     color: #fff;
     min-height: unset;
+    max-height: 300px;
+    overflow-y: auto;
     :global {
       .ant-typography * {
         color: #fff !important;
       }
+      .ant-typography * {
+        font-style: 14px;
+      }
     }
+  }
+}
+
+:global {
+  .ant-table-body::-webkit-scrollbar {
+    width: 6px;
+    display: none;
+  }
+
+  .ant-table-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ant-table-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
   }
 }

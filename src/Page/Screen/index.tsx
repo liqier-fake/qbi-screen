@@ -231,6 +231,8 @@ const Screen = () => {
   const [workRecord, setWorkRecord] = useState<any>(null);
   const [wrokLoading, setWorkLoading] = useState(false);
   const [workAiComment, setWorkAiComment] = useState<string>("");
+  const ctrlRef = useRef<AbortController | null>(null);
+
   const leftRenderList: LeftRenderListType[] = useMemo(
     () => [
       {
@@ -294,10 +296,12 @@ const Screen = () => {
                     });
 
                     setWorkDetail(data.data);
-
+                    if (ctrlRef.current) {
+                      ctrlRef.current.abort();
+                      ctrlRef.current = null;
+                    }
                     const ctr = new AbortController();
-
-                    console.log(data.data, "data.data");
+                    ctrlRef.current = ctr;
 
                     const content = data?.data
                       ?.map((item: { content: string }) => item.content)
@@ -550,10 +554,18 @@ const Screen = () => {
         open={workOpen}
         onOk={() => setWorkOpen(false)}
         loading={wrokLoading}
-        onCancel={() => setWorkOpen(false)}
+        onCancel={() => {
+          setWorkOpen(false);
+          setWorkAiComment("");
+          setWorkDetail(null);
+          if (ctrlRef.current) {
+            ctrlRef.current.abort();
+            ctrlRef.current = null;
+          }
+        }}
         workAiComment={workAiComment}
         workDetail={workDetail}
-        textTitle={workRecord?.category}
+        textTitle={`${workRecord.street}${workRecord?.category}事项`}
       />
     </div>
   );

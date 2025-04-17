@@ -64,7 +64,7 @@ const WorkModal = ({
     <Modal
       {...rest}
       destroyOnClose
-      width={"50%"}
+      width={"60%"}
       centered
       footer={null}
       className={styles.workModal}
@@ -73,21 +73,22 @@ const WorkModal = ({
       <div className={styles.workModalContent}>
         <h2 className={styles.workModalTitle}>{textTitle}</h2>
 
-        <div className={styles.divider}>模型总结</div>
+        <div className={styles.divider}>AI总结</div>
         <Flex
           className={styles.workMsg}
-          style={{ maxHeight: "300px", overflow: "auto" }}
           ref={scrollContainerRef}
           onScroll={handleScroll}
         >
-          <Typography style={{ color: "#000 !important" }}>
+          <Typography
+            style={{ color: "#000 !important", marginBottom: "10px" }}
+          >
             <div
               dangerouslySetInnerHTML={{ __html: md.render(workAiComment) }}
             />
           </Typography>
         </Flex>
 
-        <div className={styles.divider}>表格详情</div>
+        <div className={styles.divider}>工单详情</div>
         <Table
           dataSource={workDetail || []}
           columns={worckColumns}
@@ -95,7 +96,6 @@ const WorkModal = ({
           pagination={false}
           scroll={{ y: 300, x: 1000 }}
         />
-
         <div
           className={styles.closeIcon}
           onClick={(e) => {
