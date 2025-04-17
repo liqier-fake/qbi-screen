@@ -2,6 +2,8 @@ import { Datum } from "@antv/ava";
 import { Table, Tabs, TabsProps } from "antd";
 import { CodePreview } from "./code-preview";
 import { AutoChart, BackEndChartType, getChartType } from "../chart/autoChart";
+import { useState } from "react";
+import { compact } from "lodash";
 
 function ChartView({
   data,
@@ -12,6 +14,7 @@ function ChartView({
   type: BackEndChartType;
   sql: string;
 }) {
+  const [showChart, setShowChart] = useState<boolean>(false);
   const columns = data?.[0]
     ? Object.keys(data?.[0])?.map((item) => {
         return {
@@ -24,7 +27,16 @@ function ChartView({
   const ChartItem = {
     key: "chart",
     label: "Chart",
-    children: <AutoChart data={data} chartType={getChartType(type)} />,
+    children: (
+      <AutoChart
+        onRenderChartType={(chartType) => {
+          console.log(chartType);
+          setShowChart(Boolean(chartType));
+        }}
+        data={data}
+        chartType={getChartType(type)}
+      />
+    ),
   };
 
   const DataItem = {
@@ -42,7 +54,9 @@ function ChartView({
   };
 
   const TabItems: TabsProps["items"] =
-    type === "response_table" ? [DataItem] : [ChartItem, DataItem, SqlItem];
+    type === "response_table"
+      ? [DataItem]
+      : compact([showChart && ChartItem, DataItem, SqlItem]);
 
   return (
     <Tabs

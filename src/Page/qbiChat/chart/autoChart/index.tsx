@@ -18,8 +18,18 @@ import {
 } from "./types";
 const { Option } = Select;
 
-export const AutoChart = (props: AutoChartProps) => {
-  const { data: originalData, chartType, scopeOfCharts, ruleConfig } = props;
+export const AutoChart = (
+  props: AutoChartProps & {
+    onRenderChartType: (chartType: ChartType) => void;
+  }
+) => {
+  const {
+    data: originalData,
+    chartType,
+    scopeOfCharts,
+    ruleConfig,
+    onRenderChartType,
+  } = props;
   // 处理空值数据 (为'-'的数据)
   const data = processNilData(originalData) as Datum[];
 
@@ -27,6 +37,10 @@ export const AutoChart = (props: AutoChartProps) => {
   const [advices, setAdvices] = useState<Advice[]>([]);
   const [renderChartType, setRenderChartType] = useState<ChartType>();
   const chartRef = useRef<ChartRef>(null);
+
+  useEffect(() => {
+    onRenderChartType?.(renderChartType as ChartType);
+  }, [onRenderChartType, renderChartType]);
 
   useEffect(() => {
     const input_charts: CustomChart[] = customCharts;
@@ -171,7 +185,6 @@ export const AutoChart = (props: AutoChartProps) => {
         <Row justify="space-between" className="mb-2">
           <Col>
             <Space>
-              <span>建议</span>
               <Select
                 className="w-52"
                 value={renderChartType}
