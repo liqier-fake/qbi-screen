@@ -3,6 +3,7 @@ import ComTitle from "./components/ComTitle";
 import styles from "./index.module.less";
 import { LeftRenderListType } from "./common.ts";
 import classNames from "classnames";
+import markdownit from "markdown-it";
 import AIChat from "./components/AIChat";
 import ComCustom from "./components/ComCustom";
 import {
@@ -28,7 +29,7 @@ import {
 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
-import { Flex, Modal, Table } from "antd";
+import { Flex, Modal, Table, Typography } from "antd";
 import { apiGetWorkDetail, apiGetWorkList } from "./api.ts";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 // import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
@@ -235,6 +236,47 @@ const Screen = () => {
   const [workDetail, setWorkDetail] = useState<any>(null);
   const [workRecord, setWorkRecord] = useState<any>(null);
   const [wrokLoading, setWorkLoading] = useState(false);
+  const [workAiComment, setWorkAiComment] = useState<string>("");
+
+  // 直接在组件中实现自动滚动逻辑
+  const [userScrolled, setUserScrolled] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 处理滚动事件
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } =
+      scrollContainerRef.current;
+    // 如果用户向上滚动（不在底部），则标记为用户已滚动
+    if (scrollHeight - scrollTop - clientHeight > 20) {
+      setUserScrolled(true);
+    } else {
+      // 如果滚动到底部，重置用户滚动状态
+      setUserScrolled(false);
+    }
+  };
+
+  // 滚动到底部
+  const scrollToBottom = () => {
+    if (scrollContainerRef.current && !userScrolled) {
+      const container = scrollContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
+  // 内容变化时滚动到底部
+  useEffect(() => {
+    scrollToBottom();
+  }, [workAiComment]);
+
+  // 当模态框打开时重置
+  useEffect(() => {
+    if (workOpen) {
+      setUserScrolled(false);
+      setWorkAiComment("");
+    }
+  }, [workOpen]);
 
   const leftRenderList: LeftRenderListType[] = useMemo(
     () => [
@@ -290,41 +332,6 @@ const Screen = () => {
                   setWorkOpen(true);
                   setWorkRecord(record);
 
-                  const ctr = new AbortController();
-                  fetchEventSource(
-                    `${import.meta.env.VITE_BASE_API_URL}/process-data`,
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        Authorization:
-                          "Bearer " + import.meta.env.VITE_CHAT_TOKEN,
-                      },
-                      body: JSON.stringify({
-                        task: record.category,
-                        content: record.street,
-                      }),
-                      signal: ctr.signal,
-                      onmessage(msg) {
-                        const res = JSON.parse(msg.data);
-                        console.log(res, "res");
-
-                        setWorkRecord((wr: any) => {
-                          return {
-                            ...wr,
-                            aiComment: wr.aiComment + res,
-                          };
-                        });
-                      },
-                      onclose() {},
-                      onerror(err) {
-                        console.error("请求出错:", err);
-                        // **阻止自动重试**
-                        throw new Error("请求失败，终止 fetchEventSource");
-                      },
-                    }
-                  );
-
                   try {
                     if (wrokLoading) return;
                     setWorkLoading(true);
@@ -333,12 +340,48 @@ const Screen = () => {
                       street: record?.street as string,
                     });
 
-                    console.log(data, "data");
+                    setWorkDetail(data.data);
 
-                    setWorkDetail({
-                      ...workDetail,
-                      tableData: data.data || [],
-                    });
+                    const ctr = new AbortController();
+
+                    console.log(data.data, "data.data");
+
+                    const content = data?.data
+                      ?.map((item: { content: string }) => item.content)
+                      .join("");
+
+                    fetchEventSource(
+                      `${import.meta.env.VITE_BASE_API_URL}/v1/process-data`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization:
+                            "Bearer " + import.meta.env.VITE_CHAT_TOKEN,
+                        },
+                        body: JSON.stringify({
+                          task: "summary+breakdown",
+                          content,
+                        }),
+                        signal: ctr.signal,
+                        onmessage(msg) {
+                          const res = JSON.parse(msg.data);
+                          console.log(res, "res");
+
+                          setWorkAiComment((wr) => {
+                            return wr + res.content;
+                          });
+                        },
+                        onclose() {},
+                        onerror(err) {
+                          console.error("请求出错:", err);
+                          // **阻止自动重试**
+                          throw new Error("请求失败，终止 fetchEventSource");
+                        },
+                      }
+                    );
+
+                    console.log(data, "data");
                   } catch (err) {
                     console.log(`apiGEtWorkDetail err : ${err}`);
                   } finally {
@@ -393,7 +436,6 @@ const Screen = () => {
       pieOption,
       categoryKey,
       wrokLoading,
-      workDetail,
     ]
   );
   const rightRenderList: LeftRenderListType[] = useMemo(
@@ -429,6 +471,13 @@ const Screen = () => {
     ],
     [screenData.lineData, screenData.threeData]
   );
+
+  // 初始化 markdown-it
+  const md = markdownit({
+    html: true, // 允许 HTML 标签
+    breaks: true, // 转换换行符为 <br>
+    linkify: true, // 自动转换 URL 为链接
+  });
 
   return (
     <div className={styles.screen}>
@@ -519,6 +568,7 @@ const Screen = () => {
       </div>
 
       <Modal
+        destroyOnClose
         title={workRecord?.category + "工单详情"}
         open={workOpen}
         onOk={() => setWorkOpen(false)}
@@ -527,9 +577,23 @@ const Screen = () => {
         width={"50%"}
         centered
         footer={null}
+        className={styles.workModal}
       >
+        <Flex
+          className={styles.workMsg}
+          style={{ maxHeight: "300px", overflow: "auto" }}
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+        >
+          <Typography style={{ color: "#000 !important" }}>
+            <div
+              dangerouslySetInnerHTML={{ __html: md.render(workAiComment) }}
+            />
+          </Typography>
+        </Flex>
+
         <Table
-          dataSource={workDetail?.tableData || []}
+          dataSource={workDetail || []}
           columns={worckColumns}
           loading={wrokLoading}
         />
