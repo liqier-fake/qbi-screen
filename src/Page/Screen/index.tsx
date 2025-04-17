@@ -3,7 +3,6 @@ import ComTitle from "./components/ComTitle";
 import styles from "./index.module.less";
 import { LeftRenderListType } from "./common.ts";
 import classNames from "classnames";
-import markdownit from "markdown-it";
 import AIChat from "./components/AIChat";
 import ComCustom from "./components/ComCustom";
 import {
@@ -20,18 +19,13 @@ import LineChart from "./components/Chart/LineChart.tsx";
 import Heatmap from "./components/Chart/Heatmap.tsx";
 import ComSelect from "./components/ComSelect/index.tsx";
 import ComTable from "./components/ComTable/index.tsx";
-import {
-  columns1,
-  columns2,
-  columns3,
-  columns4,
-  worckColumns,
-} from "./columns.tsx";
+import { columns1, columns2, columns3, columns4 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
-import { Flex, Modal, Table, Typography } from "antd";
+import { Flex } from "antd";
 import { apiGetWorkDetail, apiGetWorkList } from "./api.ts";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import WorkModal from "./components/WorkMoal/index.tsx";
 // import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
 
 const Screen = () => {
@@ -237,47 +231,6 @@ const Screen = () => {
   const [workRecord, setWorkRecord] = useState<any>(null);
   const [wrokLoading, setWorkLoading] = useState(false);
   const [workAiComment, setWorkAiComment] = useState<string>("");
-
-  // 直接在组件中实现自动滚动逻辑
-  const [userScrolled, setUserScrolled] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // 处理滚动事件
-  const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
-
-    const { scrollTop, scrollHeight, clientHeight } =
-      scrollContainerRef.current;
-    // 如果用户向上滚动（不在底部），则标记为用户已滚动
-    if (scrollHeight - scrollTop - clientHeight > 20) {
-      setUserScrolled(true);
-    } else {
-      // 如果滚动到底部，重置用户滚动状态
-      setUserScrolled(false);
-    }
-  };
-
-  // 滚动到底部
-  const scrollToBottom = () => {
-    if (scrollContainerRef.current && !userScrolled) {
-      const container = scrollContainerRef.current;
-      container.scrollTop = container.scrollHeight;
-    }
-  };
-
-  // 内容变化时滚动到底部
-  useEffect(() => {
-    scrollToBottom();
-  }, [workAiComment]);
-
-  // 当模态框打开时重置
-  useEffect(() => {
-    if (workOpen) {
-      setUserScrolled(false);
-      setWorkAiComment("");
-    }
-  }, [workOpen]);
-
   const leftRenderList: LeftRenderListType[] = useMemo(
     () => [
       {
@@ -472,13 +425,6 @@ const Screen = () => {
     [screenData.lineData, screenData.threeData]
   );
 
-  // 初始化 markdown-it
-  const md = markdownit({
-    html: true, // 允许 HTML 标签
-    breaks: true, // 转换换行符为 <br>
-    linkify: true, // 自动转换 URL 为链接
-  });
-
   return (
     <div className={styles.screen}>
       {/* 标题 */}
@@ -566,10 +512,9 @@ const Screen = () => {
           </div>
         </div>
       </div>
-
+      {/* 
       <Modal
         destroyOnClose
-        title={workRecord?.category + "工单详情"}
         open={workOpen}
         onOk={() => setWorkOpen(false)}
         loading={wrokLoading}
@@ -578,6 +523,7 @@ const Screen = () => {
         centered
         footer={null}
         className={styles.workModal}
+        closeIcon={null}
       >
         <Flex
           className={styles.workMsg}
@@ -596,8 +542,19 @@ const Screen = () => {
           dataSource={workDetail || []}
           columns={worckColumns}
           loading={wrokLoading}
+          pagination={false}
+          scroll={{ y: 300, x: 1000 }}
         />
-      </Modal>
+      </Modal> */}
+      <WorkModal
+        open={workOpen}
+        onOk={() => setWorkOpen(false)}
+        loading={wrokLoading}
+        onCancel={() => setWorkOpen(false)}
+        workAiComment={workAiComment}
+        workDetail={workDetail}
+        textTitle={workRecord?.category}
+      />
     </div>
   );
 };

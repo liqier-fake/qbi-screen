@@ -87,7 +87,7 @@ export const columns2: Column<any>[] = [
 
 export const columns3: Column<any>[] = [
   {
-    title: "社区名",
+    title: "街道名",
     dataIndex: "street",
     width: 150,
     align: "left",
@@ -116,7 +116,6 @@ export const worckColumns: any[] = [
     key: "content",
     width: 300,
     align: "left",
-    ellipsis: true,
   },
   {
     title: "日期",
@@ -124,7 +123,6 @@ export const worckColumns: any[] = [
     key: "date",
     width: 150,
     align: "left",
-    ellipsis: true,
   },
   {
     title: "来源",
@@ -132,7 +130,6 @@ export const worckColumns: any[] = [
     key: "ds1",
     width: 100,
     align: "left",
-    ellipsis: true,
   },
   {
     title: "威胁指数",
@@ -140,6 +137,5 @@ export const worckColumns: any[] = [
     key: "threaten",
     width: 100,
     align: "left",
-    ellipsis: true,
   },
 ];
