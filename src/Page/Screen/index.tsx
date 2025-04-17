@@ -8,7 +8,6 @@ import ComCustom from "./components/ComCustom";
 import {
   peopleOption,
   areaOption,
-  dataSource3,
   updateMockData,
   createMockData,
   ScreenDataType,
@@ -20,10 +19,18 @@ import LineChart from "./components/Chart/LineChart.tsx";
 import Heatmap from "./components/Chart/Heatmap.tsx";
 import ComSelect from "./components/ComSelect/index.tsx";
 import ComTable from "./components/ComTable/index.tsx";
-import { columns1, columns2, columns3, columns4 } from "./columns.tsx";
+import {
+  columns1,
+  columns2,
+  columns3,
+  columns4,
+  worckColumns,
+} from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
-import { Flex } from "antd";
+import { Flex, Modal, Table } from "antd";
+import { apiGetWorkDetail, apiGetWorkList } from "./api.ts";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 // import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
 
 const Screen = () => {
@@ -41,7 +48,17 @@ const Screen = () => {
 
   const timer = useRef<NodeJS.Timeout | null>(null);
 
+  const getScreenData = async () => {
+    const { data } = await apiGetWorkList();
+    setScreenData((prevData) => ({
+      ...prevData,
+      wordTableData: data,
+    }));
+  };
+
   useEffect(() => {
+    getScreenData();
+
     return;
     const updateData = async () => {
       try {
@@ -213,6 +230,12 @@ const Screen = () => {
     };
   }, []);
 
+  // 攻坚项目弹窗
+  const [workOpen, setWorkOpen] = useState(false);
+  const [workDetail, setWorkDetail] = useState<any>(null);
+  const [workRecord, setWorkRecord] = useState<any>(null);
+  const [wrokLoading, setWorkLoading] = useState(false);
+
   const leftRenderList: LeftRenderListType[] = useMemo(
     () => [
       {
@@ -260,7 +283,69 @@ const Screen = () => {
               <div className={styles.pieWrap}>
                 <BaseChart option={pieOption}></BaseChart>
               </div>
-              <ComTable columns={columns3} dataSource={dataSource3}></ComTable>
+              <ComTable
+                columns={columns3}
+                dataSource={screenData.wordTableData || []}
+                onRowClick={async (record) => {
+                  setWorkOpen(true);
+                  setWorkRecord(record);
+
+                  const ctr = new AbortController();
+                  fetchEventSource(
+                    `${import.meta.env.VITE_BASE_API_URL}/process-data`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization:
+                          "Bearer " + import.meta.env.VITE_CHAT_TOKEN,
+                      },
+                      body: JSON.stringify({
+                        task: record.category,
+                        content: record.street,
+                      }),
+                      signal: ctr.signal,
+                      onmessage(msg) {
+                        const res = JSON.parse(msg.data);
+                        console.log(res, "res");
+
+                        setWorkRecord((wr: any) => {
+                          return {
+                            ...wr,
+                            aiComment: wr.aiComment + res,
+                          };
+                        });
+                      },
+                      onclose() {},
+                      onerror(err) {
+                        console.error("请求出错:", err);
+                        // **阻止自动重试**
+                        throw new Error("请求失败，终止 fetchEventSource");
+                      },
+                    }
+                  );
+
+                  try {
+                    if (wrokLoading) return;
+                    setWorkLoading(true);
+                    const { data } = await apiGetWorkDetail({
+                      category: record?.category as string,
+                      street: record?.street as string,
+                    });
+
+                    console.log(data, "data");
+
+                    setWorkDetail({
+                      ...workDetail,
+                      tableData: data.data || [],
+                    });
+                  } catch (err) {
+                    console.log(`apiGEtWorkDetail err : ${err}`);
+                  } finally {
+                    setWorkLoading(false);
+                  }
+                }}
+              ></ComTable>
             </div>
           </div>
         ),
@@ -302,10 +387,13 @@ const Screen = () => {
       screenData.oneData,
       screenData.twoData,
       screenData.lineData,
+      screenData.wordTableData,
       trendKey,
       focusKey,
-      categoryKey,
       pieOption,
+      categoryKey,
+      wrokLoading,
+      workDetail,
     ]
   );
   const rightRenderList: LeftRenderListType[] = useMemo(
@@ -429,6 +517,23 @@ const Screen = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        title={workRecord?.category + "工单详情"}
+        open={workOpen}
+        onOk={() => setWorkOpen(false)}
+        loading={wrokLoading}
+        onCancel={() => setWorkOpen(false)}
+        width={"50%"}
+        centered
+        footer={null}
+      >
+        <Table
+          dataSource={workDetail?.tableData || []}
+          columns={worckColumns}
+          loading={wrokLoading}
+        />
+      </Modal>
     </div>
   );
 };

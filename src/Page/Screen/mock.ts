@@ -637,6 +637,7 @@ export interface ScreenDataType {
   dataSource1: DataItem[];
   dataSource2: DataItem[];
   dataSource3: DataItem[];
+  wordTableData?: any[];
 }
 
 // 创建初始数据的工厂函数

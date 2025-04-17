@@ -48,6 +48,7 @@ const AIChat = () => {
         />
       )}
       <Modal
+        className={styles.aiChatModal}
         width={"60%"}
         open={isModalOpen}
         onOk={handleOk}

@@ -2,6 +2,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
+  position: relative;
 
   &::-webkit-scrollbar {
     width: 0;
@@ -16,6 +17,7 @@
   .table {
     width: 100%;
     height: 100%;
+    border-collapse: collapse;
   }
 
   table {
@@ -27,26 +29,51 @@
     padding: var(--table-padding);
   }
 
-  th {
-    font-size: var(--table-font-size);
-    color: #77a4ed;
-  }
-  td {
-    font-size: var(--table-font-size);
-    color: #ffffff;
-  }
-
+  /* 表头样式 */
   thead {
     position: sticky;
     top: 0;
     background: #071836;
     z-index: 1;
+
+    th {
+      font-size: var(--table-font-size);
+      color: #77a4ed;
+    }
   }
 
+  /* 表格内容样式 */
+  td {
+    font-size: var(--table-font-size);
+    color: #ffffff;
+  }
+
+  /* 表格行样式 */
   tbody {
     height: 100%;
-    tr:hover {
+  }
+
+  .tableRow {
+    transition: background-color 0.3s;
+
+    &:hover {
       background: #092046;
+    }
+
+    td {
+      transition: background-color 0.3s;
+    }
+  }
+}
+
+/* 响应式样式 */
+@media screen and (max-width: 768px) {
+  .tableWrapper {
+    .table {
+      thead th,
+      .tableRow td {
+        padding: 8px 4px;
+      }
     }
   }
 }

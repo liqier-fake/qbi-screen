@@ -25,6 +25,8 @@ export interface ComTableProps<T extends TableRecord = TableRecord> {
   scrollHeight?: number; // 容器高度
   scrollByRow?: boolean; // 是否按行滚动
   scrollDuration?: number; // 滚动动画持续时间(ms)
+  onRowClick?: (record: T, index: number) => void; // 行点击事件回调函数
+  rowClassName?: string | ((record: T, index: number) => string); // 自定义行类名
 }
 
 const ComTable = <T extends TableRecord = TableRecord>({
@@ -35,6 +37,8 @@ const ComTable = <T extends TableRecord = TableRecord>({
   scrollSpeed = 3000, // 默认3秒滚动一行，增加间隔时间
   scrollByRow = true, // 默认按行滚动
   scrollDuration = 1200, // 默认滚动动画持续1.2秒
+  onRowClick, // 行点击事件回调
+  rowClassName, // 自定义行类名
 }: ComTableProps<T>) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLTableSectionElement>(null);
@@ -45,6 +49,33 @@ const ComTable = <T extends TableRecord = TableRecord>({
 
   // 创建双倍数据以实现无缝滚动
   const doubleData = [...dataSource, ...dataSource];
+
+  // 处理行点击事件
+  const handleRowClick = (record: T, rowIndex: number) => {
+    // 计算实际的数据索引，处理双倍数据的情况
+    const actualIndex = rowIndex % dataSource.length;
+
+    // 如果提供了点击回调，则调用它
+    if (onRowClick) {
+      onRowClick(record, actualIndex);
+    }
+  };
+
+  // 获取行的类名
+  const getRowClassName = (record: T, index: number) => {
+    let customClassName = "";
+
+    // 处理自定义行类名
+    if (rowClassName) {
+      if (typeof rowClassName === "function") {
+        customClassName = rowClassName(record, index % dataSource.length);
+      } else {
+        customClassName = rowClassName;
+      }
+    }
+
+    return `${styles.tableRow} ${customClassName}`;
+  };
 
   useEffect(() => {
     if (!autoScroll || !containerRef.current || !contentRef.current) return;
@@ -215,7 +246,12 @@ const ComTable = <T extends TableRecord = TableRecord>({
           onMouseLeave={() => setIsPaused(false)}
         >
           {doubleData.map((record, rowIndex) => (
-            <tr key={rowIndex}>
+            <tr
+              key={rowIndex}
+              className={getRowClassName(record, rowIndex)}
+              onClick={() => handleRowClick(record, rowIndex)}
+              style={{ cursor: onRowClick ? "pointer" : "default" }}
+            >
               {columns.map((column, colIndex) => (
                 <td
                   key={`${rowIndex}-${colIndex}`}

@@ -88,13 +88,13 @@ export const columns2: Column<any>[] = [
 export const columns3: Column<any>[] = [
   {
     title: "社区名",
-    dataIndex: "community",
+    dataIndex: "street",
     width: 150,
     align: "left",
   },
   {
     title: "重点事项",
-    dataIndex: "keyMatter",
+    dataIndex: "category",
     width: 180,
     align: "left",
   },
@@ -106,5 +106,40 @@ export const columns3: Column<any>[] = [
     render: (text: number) => (
       <span style={{ color: text > 50 ? "red" : "inherit" }}>{text}</span>
     ),
+  },
+];
+
+export const worckColumns: any[] = [
+  {
+    title: "内容",
+    dataIndex: "content",
+    key: "content",
+    width: 300,
+    align: "left",
+    ellipsis: true,
+  },
+  {
+    title: "日期",
+    dataIndex: "date",
+    key: "date",
+    width: 150,
+    align: "left",
+    ellipsis: true,
+  },
+  {
+    title: "来源",
+    dataIndex: "ds1",
+    key: "ds1",
+    width: 100,
+    align: "left",
+    ellipsis: true,
+  },
+  {
+    title: "威胁指数",
+    dataIndex: "threaten",
+    key: "threaten",
+    width: 100,
+    align: "left",
+    ellipsis: true,
   },
 ];
