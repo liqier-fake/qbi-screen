@@ -79,9 +79,7 @@ const WorkModal = ({
           ref={scrollContainerRef}
           onScroll={handleScroll}
         >
-          <Typography
-            style={{ color: "#000 !important", marginBottom: "10px" }}
-          >
+          <Typography style={{ width: "100%", height: "100%" }}>
             <div
               dangerouslySetInnerHTML={{ __html: md.render(workAiComment) }}
             />
@@ -94,7 +92,7 @@ const WorkModal = ({
           columns={worckColumns}
           loading={rest.loading}
           pagination={false}
-          scroll={{ y: 300, x: 1000 }}
+          scroll={{ y: 249 }}
         />
         <div
           className={styles.closeIcon}

@@ -105,12 +105,16 @@ function Chat({
 
   const scrollToBottom = useCallback(() => {
     if (!chatRef.current) return;
-    setTimeout(() => {
-      chatRef.current?.scrollTo({
-        top: chatRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }, 200);
+    const { scrollHeight, clientHeight, scrollTop } = chatRef.current;
+
+    if (scrollHeight - scrollTop - clientHeight > 20) {
+      setTimeout(() => {
+        chatRef.current?.scrollTo({
+          top: chatRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }, 200);
+    }
   }, []);
 
   useEffect(() => {

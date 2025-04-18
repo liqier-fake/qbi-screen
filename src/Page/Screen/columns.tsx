@@ -114,15 +114,15 @@ export const worckColumns: any[] = [
     title: "内容",
     dataIndex: "content",
     key: "content",
-    width: 300,
     align: "left",
+    width: 300,
   },
   {
     title: "日期",
     dataIndex: "date",
     key: "date",
-    width: 150,
     align: "left",
+    width: 100,
   },
   {
     title: "来源",
@@ -135,7 +135,7 @@ export const worckColumns: any[] = [
     title: "威胁指数",
     dataIndex: "threaten",
     key: "threaten",
-    width: 100,
     align: "left",
+    width: 100,
   },
 ];

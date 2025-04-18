@@ -1,4 +1,4 @@
-import "./App.css";
+import "./App.less";
 import Screen from "./Page/Screen";
 import { ConfigProvider } from "antd";
 
