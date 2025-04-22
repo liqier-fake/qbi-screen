@@ -22,10 +22,11 @@ import ComTable from "./components/ComTable/index.tsx";
 import { columns1, columns2, columns3, columns4 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
-import { Flex } from "antd";
+import { Flex, Button } from "antd";
 import { apiGetWorkDetail, apiGetWorkList } from "./api.ts";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import WorkModal from "./components/WorkMoal/index.tsx";
+import { AuthChangeEventDetail } from "../../types/events";
 // import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
 
 const Screen = () => {
@@ -429,6 +430,29 @@ const Screen = () => {
     [screenData.lineData, screenData.threeData]
   );
 
+  /**
+   * 触发自定义登录状态变更事件
+   * @param isLoggedIn 登录状态
+   */
+  const triggerAuthChangeEvent = (isLoggedIn: boolean) => {
+    // 创建并触发自定义事件
+    const authChangeEvent = new CustomEvent("authChange", {
+      detail: { isLoggedIn } as AuthChangeEventDetail,
+    });
+    window.dispatchEvent(authChangeEvent);
+  };
+
+  /**
+   * 处理用户登出操作
+   */
+  const handleLogout = () => {
+    // 清除登录状态
+    localStorage.removeItem("isLoggedIn");
+
+    // 触发自定义登出事件
+    triggerAuthChangeEvent(false);
+  };
+
   return (
     <div className={styles.screen}>
       {/* 标题 */}
@@ -441,6 +465,9 @@ const Screen = () => {
         >
           苏州工业园区"智汇民意"民情分析平台
         </span>
+        <Button type="link" className={styles.logoutBtn} onClick={handleLogout}>
+          退出登录
+        </Button>
       </div>
       {/* 内容 */}
       <div className={styles.contentWrap}>
