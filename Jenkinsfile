@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+ 
     environment {
         // 镜像名称，根据实际情况替换
         IMAGE_NAME       = "192.168.2.111/green-doctor/qbi-screen"
