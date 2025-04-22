@@ -9,7 +9,7 @@ pipeline {
         REMOTE_DEPLOY_DIR = "/home/v/projects/2025/sz/qbi/serve/qbi-screen-dev"
         GIT_BRANCH       = "dev"
     }
-
+    //test char
     stages {
         stage('Docker Login') {
             steps {
