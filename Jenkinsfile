@@ -6,8 +6,8 @@ pipeline {
         IMAGE_NAME       = "192.168.2.111/green-doctor/qbi-screen"
         REMOTE_HOST      = "192.168.2.105"
         REMOTE_USER      = "v"
-        REMOTE_DEPLOY_DIR = "/home/v/projects/2025/sz/qbi/serve/qbi-screen"
-        GIT_BRANCH       = "main"
+        REMOTE_DEPLOY_DIR = "/home/v/projects/2025/sz/qbi/serve/qbi-screen-dev"
+        GIT_BRANCH       = "dev"
     }
 
     stages {
@@ -42,7 +42,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${IMAGE_NAME}:${VERSION} ."
-                sh "docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest"
+                sh "docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:dev-latest"
             }
         }
 
@@ -50,7 +50,7 @@ pipeline {
             steps {
                 echo "Pushing ${IMAGE_NAME}:${VERSION} and latest"
                 sh "docker push ${IMAGE_NAME}:${VERSION}"
-                sh "docker push ${IMAGE_NAME}:latest"
+                sh "docker push ${IMAGE_NAME}:dev-latest"
             }
         }
 
