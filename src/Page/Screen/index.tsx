@@ -28,6 +28,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import WorkModal from "./components/WorkMoal/index.tsx";
 import { AuthChangeEventDetail } from "../../types/events";
 // import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
+import Map from "./components/Chart/Map.tsx";
 
 const Screen = () => {
   const [trendKey, setTrendKey] = useState("");
@@ -456,6 +457,7 @@ const Screen = () => {
   return (
     <div className={styles.screen}>
       {/* 标题 */}
+
       <div className={styles.header}>
         <span
           className={styles.title}
@@ -469,8 +471,11 @@ const Screen = () => {
           退出登录
         </Button>
       </div>
+
       {/* 内容 */}
       <div className={styles.contentWrap}>
+        {/* 地图 */}
+        <Map></Map>
         {/* 左侧 */}
         <div className={styles.left}>
           {
@@ -490,7 +495,6 @@ const Screen = () => {
         </div>
         {/* 中间 */}
         <div className={styles.center}>
-          {/* <FlipNumberDemo /> */}
           <div className={styles.centerItem}>
             <AIChat />
           </div>

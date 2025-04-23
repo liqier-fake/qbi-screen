@@ -93,10 +93,10 @@
     }
 
     // 确保内容在动画上层
-    > * {
-      position: relative;
-      z-index: 2;
-    }
+    // > * {
+    //   position: relative;
+    //   z-index: 2;
+    // }
   }
 
   @keyframes moveGradient {
@@ -135,7 +135,7 @@
 
   // 添加混入
   .animated-border() {
-    position: relative;
+    // position: relative;
     border: 2px solid transparent;
     border-image-slice: 1;
     animation: borderAnimation 6s infinite linear;
@@ -160,7 +160,7 @@
     // background-size: 100% calc(100% + 156px - 112px);
     background-size: var(--header-background-size);
     .flex-center();
-    position: relative; // 添加相对定位
+    // position: relative; // 添加相对定位
 
     .title {
       color: #fff;
@@ -201,15 +201,26 @@
     overflow-x: hidden;
     overflow-y: hidden;
     // height: 2180px;
-    background-image: url("./img/map-bg.png"), @bg-color;
+    // background-image: url("./img/map-bg.png"), @bg-color;
+    background-image: @bg-color;
     background-size: 50%, 100% 100%;
     background-position: center, 0 0;
     background-repeat: no-repeat;
     padding: var(--content-wrap-padding);
     .flex-between();
 
+    &::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: none !important;
+    }
     .left {
       // width: calc(968.71px * 2 + 37px);
+      // border: 1px solid #000;
+      position: relative;
+      z-index: 1;
       flex: 3 1;
       height: auto;
       .flex-between();
@@ -256,18 +267,21 @@
     }
 
     .center {
-      // width: 2005px;
       flex: 1 1;
       height: 100%;
       .flex-column();
       justify-content: flex-end;
       .centerItem {
         width: 100%;
+        position: relative;
+        z-index: 1;
       }
       padding: var(--center-item-padding);
     }
 
     .right {
+      position: relative;
+      z-index: 1;
       overflow: hidden;
       // width: calc(968.71px * 2 + 37px);
       flex: 3 1;
