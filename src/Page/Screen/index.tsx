@@ -463,7 +463,7 @@ const Screen = () => {
             clearInterval(timer.current!);
           }}
         >
-          苏州工业园区"智汇民意"民情分析平台
+          民情全息感知与数智治理平台
         </span>
         <Button type="link" className={styles.logoutBtn} onClick={handleLogout}>
           退出登录

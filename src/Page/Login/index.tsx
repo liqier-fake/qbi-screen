@@ -66,23 +66,23 @@ const Login = () => {
       {/* 左侧装饰元素 */}
       <div className={styles.leftDecoration}>
         {/* 几何图形装饰 */}
-        <div className={styles.decorCircle1}></div>
+        {/* <div className={styles.decorCircle1}></div>
         <div className={styles.decorCircle2}></div>
         <div className={styles.decorCircle3}></div>
         <div className={styles.decorLine1}></div>
-        <div className={styles.decorLine2}></div>
+        <div className={styles.decorLine2}></div> */}
 
         {/* 简约科技感文字 */}
         <div className={styles.techText}>
-          <div className={styles.techTitle}>苏州工业园区</div>
-          <div className={styles.techSubtitle}>"智汇民意"民情分析平台</div>
+          {/* <div className={styles.techTitle}>民情全息感知与数智治理平台</div> */}
+          {/* <div className={styles.techSubtitle}>民情全息感知与数智治理平台</div> */}
         </div>
       </div>
 
       {/* 登录框 */}
       <div className={styles.loginPanel}>
         <div className={styles.panelHeader}>
-          <h1 className={styles.mainTitle}>"智汇民意"民情分析平台</h1>
+          <h1 className={styles.mainTitle}>"民情全息感知与数智治理平台</h1>
           <h2 className={styles.subTitle}>欢迎登录系统！</h2>
         </div>
 
