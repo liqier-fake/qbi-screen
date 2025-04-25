@@ -130,11 +130,10 @@
     //     100%,
     //   /* 左下角 */ linear-gradient(45deg, #1ffff7 4px, transparent 4px) 0 100%,
     //   linear-gradient(#1d73c0, #1d73c0);
-    background: linear-gradient(135deg, #1ffff7 4px, transparent 0) top left,
-      linear-gradient(-135deg, #1ffff7 4px, transparent 0) top right,
-      linear-gradient(-45deg, #1ffff7 4px, transparent 0) bottom right,
-      linear-gradient(45deg, #1ffff7 4px, transparent 0) bottom left,
+    background: url("./leftT.png") top left, url("./rightT.png") top right,
+      url("./rightB.png") bottom right, url("./leftB.png") bottom left,
       linear-gradient(#1d73c0, #1d73c0);
+    background-repeat: no-repeat;
     :global {
       .ant-typography * {
         color: #fff !important;
