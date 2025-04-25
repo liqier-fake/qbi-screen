@@ -6,6 +6,7 @@ import partOneIcon3 from "./img/part_one_icon_3.png";
 import partOneIcon4 from "./img/part_one_icon_4.png";
 
 import threeIcon from "./img/three_icon.png";
+import { Flex } from "antd";
 
 interface ComData {
   type: "cardOne" | "cardTwo" | "cardThree";
@@ -83,8 +84,12 @@ const ComCustom = ({ type, data }: ComData) => {
                 {list.map((item, i) => (
                   <div className={styles.listItem} key={i}>
                     <img src={threeIcon} alt="" />
-                    <span className={styles.title}>{item.title}</span>
-                    <span className={styles.value}>{item.value}</span>
+                    <Flex justify="center" align="center">
+                      <span className={styles.title}>{item.value}</span>
+                      <span className={styles.value}>人</span>
+                    </Flex>
+
+                    <span className={styles.value}>{item.title}</span>
                   </div>
                 ))}
               </div>

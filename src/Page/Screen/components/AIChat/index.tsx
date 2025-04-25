@@ -1,10 +1,11 @@
 import styles from "./index.module.less";
 import digitalman from "./digitalman.png";
-import { Modal } from "antd";
+import { Flex, Modal } from "antd";
 import { useState } from "react";
 import { Chat } from "../../../qbiChat";
 
 import close from "./close.png";
+import icon from "./icon.png";
 
 // import { Chat } from "../../../qbiChat/index.ts";
 // import { Chat } from "../../../qbiChat";
@@ -40,12 +41,15 @@ const AIChat = () => {
         /> */}
       </div>
       {!isModalOpen && (
-        <img
-          src={digitalman}
-          alt="数字人助手"
-          className={styles.img}
+        <Flex
+          justify="flex-end"
+          align="flex-start"
+          className={styles.imgContainer}
           onClick={showModal}
-        />
+        >
+          <img src={icon} alt="icon" className={styles.img} />
+          <img src={digitalman} alt="数字人助手" className={styles.img} />
+        </Flex>
       )}
       <Modal
         className={styles.aiChatModal}
