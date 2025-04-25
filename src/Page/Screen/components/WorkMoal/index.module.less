@@ -130,8 +130,10 @@
     //     100%,
     //   /* 左下角 */ linear-gradient(45deg, #1ffff7 4px, transparent 4px) 0 100%,
     //   linear-gradient(#1d73c0, #1d73c0);
-    background: url("./leftT.png") top left, url("./rightT.png") top right,
-      url("./rightB.png") bottom right, url("./leftB.png") bottom left,
+    background: url("./leftT.png") -2px -2px,
+      url("./rightT.png") calc(100% + 2px) -2px,
+      url("./rightB.png") calc(100% + 2px) calc(100% + 2px),
+      url("./leftB.png") -2px calc(100% + 2px),
       linear-gradient(#1d73c0, #1d73c0);
     background-repeat: no-repeat;
     :global {
@@ -181,6 +183,7 @@
   .ant-table-body {
     scrollbar-width: none;
     // scrollbar-color: rgba(39, 146, 240, 0.5) rgba(39, 146, 240, 0.1);
+    // border: 1px solid red;
   }
 
   .ant-table-cell-scrollbar {

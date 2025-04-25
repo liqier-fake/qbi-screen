@@ -20,6 +20,7 @@
   .flex-column();
   color: #fff;
   background-image: @bg-color;
+  align-items: flex-end;
 
   // 添加旋转边框动画
   @keyframes rotate {
@@ -53,35 +54,42 @@
   // 容器包装器
   .contentWrap {
     position: relative;
-
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
     // 添加流动边框效果
     &::before {
       content: "";
       position: absolute;
-      left: -2px;
-      top: -2px;
-      right: -2px;
-      bottom: -2px;
+      left: -3px; // 增加边框宽度
+      top: -3px;
+      right: -3px;
+      bottom: -3px;
       border-radius: 4px;
       background: linear-gradient(
         90deg,
         transparent,
-        transparent 25%,
-        #00f7ff 45%,
-        #00f7ff 55%,
-        transparent 75%,
+        rgba(0, 247, 255, 0.3) 15%,
+        // 添加过渡色
+        #00f7ff 40%,
+        #00ffea 50%,
+        // 增加一个蓝绿色调增强视觉效果
+        #00f7ff 60%,
+        rgba(0, 247, 255, 0.3) 85%,
+        // 添加过渡色
         transparent 100%
       );
       background-size: 200% 100%;
-      animation: moveGradient 4s linear infinite;
-      // 添加发光效果
-      filter: drop-shadow(0 0 2px #00f7ff);
+      animation: moveGradient 2.5s linear infinite; // 加快动画速度
+      // 增强发光效果
+      filter: drop-shadow(0 0 8px rgba(0, 247, 255, 0.8))
+        drop-shadow(0 0 20px rgba(0, 247, 255, 0.4));
       // 使用 mask 制作边框效果
       -webkit-mask: linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
-      padding: 2px;
+      padding: 3px; // 增加内边距使边框更宽
     }
 
     // 确保内容在动画上层

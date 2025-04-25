@@ -47,8 +47,8 @@ const AIChat = () => {
           className={styles.imgContainer}
           onClick={showModal}
         >
-          <img src={icon} alt="icon" className={styles.img} />
-          <img src={digitalman} alt="数字人助手" className={styles.img} />
+          <img src={icon} alt="icon" className={styles.imgIcon} />
+          <img src={digitalman} alt="数字人助手" className={styles.imgDigital} />
         </Flex>
       )}
       <Modal

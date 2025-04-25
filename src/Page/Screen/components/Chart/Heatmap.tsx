@@ -152,6 +152,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
         padding: 10,
         textStyle: {
           color: "#fff",
+          fontSize: 10,
         },
       },
       graphic: graphic,
@@ -172,7 +173,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
           color: "#fff",
           interval: 0,
           rotate: 45,
-          fontSize: 11,
+          fontSize: 10,
           margin: 8,
           fontWeight: "bold",
         },
@@ -198,7 +199,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
         },
         axisLabel: {
           color: "#fff",
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: "bold",
         },
         axisLine: {
@@ -224,6 +225,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
         show: false,
         textStyle: {
           color: "#fff",
+          fontSize: 10,
         },
         inRange: {
           color: [

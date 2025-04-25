@@ -83,9 +83,9 @@ const Screen = () => {
       legend: {
         orient: "vertical",
         left: "center",
-        bottom: "0",
-        itemWidth: 14,
-        itemHeight: 14,
+        bottom: "10",
+        itemWidth: 8,
+        itemHeight: 8,
         textStyle: {
           color: "#fff",
           fontSize: 10,
@@ -160,7 +160,7 @@ const Screen = () => {
           label: {
             show: true,
             color: "#fff",
-            fontSize: 14,
+            fontSize: 10,
             fontWeight: "bold",
           },
           symbolSize: 80,
@@ -192,7 +192,7 @@ const Screen = () => {
               y: centerY,
               symbolSize: 110,
               itemStyle: { color: "#30D8FF" },
-              label: { fontSize: 16 },
+              label: { fontSize: 12 },
             };
 
             const innerNodes = innerLabels.map((label, i) => {

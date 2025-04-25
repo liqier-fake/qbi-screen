@@ -69,13 +69,19 @@ const LineChart: React.FC<LineChartProps> = ({
         top: 0,
         textStyle: {
           color: "#fff",
+          fontSize: 10,
         },
         icon: "circle",
+        itemWidth: 8,
+        itemHeight: 8,
       },
       tooltip: {
         trigger: "axis",
         axisPointer: {
           type: "cross",
+        },
+        textStyle: {
+          fontSize: 10,
         },
       },
       xAxis: {
