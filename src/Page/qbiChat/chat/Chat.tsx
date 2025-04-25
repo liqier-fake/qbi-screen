@@ -19,6 +19,7 @@ import DigitalHuman, { DigitalHumanInstance } from "../voice/DigitalHuman";
 import broadcaster from "./digital.webm";
 import clearChat from "./delete.png";
 import Confirm from "../Confirm";
+import titleIcon from "./title.png";
 // 定义消息类型
 interface MessageItem {
   type: string;
@@ -285,13 +286,15 @@ function Chat({
                   align="start"
                   className="chat-welcome-content"
                 >
-                  <div className="chat-welcome-title">你好，我是您的AI助手</div>
+                  <div className="chat-welcome-title">
+                    <img src={titleIcon} alt="你好，我是您的AI助手" />
+                  </div>
                   <span className="chat-welcome-subtitle">
                     如果还没想好，您可以试着问我:
                   </span>
                 </Flex>
               )}
-              <Flex vertical gap="small" align="start" className="chat-tips">
+              <Flex vertical gap="middle" align="start" className="chat-tips">
                 {tips?.map((tip, index) => (
                   <span
                     key={index}
