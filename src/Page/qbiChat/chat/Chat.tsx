@@ -362,16 +362,22 @@ function Chat({
             className="chat-sender"
             placeholder="请输入你的问题"
             loading={isSending && !sendOver}
-            disabled={isSending && !sendOver}
+            // disabled={isSending && !sendOver}
             value={message}
             onChange={onChange}
             onSubmit={onSubmit}
             onCancel={onCancel}
+            autoSize={{ maxRows: 3 }}
             actions={(_, info) => {
               const { SendButton, LoadingButton } = info.components;
 
               if (isSending && !sendOver) {
-                return <LoadingButton type="default" disabled />;
+                return (
+                  <LoadingButton
+                    type="default"
+                    className="chat-sender-loading"
+                  />
+                );
               }
               return (
                 <SendButton
