@@ -118,7 +118,7 @@
     max-height: 249px;
     box-sizing: border-box;
     border-radius: 4px;
-    border: 1px solid #2792f0;
+    border: 1px solid #2e8fe7;
     font-size: 14px !important;
     color: #fff;
     overflow-y: auto;
@@ -178,28 +178,36 @@
     .ant-table-cell::before {
       display: none;
     }
+
+    .ant-table-cell-scrollbar {
+      // display: none;
+    }
   }
+
+  // 在 Ant Design 5.x 版本中，滚动条样式由 scrollbar-width 和 scrollbar-color 控制，
+  // 可能导致 ::-webkit-scrollbar 失效
 
   .ant-table-body {
-    scrollbar-width: none;
-    // scrollbar-color: rgba(39, 146, 240, 0.5) rgba(39, 146, 240, 0.1);
-    // border: 1px solid red;
+    scrollbar-width: auto; /* 允许自定义滚动条样式 */
+    scrollbar-color: auto;
+  }
+  .ant-table-header {
+    .ant-table-cell-scrollbar {
+      box-shadow: 0 1px 0 1px #32b1eb !important;
+    }
   }
 
-  .ant-table-cell-scrollbar {
-    display: none;
+  /* 全局修改 Table 滚动条样式 */
+  .ant-table-body::-webkit-scrollbar {
+    width: 6px; /* 纵向滚动条宽度 */
+    height: 6px; /* 横向滚动条高度 */
   }
 
-  .ant-table ::-webkit-scrollbar {
-    width: 0 !important;
-  }
-  // 滚动条轨道
-  .ant-table ::-webkit-scrollbar-track {
-    background: rgba(39, 146, 240, 0.5);
-  }
-
-  // 滚动条滑块
-  .ant-table ::-webkit-scrollbar-thumb {
+  .ant-table-body::-webkit-scrollbar-thumb {
     background-color: #2792f0;
+  }
+
+  .ant-table-body::-webkit-scrollbar-track {
+    background-color: #1d73c0;
   }
 }
