@@ -71,11 +71,11 @@ interface CloudProps {
  */
 const Cloud: React.FC<CloudProps> = ({
   data,
-  maxSize = 160,
-  minSize = 80,
+  maxSize = 150,
+  minSize = 60,
   moveRange = 10,
   padding = 15,
-  fontSizeRatio = 0.18,
+  fontSizeRatio = 0.16,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = useState({
@@ -114,21 +114,14 @@ const Cloud: React.FC<CloudProps> = ({
     // 按值排序，确保大的在中间
     const sortedData = [...data].sort((a, b) => b.value - a.value);
     const maxValue = Math.max(...data.map((item) => item.value));
-    const minValue = Math.min(...data.map((item) => item.value));
-
-    // 调整基础大小，确保气泡不会太大
-    const baseSize = Math.min(effectiveWidth, effectiveHeight) * 0.15;
-    const dynamicMaxSize = Math.min(maxSize, baseSize);
 
     // 创建一个Set来存储已使用的位置
     const usedPositions: Array<{ x: number; y: number; size: number }> = [];
 
     return sortedData.map((item, index) => {
-      // 计算大小
-      const size =
-        minSize +
-        ((item.value - minValue) / (maxValue - minValue)) *
-          (dynamicMaxSize - minSize);
+      // 直接使用相对值计算大小
+      const sizeRatio = item.value / maxValue;
+      const size = Math.max(minSize, sizeRatio * maxSize);
 
       let position: { x: number; y: number };
       let attempts = 0;
@@ -154,7 +147,7 @@ const Cloud: React.FC<CloudProps> = ({
       } while (attempts < maxAttempts);
 
       // 获取颜色
-      const backgroundColor = getColorByValue(item.value, minValue, maxValue);
+      const backgroundColor = getColorByValue(item.value, 0, maxValue);
 
       return {
         width: `${size}px`,
@@ -172,6 +165,7 @@ const Cloud: React.FC<CloudProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        flexDirection: "column" as const,
         textAlign: "center" as const,
         transition: "all 0.3s ease-in-out",
         wordBreak: "keep-all" as const,
@@ -202,7 +196,16 @@ const Cloud: React.FC<CloudProps> = ({
           style={style}
           title={`${data[index].name}: ${data[index].value}`}
         >
-          {data[index].name}
+          <div style={{ fontSize: "inherit" }}>{data[index].name}</div>
+          <div
+            style={{
+              fontSize: "0.85em",
+              opacity: 0.85,
+              marginTop: "0.2em",
+            }}
+          >
+            {data[index].value}
+          </div>
         </div>
       ))}
     </div>
