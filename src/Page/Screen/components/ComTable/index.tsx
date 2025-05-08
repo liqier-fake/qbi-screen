@@ -47,9 +47,44 @@ const ComTable = <T extends TableRecord = TableRecord>({
   const [currentRowIndex, setCurrentRowIndex] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false); // 新增状态，标记是否正在滚动
+  const [needsDoubleData, setNeedsDoubleData] = useState(false);
 
-  // 创建双倍数据以实现无缝滚动
-  const doubleData = [...dataSource, ...dataSource];
+  // 检查是否需要复制数据
+  useEffect(() => {
+    if (!containerRef.current || !contentRef.current) return;
+
+    const checkIfNeedsDoubleData = () => {
+      const container = containerRef.current;
+      const content = contentRef.current;
+      if (!container || !content) return;
+
+      // 获取表格内容的实际高度（不包括复制的数据）
+      const singleRowHeight = content.querySelector("tr")?.offsetHeight || 0;
+      const totalContentHeight = singleRowHeight * dataSource.length;
+
+      // 获取容器的可视高度
+      const containerHeight = container.clientHeight;
+
+      // 如果内容高度大于容器高度，则需要复制数据
+      setNeedsDoubleData(totalContentHeight > containerHeight);
+    };
+
+    // 初始检查
+    checkIfNeedsDoubleData();
+
+    // 监听容器大小变化
+    const resizeObserver = new ResizeObserver(checkIfNeedsDoubleData);
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [dataSource.length]);
+
+  // 根据条件决定是否复制数据
+  const tableData = needsDoubleData
+    ? [...dataSource, ...dataSource]
+    : dataSource;
 
   // 处理行点击事件
   const handleRowClick = (record: T, rowIndex: number) => {
@@ -79,7 +114,13 @@ const ComTable = <T extends TableRecord = TableRecord>({
   };
 
   useEffect(() => {
-    if (!autoScroll || !containerRef.current || !contentRef.current) return;
+    if (
+      !autoScroll ||
+      !containerRef.current ||
+      !contentRef.current ||
+      !needsDoubleData
+    )
+      return;
 
     let timerId: NodeJS.Timeout | null = null;
     let animationFrameId: number | null = null;
@@ -87,9 +128,9 @@ const ComTable = <T extends TableRecord = TableRecord>({
     // 按行滚动
     if (scrollByRow) {
       const scrollToNextRow = () => {
-        if (isPaused || isScrolling) return; // 如果正在滚动或暂停，则不执行下一次滚动
+        if (isPaused || isScrolling) return;
 
-        setIsScrolling(true); // 标记开始滚动
+        setIsScrolling(true);
 
         // 计算下一行索引
         const nextRowIndex = (currentRowIndex + 1) % dataSource.length;
@@ -209,6 +250,7 @@ const ComTable = <T extends TableRecord = TableRecord>({
     scrollByRow,
     isScrolling,
     scrollDuration,
+    needsDoubleData,
   ]);
 
   // 同步滚动位置到容器 (用于平滑滚动模式)
@@ -253,7 +295,7 @@ const ComTable = <T extends TableRecord = TableRecord>({
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          {doubleData.map((record, rowIndex) => (
+          {tableData.map((record, rowIndex) => (
             <tr
               key={rowIndex}
               className={getRowClassName(record, rowIndex)}

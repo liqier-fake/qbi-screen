@@ -84,13 +84,13 @@ export const columns2: Column<TableData>[] = [
   {
     title: "二级分类",
     dataIndex: "c2",
-    width: 25,
+    width: 20,
     align: "left",
   },
   {
-    title: "民生指数",
+    title: "治理挑战指数",
     dataIndex: "threaten",
-    width: 15,
+    width: 20,
     align: "left",
     render: (text: number) => (
       <span style={{ color: text > 0.8 ? "red" : "inherit" }}>{text}</span>
@@ -145,7 +145,7 @@ export const worckColumns: Column<TableData>[] = [
     align: "left",
   },
   {
-    title: "民生指数",
+    title: "治理挑战指数",
     dataIndex: "threaten",
     width: 20,
     align: "left",
