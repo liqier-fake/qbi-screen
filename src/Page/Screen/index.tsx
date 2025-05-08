@@ -945,8 +945,6 @@ const Screen = () => {
             <Heatmap
               className={styles.manageChartItem}
               enableSlide={false}
-              slideInterval={3500}
-              visibleDataPoints={3}
               data={screenData.heatmapData}
             />
             <LineChart
@@ -1001,6 +999,7 @@ const Screen = () => {
           popupClassName="customSelectDropdown"
         />
         <Select
+          style={{ width: 120 }}
           className={styles.select}
           value={currentMapType}
           onChange={handleMapTypeChange}

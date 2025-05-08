@@ -12,7 +12,7 @@ export interface Column<T extends TableRecord = TableRecord> {
   title: string; // 列标题
   dataIndex: keyof T; // 数据索引
   render?: (text: T[keyof T], record: T) => React.ReactNode; // 自定义渲染函数
-  width?: number; // 列宽
+  width: number; // 列宽，使用数字表示百分比
   align?: "left" | "center" | "right"; // 对齐方式
 }
 
@@ -231,11 +231,18 @@ const ComTable = <T extends TableRecord = TableRecord>({
               <th
                 key={index}
                 style={{
-                  width: column.width,
+                  width: `${column.width}%`,
                   textAlign: column.align || "left",
                 }}
               >
-                {column.title}
+                <Tooltip
+                  title={column.title}
+                  placement="topLeft"
+                  mouseEnterDelay={0.5}
+                  overlayStyle={{ maxWidth: 500 }}
+                >
+                  <div className={styles.titleContent}>{column.title}</div>
+                </Tooltip>
               </th>
             ))}
           </tr>
@@ -257,11 +264,16 @@ const ComTable = <T extends TableRecord = TableRecord>({
                 const cellContent = column.render
                   ? column.render(record[column.dataIndex], record)
                   : record[column.dataIndex];
-                
+
                 return (
                   <Tooltip
                     key={`${rowIndex}-${colIndex}`}
-                    title={typeof cellContent === 'string' || typeof cellContent === 'number' ? cellContent : ''}
+                    title={
+                      typeof cellContent === "string" ||
+                      typeof cellContent === "number"
+                        ? cellContent
+                        : ""
+                    }
                     placement="topLeft"
                   >
                     <td

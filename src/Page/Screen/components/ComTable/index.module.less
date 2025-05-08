@@ -18,6 +18,7 @@
     width: 100%;
     height: 100%;
     border-collapse: collapse;
+    table-layout: fixed; /* 使用固定表格布局，确保列宽生效 */
   }
 
   table {
@@ -39,6 +40,16 @@
     th {
       font-size: var(--table-font-size);
       color: #77a4ed;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .titleContent {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: default;
+      }
     }
   }
 
@@ -46,16 +57,10 @@
   td {
     font-size: var(--table-font-size);
     color: #ffffff;
-    max-width: 200px;
-      /* 设置最大宽度 */
-      white-space: nowrap;
-      /* 不换行 */
-      overflow: hidden;
-      /* 超出隐藏 */
-      text-overflow: ellipsis;
-      /* 显示省略号 */
-      position: relative;
-      /* 用于定位 tooltip */
+    white-space: nowrap; /* 不换行 */
+    overflow: hidden; /* 超出隐藏 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    position: relative; /* 用于定位 tooltip */
   }
 
   /* 表格行样式 */
@@ -76,14 +81,14 @@
   }
 }
 
-/* 响应式样式 */
-@media screen and (max-width: 768px) {
-  .tableWrapper {
-    .table {
-      thead th,
-      .tableRow td {
-        padding: 8px 4px;
-      }
-    }
-  }
-}
+// /* 响应式样式 */
+// @media screen and (max-width: 768px) {
+//   .tableWrapper {
+//     .table {
+//       thead th,
+//       .tableRow td {
+//         padding: 8px 4px;
+//       }
+//     }
+//   }
+// }
