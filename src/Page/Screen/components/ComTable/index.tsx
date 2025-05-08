@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from "react";
 import styles from "./index.module.less";
+import { Tooltip } from "antd";
 
 // 定义表格数据类型
 export interface TableRecord {
@@ -252,18 +253,27 @@ const ComTable = <T extends TableRecord = TableRecord>({
               onClick={() => handleRowClick(record, rowIndex)}
               style={{ cursor: onRowClick ? "pointer" : "default" }}
             >
-              {columns.map((column, colIndex) => (
-                <td
-                  key={`${rowIndex}-${colIndex}`}
-                  style={{
-                    textAlign: column.align || "left",
-                  }}
-                >
-                  {column.render
-                    ? column.render(record[column.dataIndex], record)
-                    : record[column.dataIndex]}
-                </td>
-              ))}
+              {columns.map((column, colIndex) => {
+                const cellContent = column.render
+                  ? column.render(record[column.dataIndex], record)
+                  : record[column.dataIndex];
+                
+                return (
+                  <Tooltip
+                    key={`${rowIndex}-${colIndex}`}
+                    title={typeof cellContent === 'string' || typeof cellContent === 'number' ? cellContent : ''}
+                    placement="topLeft"
+                  >
+                    <td
+                      style={{
+                        textAlign: column.align || "left",
+                      }}
+                    >
+                      {cellContent}
+                    </td>
+                  </Tooltip>
+                );
+              })}
             </tr>
           ))}
         </tbody>

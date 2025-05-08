@@ -155,6 +155,45 @@
     top: var(--select-top);
     left: var(--select-left);
     z-index: 1000;
+    :global {
+      .ant-select {
+        .ant-select-selector {
+          // background: linear-gradient(
+          //   180deg,
+          //   #092450 0%,
+          //   #071b41 100%
+          // ) !important;
+          background-color: transparent !important;
+          border: none !important;
+          // border-radius: 4px !important;
+          // transform: skewX(-20deg);
+
+          .ant-select-selection-item {
+            color: #77a4ed;
+            // transform: skewX(20deg);
+            // font-size: var(--select-font-size);
+          }
+        }
+
+        .ant-select-arrow {
+          color: #77a4ed !important;
+          font-size: 10px;
+        }
+
+        &.ant-select-focused .ant-select-selector {
+          // background: linear-gradient(
+          //   180deg,
+          //   #0c4bb1 0%,
+          //   #0a378d 100%
+          // ) !important;
+          box-shadow: none !important;
+
+          .ant-select-selection-item {
+            // color: #fff;
+          }
+        }
+      }
+    }
   }
   .header {
     font-family: "PangMenZhengDao";

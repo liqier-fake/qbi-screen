@@ -107,13 +107,15 @@ const Screen = () => {
     const monthData: { [key: string]: { [key: string]: number } } = {};
 
     Object.keys(level2TrendData).forEach((month) => {
-      level2TrendData[month].forEach(({ c2, count }: { c2: string; count: number }) => {
-        smqtGroups.add(c2);
-        if (!monthData[month]) {
-          monthData[month] = {};
+      level2TrendData[month].forEach(
+        ({ c2, count }: { c2: string; count: number }) => {
+          smqtGroups.add(c2);
+          if (!monthData[month]) {
+            monthData[month] = {};
+          }
+          monthData[month][c2] = (monthData[month][c2] || 0) + count;
         }
-        monthData[month][c2] = (monthData[month][c2] || 0) + count;
-      });
+      );
     });
 
     const sortedMonths = Object.keys(level2TrendData).sort();
@@ -318,16 +320,18 @@ const Screen = () => {
 
     // 遍历所有月份数据并收集所有人群类型
     Object.keys(govProfile2Data).forEach((month) => {
-      govProfile2Data[month].forEach(({ smqt, count }: { smqt: string; count: number }) => {
-        smqtGroups.add(smqt);
-        // 初始化月份数据结构
-        if (!monthData[month]) {
-          monthData[month] = {};
-        }
+      govProfile2Data[month].forEach(
+        ({ smqt, count }: { smqt: string; count: number }) => {
+          smqtGroups.add(smqt);
+          // 初始化月份数据结构
+          if (!monthData[month]) {
+            monthData[month] = {};
+          }
 
-        // 只按smqt分类，相同smqt的count相加
-        monthData[month][smqt] = (monthData[month][smqt] || 0) + count;
-      });
+          // 只按smqt分类，相同smqt的count相加
+          monthData[month][smqt] = (monthData[month][smqt] || 0) + count;
+        }
+      );
     });
 
     // 将所有月份按时间顺序排序
@@ -489,16 +493,55 @@ const Screen = () => {
   }, [requestKey]);
 
   const pieOption: EChartsOption = useMemo(() => {
+    // 统计不同等级的数量
+    const levelCounts = {
+      high: 0,
+      medium: 0,
+      low: 0,
+      total: 0,
+    };
+
+    // 遍历keyFocusData统计各等级数量
+    (screenData.keyFocusData || []).forEach(
+      (item: { count: number; category: string; level: string }) => {
+        // 记录总数
+        levelCounts.total++;
+
+        // 根据数值范围判断等级
+        if (item.count > 50) {
+          levelCounts.high++;
+        } else if (item.count > 10) {
+          levelCounts.medium++;
+        } else if (item.count >= 1) {
+          levelCounts.low++;
+        }
+      }
+    );
+
+    // 打印统计结果
+    console.log("攻坚重点统计:", {
+      数据总量: levelCounts.total,
+      高危: levelCounts.high,
+      中危: levelCounts.medium,
+      低危: levelCounts.low,
+      原始数据: screenData.keyFocusData,
+    });
+
+    // 定义显示文本
+    const highText = `高 ${levelCounts.high}个`;
+    const mediumText = `中 ${levelCounts.medium}个`;
+    const lowText = `低 ${levelCounts.low}个`;
+
     return {
       backgroundColor: "#0b1e3a",
       tooltip: {
+        show: false,
         trigger: "item",
         formatter: "{b}: {c}个 ({d}%)",
       },
       grid: {
         top: 0,
         left: 0,
-        // containLabel: true,
       },
       legend: {
         orient: "vertical",
@@ -511,12 +554,12 @@ const Screen = () => {
           fontSize: 10,
         },
         data: [
-          { name: "高 5个", icon: "circle" },
-          { name: "低 2个", icon: "circle" },
-          { name: "中 3个", icon: "circle" },
+          { name: highText, icon: "circle" },
+          { name: mediumText, icon: "circle" },
+          { name: lowText, icon: "circle" },
         ],
       },
-      color: ["#e74c3c", "#3498db", "#2ecc71"], // 高:红, 低:蓝, 中:绿
+      color: ["#e74c3c", "#2ecc71", "#3498db"], // 高:红, 中:绿, 低:蓝
       series: [
         {
           name: "等级分布",
@@ -531,14 +574,14 @@ const Screen = () => {
             show: false,
           },
           data: [
-            { value: 5, name: "高 5个" },
-            { value: 2, name: "低 2个" },
-            { value: 3, name: "中 3个" },
+            { value: levelCounts.high, name: highText },
+            { value: levelCounts.medium, name: mediumText },
+            { value: levelCounts.low, name: lowText },
           ],
         },
       ],
     };
-  }, []);
+  }, [screenData.keyFocusData]);
   const cloudOption: EChartsOption = useMemo(() => {
     // 从screenData中获取词云数据
     const wordCloudData = screenData.wordCloudData || [];
@@ -748,7 +791,7 @@ const Screen = () => {
               {...level2TrendLineData}
               enableSlide={true}
               slideInterval={2000}
-              visibleDataPoints={8}
+              visibleDataPoints={3}
             />
           </div>
         ),
@@ -901,7 +944,7 @@ const Screen = () => {
           <div className={styles.manageChart}>
             <Heatmap
               className={styles.manageChartItem}
-              enableSlide={true}
+              enableSlide={false}
               slideInterval={3500}
               visibleDataPoints={3}
               data={screenData.heatmapData}
@@ -910,7 +953,7 @@ const Screen = () => {
               {...govProfile2LineData}
               enableSlide={true}
               slideInterval={2000}
-              visibleDataPoints={8}
+              visibleDataPoints={3}
               className={styles.manageChartItem}
             />
           </div>
@@ -949,11 +992,13 @@ const Screen = () => {
       <div className={styles.selectWrap}>
         <Select
           className={styles.select}
+          style={{ width: 90 }}
           options={TimeRangeOption}
           onChange={(value) => {
             setTimeRange(value);
           }}
           value={timeRange}
+          popupClassName="customSelectDropdown"
         />
         <Select
           className={styles.select}
@@ -963,6 +1008,7 @@ const Screen = () => {
             label: MapTypeNames[type as MapTypeEnum],
             value: type,
           }))}
+          popupClassName="customSelectDropdown"
         />
       </div>
       {/* 标题 */}

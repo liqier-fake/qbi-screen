@@ -46,6 +46,16 @@
   td {
     font-size: var(--table-font-size);
     color: #ffffff;
+    max-width: 200px;
+      /* 设置最大宽度 */
+      white-space: nowrap;
+      /* 不换行 */
+      overflow: hidden;
+      /* 超出隐藏 */
+      text-overflow: ellipsis;
+      /* 显示省略号 */
+      position: relative;
+      /* 用于定位 tooltip */
   }
 
   /* 表格行样式 */
