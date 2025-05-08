@@ -42,6 +42,7 @@ import Map, {
   TicketCountData,
   // streetNameToEnum,
 } from "./components/Chart/Map.tsx";
+import Cloud from "./components/Cloud/index.tsx";
 
 const TimeRangeOption = [
   { label: "近7天", value: TimeRange.last_7_days },
@@ -81,6 +82,7 @@ const Screen = () => {
       xData: [],
       lineData: [],
     },
+    wordCloudData = [],
   } = screenData;
 
   const timer = useRef<NodeJS.Timeout | null>(null);
@@ -582,180 +584,180 @@ const Screen = () => {
       ],
     };
   }, [screenData.keyFocusData]);
-  const cloudOption: EChartsOption = useMemo(() => {
-    // 从screenData中获取词云数据
-    const wordCloudData = screenData.wordCloudData || [];
+  // const cloudOption: EChartsOption = useMemo(() => {
+  //   // 从screenData中获取词云数据
+  //   const wordCloudData = screenData.wordCloudData || [];
 
-    return {
-      backgroundColor: "transparent",
-      // 移除背景圆形线条
-      // graphic: [
-      //   {
-      //     type: "circle",
-      //     shape: {
-      //       cx: 400,
-      //       cy: 300,
-      //       r: 180,
-      //     },
-      //     style: {
-      //       // stroke: "#dddd",
-      //       lineWidth: 1,
-      //       lineDash: [5, 5],
-      //       fill: "transparent",
-      //     },
-      //   },
-      //   {
-      //     type: "circle",
-      //     shape: {
-      //       cx: 400,
-      //       cy: 300,
-      //       r: 260,
-      //     },
-      //     style: {
-      //       stroke: "#2C83C4",
-      //       lineWidth: 1,
-      //       lineDash: [5, 5],
-      //       fill: "transparent",
-      //     },
-      //   },
-      // ],
-      // 添加tooltip配置，实现悬停显示count
-      tooltip: {
-        trigger: "item",
-        formatter: function (params: any) {
-          return `${params.name}: ${params.value}条`;
-        },
-        backgroundColor: "rgba(0,0,0,0.7)",
-        borderColor: "#2C83C4",
-        textStyle: {
-          color: "#fff",
-        },
-      },
-      series: [
-        {
-          type: "graph",
-          layout: "none",
-          coordinateSystem: undefined,
-          label: {
-            show: true,
-            color: "#fff",
-            fontSize: 10,
-            fontWeight: "bold",
-          },
-          // 鼠标悬停效果增强
-          emphasis: {
-            focus: "adjacency" as const,
-            label: {
-              fontSize: 12,
-              fontWeight: "bold",
-              color: "#30D8FF",
-            },
-            itemStyle: {
-              shadowBlur: 10,
-              shadowColor: "rgba(48, 216, 255, 0.5)",
-            },
-          },
-          symbolSize: (val) => {
-            // 根据count动态设置大小，确保最小不低于30，最大不超过120
-            if (!val) return 30; // 防止无数据情况
+  //   return {
+  //     backgroundColor: "transparent",
+  //     // 移除背景圆形线条
+  //     // graphic: [
+  //     //   {
+  //     //     type: "circle",
+  //     //     shape: {
+  //     //       cx: 400,
+  //     //       cy: 300,
+  //     //       r: 180,
+  //     //     },
+  //     //     style: {
+  //     //       // stroke: "#dddd",
+  //     //       lineWidth: 1,
+  //     //       lineDash: [5, 5],
+  //     //       fill: "transparent",
+  //     //     },
+  //     //   },
+  //     //   {
+  //     //     type: "circle",
+  //     //     shape: {
+  //     //       cx: 400,
+  //     //       cy: 300,
+  //     //       r: 260,
+  //     //     },
+  //     //     style: {
+  //     //       stroke: "#2C83C4",
+  //     //       lineWidth: 1,
+  //     //       lineDash: [5, 5],
+  //     //       fill: "transparent",
+  //     //     },
+  //     //   },
+  //     // ],
+  //     // 添加tooltip配置，实现悬停显示count
+  //     tooltip: {
+  //       trigger: "item",
+  //       formatter: function (params: any) {
+  //         return `${params.name}: ${params.value}条`;
+  //       },
+  //       backgroundColor: "rgba(0,0,0,0.7)",
+  //       borderColor: "#2C83C4",
+  //       textStyle: {
+  //         color: "#fff",
+  //       },
+  //     },
+  //     series: [
+  //       {
+  //         type: "graph",
+  //         layout: "none",
+  //         coordinateSystem: undefined,
+  //         label: {
+  //           show: true,
+  //           color: "#fff",
+  //           fontSize: 10,
+  //           fontWeight: "bold",
+  //         },
+  //         // 鼠标悬停效果增强
+  //         emphasis: {
+  //           focus: "adjacency" as const,
+  //           label: {
+  //             fontSize: 12,
+  //             fontWeight: "bold",
+  //             color: "#30D8FF",
+  //           },
+  //           itemStyle: {
+  //             shadowBlur: 10,
+  //             shadowColor: "rgba(48, 216, 255, 0.5)",
+  //           },
+  //         },
+  //         symbolSize: (val) => {
+  //           // 根据count动态设置大小，确保最小不低于30，最大不超过120
+  //           if (!val) return 30; // 防止无数据情况
 
-            // 使用对数比例，避免数值差异过大时节点大小差异也过大
-            // 对数增长更合理：数量级的增长体现为大小的线性增长
-            return Math.max(30, Math.min(120, 30 + 15 * Math.log10(val)));
-          },
-          data: (() => {
-            const centerX = 400;
-            const centerY = 300;
-            const innerRadius = 180;
-            const outerRadius = 260;
+  //           // 使用对数比例，避免数值差异过大时节点大小差异也过大
+  //           // 对数增长更合理：数量级的增长体现为大小的线性增长
+  //           return Math.max(30, Math.min(120, 30 + 15 * Math.log10(val)));
+  //         },
+  //         data: (() => {
+  //           const centerX = 400;
+  //           const centerY = 300;
+  //           const innerRadius = 180;
+  //           const outerRadius = 260;
 
-            // 如果没有数据，显示默认中心点
-            if (!wordCloudData.length) {
-              return [
-                {
-                  name: "暂无词云数据",
-                  x: centerX,
-                  y: centerY,
-                  symbolSize: 110,
-                  itemStyle: { color: "#30D8FF" },
-                  label: { fontSize: 12 },
-                  value: 0,
-                },
-              ];
-            }
+  //           // 如果没有数据，显示默认中心点
+  //           if (!wordCloudData.length) {
+  //             return [
+  //               {
+  //                 name: "暂无词云数据",
+  //                 x: centerX,
+  //                 y: centerY,
+  //                 symbolSize: 110,
+  //                 itemStyle: { color: "#30D8FF" },
+  //                 label: { fontSize: 12 },
+  //                 value: 0,
+  //               },
+  //             ];
+  //           }
 
-            // 中心点显示数量最多的分类
-            const centerData =
-              wordCloudData.length > 0
-                ? wordCloudData.sort(
-                    (
-                      a: { category: string; count: number },
-                      b: { category: string; count: number }
-                    ) => b.count - a.count
-                  )[0]
-                : { category: "热点问题", count: 0 };
+  //           // 中心点显示数量最多的分类
+  //           const centerData =
+  //             wordCloudData.length > 0
+  //               ? wordCloudData.sort(
+  //                   (
+  //                     a: { category: string; count: number },
+  //                     b: { category: string; count: number }
+  //                   ) => b.count - a.count
+  //                 )[0]
+  //               : { category: "热点问题", count: 0 };
 
-            const centerNode = {
-              name: centerData.category,
-              x: centerX,
-              y: centerY,
-              // 中心节点大小特殊处理，确保其始终是最大的
-              symbolSize: centerData.count
-                ? Math.max(100, 30 + 15 * Math.log10(centerData.count))
-                : 80,
-              itemStyle: { color: "#30D8FF" },
-              label: {
-                fontSize: 12,
-                // 根据文本长度自动调整字体大小
-                formatter: (params: any) => {
-                  const name = params.name as string;
-                  // 太长的文本进行截断显示
-                  return name.length > 8 ? name.substring(0, 7) + "..." : name;
-                },
-              },
-              value: centerData.count,
-            };
+  //           const centerNode = {
+  //             name: centerData.category,
+  //             x: centerX,
+  //             y: centerY,
+  //             // 中心节点大小特殊处理，确保其始终是最大的
+  //             symbolSize: centerData.count
+  //               ? Math.max(100, 30 + 15 * Math.log10(centerData.count))
+  //               : 80,
+  //             itemStyle: { color: "#30D8FF" },
+  //             label: {
+  //               fontSize: 12,
+  //               // 根据文本长度自动调整字体大小
+  //               formatter: (params: any) => {
+  //                 const name = params.name as string;
+  //                 // 太长的文本进行截断显示
+  //                 return name.length > 8 ? name.substring(0, 7) + "..." : name;
+  //               },
+  //             },
+  //             value: centerData.count,
+  //           };
 
-            // 将剩余数据分配到内圈和外圈
-            const remainingData = wordCloudData.slice(1);
+  //           // 将剩余数据分配到内圈和外圈
+  //           const remainingData = wordCloudData.slice(1);
 
-            // 内圈数据（取前5条或更少）
-            const innerCount = Math.min(5, Math.ceil(remainingData.length / 2));
-            const innerData = remainingData.slice(0, innerCount);
+  //           // 内圈数据（取前5条或更少）
+  //           const innerCount = Math.min(5, Math.ceil(remainingData.length / 2));
+  //           const innerData = remainingData.slice(0, innerCount);
 
-            // 外圈数据（取剩余的，最多10条）
-            const outerData = remainingData.slice(innerCount, innerCount + 10);
+  //           // 外圈数据（取剩余的，最多10条）
+  //           const outerData = remainingData.slice(innerCount, innerCount + 10);
 
-            // 生成内圈节点
-            const innerNodes = innerData.map((item, i) => {
-              const angle = (2 * Math.PI * i) / innerData.length;
-              return {
-                name: item.category,
-                x: centerX + innerRadius * Math.cos(angle),
-                y: centerY + innerRadius * Math.sin(angle),
-                itemStyle: { color: "#0079C2" },
-                value: item.count,
-              };
-            });
+  //           // 生成内圈节点
+  //           const innerNodes = innerData.map((item, i) => {
+  //             const angle = (2 * Math.PI * i) / innerData.length;
+  //             return {
+  //               name: item.category,
+  //               x: centerX + innerRadius * Math.cos(angle),
+  //               y: centerY + innerRadius * Math.sin(angle),
+  //               itemStyle: { color: "#0079C2" },
+  //               value: item.count,
+  //             };
+  //           });
 
-            // 生成外圈节点
-            const outerNodes = outerData.map((item, i) => {
-              const angle = (2 * Math.PI * i) / outerData.length;
-              return {
-                name: item.category,
-                x: centerX + outerRadius * Math.cos(angle),
-                y: centerY + outerRadius * Math.sin(angle),
-                itemStyle: { color: "#3DA2FF" },
-                value: item.count,
-              };
-            });
+  //           // 生成外圈节点
+  //           const outerNodes = outerData.map((item, i) => {
+  //             const angle = (2 * Math.PI * i) / outerData.length;
+  //             return {
+  //               name: item.category,
+  //               x: centerX + outerRadius * Math.cos(angle),
+  //               y: centerY + outerRadius * Math.sin(angle),
+  //               itemStyle: { color: "#3DA2FF" },
+  //               value: item.count,
+  //             };
+  //           });
 
-            return [centerNode, ...innerNodes, ...outerNodes];
-          })(),
-        },
-      ],
-    };
-  }, [screenData.wordCloudData]);
+  //           return [centerNode, ...innerNodes, ...outerNodes];
+  //         })(),
+  //       },
+  //     ],
+  //   };
+  // }, [screenData.wordCloudData]);
 
   // 攻坚项目弹窗
   const [workOpen, setWorkOpen] = useState(false);
@@ -1101,10 +1103,20 @@ const Screen = () => {
               <ComTitle title="词云" type={"default"} />
 
               <div className={styles.cloud}>
-                <BaseChart
+                <Cloud
+                  data={wordCloudData
+                    ?.map(({ category, count }) => {
+                      return {
+                        name: category,
+                        value: count,
+                      };
+                    })
+                    ?.splice(0, 15)}
+                ></Cloud>
+                {/* <BaseChart
                   style={{ width: "100%", height: "100%" }}
                   option={cloudOption}
-                />
+                /> */}
               </div>
             </div>
           </div>
