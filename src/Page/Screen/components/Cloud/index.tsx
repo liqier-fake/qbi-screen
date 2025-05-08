@@ -71,7 +71,7 @@ interface CloudProps {
  */
 const Cloud: React.FC<CloudProps> = ({
   data,
-  maxSize = 150,
+  maxSize = 100,
   minSize = 60,
   moveRange = 10,
   padding = 15,
