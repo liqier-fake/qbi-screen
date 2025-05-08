@@ -2,6 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import BaseChart from "./BaseChart";
 import { EChartsOption, SetOptionOpts, ECharts } from "echarts";
 
+// API返回的数据结构接口定义
+interface CategoryItem {
+  c3: string; // 服务类别
+  count: number; // 数量
+}
+
+interface HeatmapDataItem {
+  categories: CategoryItem[]; // 服务类别列表
+  group: string; // 人群类别
+  total: number; // 总数
+}
+
 // 组件Props类型定义
 interface HeatmapProps {
   // 是否启用平移动画效果
@@ -14,6 +26,8 @@ interface HeatmapProps {
   style?: React.CSSProperties;
   // CSS类名
   className?: string;
+  // API数据
+  data?: HeatmapDataItem[];
 }
 
 interface EChartsGraphicItem {
@@ -28,9 +42,9 @@ interface EChartsGraphicItem {
     backgroundColor?: string;
     padding?: number[];
     borderRadius?: number;
-    [key: string]: any;
+    [key: string]: unknown; // 修复any类型
   };
-  [key: string]: any;
+  [key: string]: unknown; // 修复any类型
 }
 
 const Heatmap: React.FC<HeatmapProps> = ({
@@ -39,6 +53,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
   visibleDataPoints = 20,
   style = { height: "100%", width: "100%" },
   className = "heatmap-example",
+  data = [],
 }) => {
   // 图表实例引用
   const chartInstanceRef = useRef<ECharts | null>(null);
@@ -50,45 +65,85 @@ const Heatmap: React.FC<HeatmapProps> = ({
   const [heatmapData, setHeatmapData] = useState<number[][]>([]);
   // 上一次的数据集合
   const previousDataRef = useRef<number[][]>([]);
+  // 存储所有服务类别(x轴)和人群类别(y轴)
+  const [xData, setXData] = useState<string[]>([]);
+  const [yData, setYData] = useState<string[]>([]);
 
-  // 数据配置
-  const yData = [
-    "新市民劳动者",
-    "新就业群体",
-    "困境群体",
-    "退役军人",
-    "重点关注人群",
-  ];
-  const xData = [
-    "公共服务",
-    "行政执法",
-    "创业服务",
-    "出租房管理",
-    "矛盾纠纷",
-    "职业培训",
-    "残疾人服务",
-    "团购小服务",
-    "特殊困难家庭服务",
-    "基层治理",
-    "社会保障",
-    "劳动权益",
-    "文化服务",
-    "医疗保健",
-    "教育辅导",
-    "环境治理",
-    "住房问题",
-    "交通出行",
-    "政策咨询",
-    "民族宗教",
-  ];
-
-  // 初始化模拟数据
+  // 处理API数据转换为热力图数据
   useEffect(() => {
-    // 生成热力图数据，使数据分布更加明显
-    const generateData = () => {
-      return yData
+    if (data && data.length > 0) {
+      // 收集所有唯一的服务类别(c3)
+      const allCategories = new Set<string>();
+      data.forEach((item) => {
+        item.categories.forEach((category) => {
+          allCategories.add(category.c3);
+        });
+      });
+
+      // 收集所有唯一的人群类别(group)
+      const allGroups = data.map((item) => item.group);
+
+      // 更新x轴和y轴数据
+      const newXData = Array.from(allCategories);
+      const newYData = allGroups;
+
+      setXData(newXData);
+      setYData(newYData);
+
+      // 转换为热力图所需的数据格式 [x坐标, y坐标, 值]
+      const heatmapDataArray: number[][] = [];
+
+      data.forEach((item, yIndex) => {
+        item.categories.forEach((category) => {
+          const xIndex = newXData.indexOf(category.c3);
+          if (xIndex !== -1) {
+            heatmapDataArray.push([xIndex, yIndex, category.count]);
+          }
+        });
+      });
+
+      setHeatmapData(heatmapDataArray);
+      previousDataRef.current = heatmapDataArray;
+    } else {
+      // 如果没有API数据，使用默认数据
+      const defaultYData = [
+        "新市民劳动者",
+        "新就业群体",
+        "困境群体",
+        "退役军人",
+        "重点关注人群",
+      ];
+
+      const defaultXData = [
+        "公共服务",
+        "行政执法",
+        "创业服务",
+        "出租房管理",
+        "矛盾纠纷",
+        "职业培训",
+        "残疾人服务",
+        "团购小服务",
+        "特殊困难家庭服务",
+        "基层治理",
+        "社会保障",
+        "劳动权益",
+        "文化服务",
+        "医疗保健",
+        "教育辅导",
+        "环境治理",
+        "住房问题",
+        "交通出行",
+        "政策咨询",
+        "民族宗教",
+      ];
+
+      setYData(defaultYData);
+      setXData(defaultXData);
+
+      // 生成模拟数据
+      const mockData = defaultYData
         .map((_, yi) => {
-          return xData.map((_, xi) => {
+          return defaultXData.map((_, xi) => {
             // 生成更有区分度的数据
             const baseValue = Math.floor(Math.random() * 3000);
             const bonus = Math.floor(Math.random() * 2000);
@@ -98,12 +153,11 @@ const Heatmap: React.FC<HeatmapProps> = ({
           });
         })
         .flat();
-    };
 
-    const initialData = generateData();
-    setHeatmapData(initialData);
-    previousDataRef.current = initialData;
-  }, []);
+      setHeatmapData(mockData);
+      previousDataRef.current = mockData;
+    }
+  }, [data]);
 
   // 获取当前视图对应的数据和x轴标签
   const getVisibleData = () => {
@@ -133,6 +187,9 @@ const Heatmap: React.FC<HeatmapProps> = ({
 
     // 不再需要箭头指示器
     const graphic: EChartsGraphicItem[] = [];
+
+    // 计算最大值用于visualMap配置
+    const maxValue = Math.max(...heatmapData.map((item) => item[2]), 1000);
 
     return {
       backgroundColor: "rgba(11, 30, 58, 0.8)",
@@ -217,7 +274,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
       },
       visualMap: {
         min: 0,
-        max: 5000,
+        max: maxValue,
         calculable: true,
         orient: "horizontal",
         left: "center",

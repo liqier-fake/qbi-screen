@@ -3,29 +3,32 @@ import { Column } from "./components/ComTable";
 export const columns1: Column<any>[] = [
   {
     title: "时间",
-    dataIndex: "time",
-    width: 120,
+    dataIndex: "date",
     align: "left",
+    width: 100,
+    render: (text: string) => {
+      return text.split(" ")[0];
+    },
   },
   {
     title: "诉求内容",
     dataIndex: "content",
-    width: 200,
+    width: 100,
     align: "left",
   },
   {
     title: "二级分类",
-    dataIndex: "category",
+    dataIndex: "c2",
     width: 120,
     align: "left",
   },
   {
-    title: "诉求量",
-    dataIndex: "count",
+    title: "威胁指数",
+    dataIndex: "threaten",
     width: 80,
     align: "left",
     render: (text: number) => (
-      <span style={{ color: text > 50 ? "red" : "inherit" }}>{text}</span>
+      <span style={{ color: text > 0.8 ? "red" : "inherit" }}>{text}</span>
     ),
   },
 ];
@@ -33,69 +36,72 @@ export const columns4: Column<any>[] = [
   {
     title: "街道",
     dataIndex: "street",
-    width: 150,
+    width: 80,
     align: "left",
   },
   {
     title: "责任社区",
     dataIndex: "community",
-    width: 150,
+    width: 80,
     align: "left",
   },
   {
     title: "攻坚项目",
     dataIndex: "project",
-    width: 300,
+    width: 150,
     align: "left",
   },
   {
     title: "热点事项",
     dataIndex: "content",
-    width: 400,
+    width: 150,
     align: "left",
   },
 ];
 export const columns2: Column<any>[] = [
   {
     title: "时间",
-    dataIndex: "word",
-    width: 100,
+    dataIndex: "date",
+    width: 80,
     align: "left",
+    render: (text: string) => {
+      return text.split(" ")[0];
+    },
   },
   {
     title: "诉求内容",
     dataIndex: "content",
-    width: 200,
+    width: 150,
     align: "left",
   },
   {
-    title: "一级/二级分类",
-    dataIndex: "reliefCategory",
-    width: 180,
+    title: "二级分类",
+    dataIndex: "c2",
+    width: 80,
     align: "left",
   },
   {
-    title: "诉求量",
-    dataIndex: "count",
+    title: "威胁指数",
+    dataIndex: "threaten",
     width: 80,
     align: "left",
     render: (text: number) => (
-      <span style={{ color: text > 50 ? "red" : "inherit" }}>{text}</span>
+      <span style={{ color: text > 0.8 ? "red" : "inherit" }}>{text}</span>
     ),
   },
 ];
 
 export const columns3: Column<any>[] = [
   {
-    title: "街道名",
-    dataIndex: "street",
+    title: "社区名",
+    dataIndex: "community",
     width: 150,
     align: "left",
   },
   {
     title: "重点事项",
     dataIndex: "category",
-    width: 180,
+    width: 200,
     align: "left",
   },
   {
@@ -123,6 +129,9 @@ export const worckColumns: any[] = [
     key: "date",
     align: "left",
     width: 100,
+    render: (text: string) => {
+      return text.split(" ")[0];
+    },
   },
   {
     title: "来源",

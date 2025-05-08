@@ -164,7 +164,7 @@ export const peopleOption = [
 ];
 
 export const areaOption = [
-  { label: "娄封街道", value: "娄封街道" },
+  { label: "娄葑街道", value: "娄葑街道" },
   { label: "斜塘街道", value: "斜塘街道" },
   { label: "唯亭街道", value: "唯亭街道" },
   { label: "胜浦街道", value: "胜浦街道" },
@@ -638,6 +638,33 @@ export interface ScreenDataType {
   dataSource2: DataItem[];
   dataSource3: DataItem[];
   wordTableData?: any[];
+  wordCloudData?: Array<{ category: string; count: number }>;
+  keyFocusData?: any[];
+  twoCateGoryDataSource?: any[];
+  socialRiskDataSource?: any[];
+  heatmapData?: Array<{
+    categories: Array<{
+      c3: string;
+      count: number;
+    }>;
+    group: string;
+    total: number;
+  }>;
+  govProfile2LineData?: {
+    xData: string[];
+    lineData: Array<{
+      name: string;
+      data: number[];
+      itemStyle?: { color: string };
+    }>;
+  };
+  level2TrendLineData?: {
+    xData: string[];
+    lineData: Array<{
+      name: string;
+      data: number[];
+    }>;
+  };
 }
 
 // 创建初始数据的工厂函数

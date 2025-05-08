@@ -150,7 +150,12 @@
       pointer-events: none;
     }
   }
-
+  .selectWrap {
+    position: absolute;
+    top: var(--select-top);
+    left: var(--select-left);
+    z-index: 1000;
+  }
   .header {
     font-family: "PangMenZhengDao";
     // height: 112px;
@@ -351,6 +356,8 @@
   }
 
   .warp {
+    width: 100%;
+    min-width: 0;
     min-height: 0;
     .flex-column();
     padding: var(--warp-padding);

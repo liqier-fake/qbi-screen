@@ -3,9 +3,9 @@ import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
 import BaseChart, { BaseChartRef } from "./BaseChart";
 import { geojsonMap } from "./geojson";
-import { Select } from "antd";
 
-enum MapTypeEnum {
+// 导出枚举以便父组件使用
+export enum MapTypeEnum {
   area = "area", // 园区
   jjhstreet = "jjhstreet", // 金鸡湖街道
   wtstreet = "wtstreet", // 唯亭街道
@@ -20,7 +20,8 @@ interface MapBreadcrumb {
   name: string;
 }
 
-const MapTypeNames: Record<MapTypeEnum, string> = {
+// 导出常量，让父组件可以使用地图类型名称
+export const MapTypeNames: Record<MapTypeEnum, string> = {
   [MapTypeEnum.area]: "苏州工业园区",
   [MapTypeEnum.jjhstreet]: "金鸡湖街道",
   [MapTypeEnum.wtstreet]: "唯亭街道",
@@ -34,6 +35,12 @@ interface AreaData {
   name: string;
   value: number;
   coordinate?: [number, number]; // 经纬度坐标
+}
+
+// 工单数据接口
+export interface TicketCountData {
+  name: string;
+  count: number;
 }
 
 // 模拟数据，为每个区域添加坐标
@@ -72,8 +79,8 @@ const mockData: Record<MapTypeEnum, AreaData[]> = {
   ],
 };
 
-// 街道名称到枚举的映射
-const streetNameToEnum: Record<string, MapTypeEnum> = {
+// 街道名称到枚举的映射 - 导出给父组件使用
+export const streetNameToEnum: Record<string, MapTypeEnum> = {
   金鸡湖街道: MapTypeEnum.jjhstreet,
   唯亭街道: MapTypeEnum.wtstreet,
   娄葑街道: MapTypeEnum.lfstreet,
@@ -81,11 +88,14 @@ const streetNameToEnum: Record<string, MapTypeEnum> = {
   斜塘街道: MapTypeEnum.xtstreet,
 };
 
-const Map: React.FC = () => {
+// 定义Map组件的props接口
+interface MapProps {
+  currentMapType: MapTypeEnum; // 当前地图类型
+  ticketData?: TicketCountData[]; // 工单数据
+}
+
+const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
   const chartRef = useRef<BaseChartRef>(null);
-  const [currentMapType, setCurrentMapType] = useState<MapTypeEnum>(
-    MapTypeEnum.area
-  );
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
   const [chartOption, setChartOption] = useState<EChartsOption>({});
   const [, setBreadcrumbs] = useState<MapBreadcrumb[]>([
@@ -106,6 +116,99 @@ const Map: React.FC = () => {
     }
   }, []);
 
+  // 根据工单数量获取颜色
+  const getColorByCount = (name: string): echarts.LinearGradientObject => {
+    console.log(ticketData, name, "ticketData,name");
+
+    // 查找对应名称的工单数据
+    const ticketItem = ticketData.find((item) => item.name === name);
+
+    if (!ticketItem) {
+      // 没有找到对应工单数据，使用默认颜色
+      return {
+        type: "linear",
+        x: 1200,
+        y: 0,
+        x2: 0,
+        y2: 0,
+        colorStops: [
+          {
+            offset: 0,
+            color: "rgba(3,27,78,0.75)", // 默认起始颜色
+          },
+          {
+            offset: 1,
+            color: "rgba(58,149,253,0.75)", // 默认结束颜色
+          },
+        ],
+        global: true,
+      };
+    }
+
+    // 根据工单数量级别设置不同的颜色
+    if (ticketItem.count > 10) {
+      // 高工单数量 - 红色系
+      return {
+        type: "linear",
+        x: 1200,
+        y: 0,
+        x2: 0,
+        y2: 0,
+        colorStops: [
+          {
+            offset: 0,
+            color: "rgba(255,0,0,0.75)", // 高数量红色
+          },
+          {
+            offset: 1,
+            color: "rgba(255,80,80,0.75)",
+          },
+        ],
+        global: true,
+      };
+    } else if (ticketItem.count > 5) {
+      // 中等工单数量 - 橙色系
+      return {
+        type: "linear",
+        x: 1200,
+        y: 0,
+        x2: 0,
+        y2: 0,
+        colorStops: [
+          {
+            offset: 0,
+            color: "rgba(255,165,0,0.75)", // 中数量橙色
+          },
+          {
+            offset: 1,
+            color: "rgba(255,200,0,0.75)",
+          },
+        ],
+        global: true,
+      };
+    } else {
+      // 低工单数量 - 绿色系
+      return {
+        type: "linear",
+        x: 1200,
+        y: 0,
+        x2: 0,
+        y2: 0,
+        colorStops: [
+          {
+            offset: 0,
+            color: "rgba(0,128,0,0.75)", // 低数量绿色
+          },
+          {
+            offset: 1,
+            color: "rgba(144,238,144,0.75)",
+          },
+        ],
+        global: true,
+      };
+    }
+  };
+
   // 更新图表配置
   useEffect(() => {
     if (!mapLoaded) return;
@@ -115,14 +218,29 @@ const Map: React.FC = () => {
       const currentAreaData = mockData[currentMapType];
 
       // 构建地图配置
+      // @ts-ignore 忽略类型错误，ECharts可以接受函数返回颜色类型，但TypeScript定义可能不完整
       const option: EChartsOption = {
         // 背景色
         backgroundColor: "transparent",
 
         // 添加工具提示配置
+        // @ts-ignore  
         tooltip: {
           trigger: "item",
-          formatter: "{b}: {c}", // 使用简单的字符串模板，{b}表示名称，{c}表示数值
+          formatter: function (params: {
+            name: string;
+            value: number | Array<any>;
+          }) {
+            // 对于散点图，value是数组，对于地图，value是数字
+            let value = params.value;
+            if (Array.isArray(value)) {
+              value = value[2]; // 从坐标数组中提取值 [lng, lat, value]
+            }
+
+            // 确保显示数字而不是NaN
+            const displayValue = isNaN(Number(value)) ? 0 : value;
+            return `${params.name}: ${displayValue}条工单`;
+          },
           backgroundColor: "rgba(0,30,60,0.85)",
           borderColor: "#0095ff",
           borderWidth: 1,
@@ -207,30 +325,30 @@ const Map: React.FC = () => {
             },
           },
           // 重影3 - 注意保持roam一致性
+          // {
+          //   map: currentMapType,
+          //   zlevel: -3,
+          //   aspectScale: 1,
+          //   zoom: 1.0,
+          //   layoutCenter: ["50%", "53%"],
+          //   layoutSize: "100%",
+          //   silent: true,
+          //   itemStyle: {
+          //     borderWidth: 1,
+          //     borderColor: "rgba(58,149,253,0.4)",
+          //     shadowColor: "rgba(29, 111, 165,1)",
+          //     shadowOffsetY: 15,
+          //     shadowBlur: 10,
+          //     areaColor: "rgba(5,21,35,0.1)",
+          //   },
+          // },
+          // 重影4（最底层） - 注意保持roam一致性
           {
             map: currentMapType,
             zlevel: -3,
             aspectScale: 1,
             zoom: 1.0,
             layoutCenter: ["50%", "53%"],
-            layoutSize: "100%",
-            silent: true,
-            itemStyle: {
-              borderWidth: 1,
-              borderColor: "rgba(58,149,253,0.4)",
-              shadowColor: "rgba(29, 111, 165,1)",
-              shadowOffsetY: 15,
-              shadowBlur: 10,
-              areaColor: "rgba(5,21,35,0.1)",
-            },
-          },
-          // 重影4（最底层） - 注意保持roam一致性
-          {
-            map: currentMapType,
-            zlevel: -4,
-            aspectScale: 1,
-            zoom: 1.0,
-            layoutCenter: ["50%", "54%"],
             layoutSize: "100%",
             silent: true,
             itemStyle: {
@@ -245,8 +363,9 @@ const Map: React.FC = () => {
         ],
 
         // 地图数据系列
+        // @ts-ignore 
         series: [
-          // 地图数据层
+          // 地图数据层 - 根据工单数量显示不同颜色
           {
             name: "区域数据",
             type: "map",
@@ -260,24 +379,10 @@ const Map: React.FC = () => {
               color: "#fff",
             },
             itemStyle: {
-              // 使用渐变色填充
-              areaColor: {
-                type: "linear",
-                x: 1200,
-                y: 0,
-                x2: 0,
-                y2: 0,
-                colorStops: [
-                  {
-                    offset: 0,
-                    color: "rgba(3,27,78,0.75)", // 起始颜色
-                  },
-                  {
-                    offset: 1,
-                    color: "rgba(58,149,253,0.75)", // 结束颜色
-                  },
-                ],
-                global: true,
+              // @ts-ignore 忽略类型错误，ECharts支持函数返回颜色类型
+              areaColor: function (params: { name: string }) {
+                // 根据区域名称获取颜色
+                return getColorByCount(params.name);
               },
               borderColor: "#fff",
               borderWidth: 0.2,
@@ -298,10 +403,24 @@ const Map: React.FC = () => {
             },
             layoutCenter: ["50%", "50%"],
             layoutSize: "100%",
-            data: currentAreaData,
+            // 结合工单数据，优先使用工单数量作为值
+            data: currentAreaData.map((item) => {
+              // 查找对应的工单数据
+              const ticketItem = ticketData.find((t) => t.name === item.name);
+
+              // 如果有工单数据，使用工单数量作为值
+              if (ticketItem) {
+                return {
+                  ...item,
+                  value: Number(ticketItem.count) || 0, // 确保是数字，避免NaN
+                };
+              }
+
+              return item;
+            }),
           },
 
-          // 散点动效
+          // 散点动效 - 在地图上显示数据点标记
           {
             type: "effectScatter",
             coordinateSystem: "geo",
@@ -319,9 +438,13 @@ const Map: React.FC = () => {
                 params: echarts.DefaultLabelFormatterCallbackParams
               ) {
                 // 圆环显示文字
-                return `${params.name}: ${
-                  params.value instanceof Array ? params.value[2] : params.value
-                }`;
+                let value =
+                  params.value instanceof Array
+                    ? params.value[2]
+                    : params.value;
+                // 确保值是数字，避免NaN
+                value = isNaN(Number(value)) ? 0 : value;
+                return `${params.name}: ${value}条`;
               },
               fontSize: 13,
               color: "white",
@@ -337,13 +460,21 @@ const Map: React.FC = () => {
               borderWidth: 1,
               color: "rgba(255, 86, 11, 1)",
             },
-            // 使用坐标和值构建数据
+            // 使用坐标和值构建数据，优先使用工单数量
             data: currentAreaData
               .filter((item) => item.coordinate) // 确保有坐标
-              .map((item) => ({
-                name: item.name,
-                value: [...(item.coordinate || [0, 0]), item.value],
-              })),
+              .map((item) => {
+                // 查找对应的工单数据
+                const ticketItem = ticketData.find((t) => t.name === item.name);
+                const value = ticketItem
+                  ? Number(ticketItem.count) || 0
+                  : item.value;
+
+                return {
+                  name: item.name,
+                  value: [...(item.coordinate || [0, 0]), value],
+                };
+              }),
           },
         ],
       };
@@ -352,41 +483,34 @@ const Map: React.FC = () => {
     } catch (err) {
       console.error("更新地图配置失败:", err);
     }
-  }, [currentMapType, mapLoaded]);
+  }, [currentMapType, mapLoaded, ticketData]);
 
-  // 地图下钻处理函数
+  // 地图下钻处理函数 - 点击园区地图时下钻到街道级别
   const handleDrillDown = (params: echarts.ECElementEvent) => {
     if (currentMapType === MapTypeEnum.area && streetNameToEnum[params.name]) {
       const nextMapType = streetNameToEnum[params.name];
-      setCurrentMapType(nextMapType);
+      // 使用setBreadcrumbs更新面包屑
       setBreadcrumbs((prev) => [
         ...prev,
         { type: nextMapType, name: MapTypeNames[nextMapType] },
       ]);
+
+      // 触发街道点击的回调，通知父组件
+      // 这里不再直接修改mapType，而是通知父组件
+      // 通过事件委派方式解决，父组件监听地图点击事件
+      const chartInstance = chartRef.current?.getChartInstance();
+      if (chartInstance) {
+        chartInstance.dispatchAction({
+          type: "mapSelect",
+          name: params.name,
+        });
+      }
     }
   };
-
-  // // 回到上一级地图
-  // const handleDrillUp = (targetIndex: number) => {
-  //   if (targetIndex >= 0 && targetIndex < breadcrumbs.length) {
-  //     // 更新当前地图类型
-  //     const targetMapType = breadcrumbs[targetIndex].type;
-  //     setCurrentMapType(targetMapType);
-  //     // 更新面包屑（截取到目标索引+1）
-  //     setBreadcrumbs((prev) => prev.slice(0, targetIndex + 1));
-  //   }
-  // };
 
   // 图表实例准备完成的回调
   const handleChartReady = (instance: echarts.ECharts) => {
     instance.on("click", handleDrillDown);
-  };
-
-  // 下拉选择地图类型改变的处理函数
-  const handleMapTypeChange = (value: MapTypeEnum) => {
-    setCurrentMapType(value);
-    // 更新面包屑导航
-    // setBreadcrumbs([{ type: value, name: MapTypeNames[value] }]);
   };
 
   return (
@@ -400,54 +524,6 @@ const Map: React.FC = () => {
         height: "100vh",
       }}
     >
-      {/* 地图类型选择器 */}
-      <div>
-        <Select
-          value={currentMapType}
-          onChange={handleMapTypeChange}
-          options={Object.values(MapTypeEnum).map((type) => ({
-            label: MapTypeNames[type as MapTypeEnum],
-            value: type,
-          }))}
-        />
-      </div>
-
-      {/* 面包屑导航 */}
-      {/* <div
-        style={{
-          position: "absolute",
-          top: "20px",
-          left: "180px",
-          zIndex: 10,
-          background: "rgba(0,0,0,0.6)",
-          padding: "4px 10px",
-          borderRadius: "4px",
-          color: "#fff",
-        }}
-      >
-        {breadcrumbs.map((item, index) => (
-          <React.Fragment key={item.type}>
-            {index > 0 && (
-              <span style={{ margin: "0 8px", color: "#999" }}>/</span>
-            )}
-            <span
-              style={{
-                cursor:
-                  index === breadcrumbs.length - 1 ? "default" : "pointer",
-                color: index === breadcrumbs.length - 1 ? "#fff" : "#3B82F6",
-                fontWeight:
-                  index === breadcrumbs.length - 1 ? "bold" : "normal",
-              }}
-              onClick={() =>
-                index < breadcrumbs.length - 1 && handleDrillUp(index)
-              }
-            >
-              {item.name}
-            </span>
-          </React.Fragment>
-        ))}
-      </div> */}
-
       {/* 地图组件 */}
       {mapLoaded ? (
         <BaseChart

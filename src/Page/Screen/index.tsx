@@ -8,11 +8,8 @@ import ComCustom from "./components/ComCustom";
 import {
   peopleOption,
   areaOption,
-  updateMockData,
   createMockData,
   ScreenDataType,
-  dataSource1,
-  dataSource2,
   dataSource4,
 } from "./mock";
 import LineChart from "./components/Chart/LineChart.tsx";
@@ -22,52 +19,474 @@ import ComTable from "./components/ComTable/index.tsx";
 import { columns1, columns2, columns3, columns4 } from "./columns.tsx";
 import BaseChart from "./components/Chart/BaseChart.tsx";
 import { EChartsOption } from "echarts";
-import { Flex, Button } from "antd";
-import { apiGetWorkDetail, apiGetWorkList } from "./api.ts";
+import { Flex, Button, Select } from "antd";
+import {
+  apiGetGovProfile1,
+  apiGetGovProfile2,
+  apiGetKeyFocus,
+  apiGetKeyWords,
+  apiGetLevel2Trend,
+  apiGetSocialRisk,
+  apiGetStaticBasic,
+  apiGetTicketCount,
+  apiGetWorkDetail,
+  BaseType,
+  TimeRange,
+} from "./api.ts";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import WorkModal from "./components/WorkMoal/index.tsx";
 import { AuthChangeEventDetail } from "../../types/events";
-// import FlipNumberDemo from "./components/FlipNumber/demo.tsx";
-import Map from "./components/Chart/Map.tsx";
+import Map, {
+  MapTypeEnum,
+  MapTypeNames,
+  TicketCountData,
+  // streetNameToEnum,
+} from "./components/Chart/Map.tsx";
+
+const TimeRangeOption = [
+  { label: "近7天", value: TimeRange.last_7_days },
+  { label: "近30天", value: TimeRange.last_30_days },
+  { label: "本周", value: TimeRange.this_week },
+  { label: "上周", value: TimeRange.last_week },
+  { label: "本月", value: TimeRange.this_month },
+  { label: "上月", value: TimeRange.last_month },
+  { label: "今年", value: TimeRange.this_year },
+  { label: "去年", value: TimeRange.last_year },
+];
 
 const Screen = () => {
-  const [trendKey, setTrendKey] = useState("");
+  const [trendKey, setTrendKey] = useState<string>(areaOption[0].value);
 
-  const [categoryKey, setCategoryKey] = useState("");
+  const [categoryKey, setCategoryKey] = useState<string>(areaOption[0].value);
 
-  const [focusKey, setFocusKey] = useState("");
+  const [focusKey, setFocusKey] = useState<string>(areaOption[2].value);
 
-  const [requestKey, setRequestKey] = useState("");
+  const [requestKey, setRequestKey] = useState<string>(peopleOption[0].value);
+
+  const [timeRange, setTimeRange] = useState<TimeRange>(TimeRange.this_year);
 
   const [screenData, setScreenData] = useState<ScreenDataType>(
     createMockData()
   );
 
+  const {
+    twoCateGoryDataSource = [],
+    socialRiskDataSource = [],
+    govProfile2LineData = {
+      xData: [],
+      lineData: [],
+    },
+
+    level2TrendLineData = {
+      xData: [],
+      lineData: [],
+    },
+  } = screenData;
+
   const timer = useRef<NodeJS.Timeout | null>(null);
 
-  const getScreenData = async () => {
-    const { data } = await apiGetWorkList();
-    setScreenData((prevData) => ({
-      ...prevData,
-      wordTableData: data,
+  // 添加地图类型状态
+  const [currentMapType, setCurrentMapType] = useState<MapTypeEnum>(
+    MapTypeEnum.area
+  );
+  // 添加工单数据状态
+  const [ticketData, setTicketData] = useState<TicketCountData[]>([]);
+
+  // 二级趋势预测
+  const getLevel2TrendData = async () => {
+    const {
+      data: { data: level2TrendData },
+    } = await apiGetLevel2Trend({
+      time_range: timeRange,
+      street: trendKey,
+    });
+
+    console.log(level2TrendData, "level2TrendData");
+
+    const smqtGroups = new Set<string>();
+    const monthData: { [key: string]: { [key: string]: number } } = {};
+
+    Object.keys(level2TrendData).forEach((month) => {
+      level2TrendData[month].forEach(({ c2, count }: { c2: string; count: number }) => {
+        smqtGroups.add(c2);
+        if (!monthData[month]) {
+          monthData[month] = {};
+        }
+        monthData[month][c2] = (monthData[month][c2] || 0) + count;
+      });
+    });
+
+    const sortedMonths = Object.keys(level2TrendData).sort();
+
+    const lineData = {
+      xData: sortedMonths,
+      lineData: Array.from(smqtGroups)
+        .map((c2) => {
+          const data = sortedMonths.map((month) => monthData[month]?.[c2] || 0);
+
+          if (data.some((val) => val > 0)) {
+            return {
+              name: c2,
+              data,
+            };
+          }
+          return null;
+        })
+        .filter(
+          (item): item is { name: string; data: number[] } => item !== null
+        ), // 使用类型谓词确保过滤掉null值
+    };
+
+    console.log(lineData, "level2TrendLineDatalevel2TrendLineData");
+
+    setScreenData((prev) => ({
+      ...prev,
+      level2TrendLineData: lineData,
     }));
   };
 
-  useEffect(() => {
-    getScreenData();
+  // 攻坚重点
+  const getKeyFocusData = async () => {
+    const {
+      data: { data: keyFocusData },
+    } = await apiGetKeyFocus({
+      time_range: timeRange,
+      street: focusKey,
+    });
+    console.log(keyFocusData, "keyFocusData");
+    setScreenData((prev) => ({
+      ...prev,
+      keyFocusData,
+    }));
+  };
 
-    return;
-    const updateData = async () => {
-      try {
-        setScreenData((prevData) => updateMockData(prevData));
-      } catch (err) {
-        console.error("数据更新失败:", err);
-      }
+  // 二级分类
+  const getTwoCateGoryData = async () => {
+    const {
+      data: { data: twoCateGoryData },
+    } = await apiGetSocialRisk({
+      time_range: timeRange,
+      street: categoryKey,
+    });
+
+    setScreenData((prev) => ({
+      ...prev,
+      twoCateGoryDataSource: twoCateGoryData || [],
+    }));
+  };
+
+  // 关注人群重点诉求
+  const getSocialRiskData = async () => {
+    const {
+      data: { data: socialRiskData },
+    } = await apiGetSocialRisk({
+      time_range: timeRange,
+      group: "新市民劳动者",
+    });
+    console.log(socialRiskData, "socialRiskData");
+    setScreenData((prev) => ({
+      ...prev,
+      socialRiskDataSource: socialRiskData || [],
+    }));
+  };
+
+  // 社会攻坚项目
+  // const getSocialChallengeData = async () => {
+  //   const { data:{data:socialChallengeData} } = await apiGetSocialChallenge({
+  //     time_range: timeRange,
+  //   });
+
+  //   console.log(socialChallengeData, "socialChallengeData");
+
+  //   setScreenData(prev => ({
+  //     ...prev,
+  //     dataSource4: socialChallengeData
+  //   }));
+  // };
+
+  // 数据来源
+  const getSourceCountData = async () => {
+    const {
+      data: { data: sourceData },
+    } = await apiGetStaticBasic({
+      time_range: timeRange,
+      type: BaseType.source_count,
+    });
+
+    const sourceCountData = {
+      total: sourceData
+        ?.reduce((acc: number, item: { count: number }) => acc + item.count, 0)
+        ?.toString(),
+      list: sourceData.map((item: { source: string; count: number }) => ({
+        title: item.source,
+        value: item.count,
+      })),
     };
 
-    timer.current = setInterval(updateData, 3000);
-    return () => clearInterval(timer.current!);
-  }, []);
+    console.log(sourceCountData, "sourceData");
+
+    setScreenData((prev) => ({
+      ...prev,
+      oneData: sourceCountData,
+    }));
+  };
+
+  // 民有所呼 我有所为
+  const getLevel1CountData = async () => {
+    const {
+      data: { data: level1Data },
+    } = await apiGetStaticBasic({
+      time_range: timeRange,
+      type: BaseType.level1_count,
+    });
+
+    const level1CountData = {
+      list: level1Data
+        .map(({ c1, count }: { c1: string; count: number }) => {
+          if (c1) {
+            return {
+              title: c1,
+              value: count,
+            };
+          }
+          return null;
+        })
+        ?.filter(Boolean),
+    };
+
+    console.log(level1CountData, "level1Data");
+
+    setScreenData((prev) => ({
+      ...prev,
+      twoData: level1CountData,
+    }));
+  };
+
+  // 人群画像
+  const getPeopleTicketCountData = async () => {
+    const {
+      data: { data: peopleData },
+    } = await apiGetStaticBasic({
+      time_range: timeRange,
+      type: BaseType.people_ticket_count,
+    });
+
+    const peopleTicketCountData = {
+      list: peopleData.map(
+        ({ smqt, count }: { smqt: string; count: number }) => {
+          return {
+            title: smqt,
+            value: count,
+          };
+        }
+      ),
+    };
+
+    console.log(peopleTicketCountData, "peopleTicketCountData");
+
+    setScreenData((prev) => ({
+      ...prev,
+      threeData: peopleTicketCountData,
+    }));
+  };
+
+  // 治理画像-热力图
+  const getGovProfile1Data = async () => {
+    const {
+      data: { data: govProfile1Data },
+    } = await apiGetGovProfile1({
+      time_range: timeRange,
+    });
+    console.log(govProfile1Data, "govProfile1Data");
+    setScreenData((prev) => ({
+      ...prev,
+      heatmapData: govProfile1Data,
+    }));
+  };
+
+  // 治理画像-折线图
+  const getGovProfile2Data = async () => {
+    const {
+      data: { data: govProfile2Data },
+    } = await apiGetGovProfile2({
+      time_range: timeRange,
+    });
+
+    // 准备LineChart所需的数据格式
+    const smqtGroups = new Set<string>();
+    const monthData: { [key: string]: { [key: string]: number } } = {};
+
+    // 遍历所有月份数据并收集所有人群类型
+    Object.keys(govProfile2Data).forEach((month) => {
+      govProfile2Data[month].forEach(({ smqt, count }: { smqt: string; count: number }) => {
+        smqtGroups.add(smqt);
+        // 初始化月份数据结构
+        if (!monthData[month]) {
+          monthData[month] = {};
+        }
+
+        // 只按smqt分类，相同smqt的count相加
+        monthData[month][smqt] = (monthData[month][smqt] || 0) + count;
+      });
+    });
+
+    // 将所有月份按时间顺序排序
+    const sortedMonths = Object.keys(govProfile2Data).sort();
+
+    // 构建lineData数据结构，只按人群类型分组
+    const lineData = {
+      xData: sortedMonths,
+      lineData: Array.from(smqtGroups)
+        .map((smqt) => {
+          const data = sortedMonths.map(
+            (month) => monthData[month]?.[smqt] || 0
+          );
+
+          // 只返回有数据的系列（至少有一个非零值）
+          if (data.some((val) => val > 0)) {
+            return {
+              name: smqt,
+              data,
+            };
+          }
+          return null;
+        })
+        .filter(
+          (
+            item
+          ): item is {
+            name: string;
+            data: number[];
+            itemStyle: { color: string };
+          } => item !== null
+        ), // 使用类型谓词确保过滤掉null值
+    };
+
+    console.log("转换后的lineData:", lineData);
+
+    setScreenData((prev) => ({
+      ...prev,
+      govProfile2LineData: lineData,
+    }));
+  };
+
+  // 词云数据
+  const getKeyWordsData = async () => {
+    const {
+      data: { data: keyWordsData },
+    } = await apiGetKeyWords({
+      time_range: timeRange,
+    });
+    console.log(keyWordsData, "keyWordsData");
+    setScreenData((prev) => ({
+      ...prev,
+      wordCloudData: keyWordsData,
+    }));
+  };
+
+  // 区域工单数量统计 - 根据地图类型获取对应工单数据
+  const getTicketCountData = async (
+    mapType: MapTypeEnum = MapTypeEnum.area
+  ) => {
+    try {
+      // 根据地图类型获取街道名称
+      const streetName =
+        mapType === MapTypeEnum.area ? undefined : MapTypeNames[mapType];
+
+      // 调用接口获取工单数据
+      const { data } = await apiGetTicketCount({
+        time_range: timeRange,
+        street: streetName,
+      });
+
+      console.log("工单数据:", data.data);
+      // 确保数据符合 TicketCountData 接口格式
+      const formattedData: TicketCountData[] = Array.isArray(data.data)
+        ? data.data.map((item: { name: string; count: number | string }) => {
+            // 确保count是数字类型，并处理可能的NaN情况
+            const count =
+              typeof item.count === "number"
+                ? item.count
+                : Number(item.count) || 0; // 使用 || 0 防止NaN
+
+            return {
+              name: item.name,
+              count: count,
+            };
+          })
+        : [];
+
+      // 更新工单数据状态
+      setTicketData(formattedData);
+    } catch (error) {
+      console.error("获取工单数据失败:", error);
+      setTicketData([]);
+    }
+  };
+
+  // 监听地图类型变化，获取对应的工单数据
+  useEffect(() => {
+    getTicketCountData(currentMapType);
+  }, [currentMapType, timeRange]);
+
+  // 处理地图类型选择变化
+  const handleMapTypeChange = (value: MapTypeEnum) => {
+    setCurrentMapType(value);
+  };
+
+  // 在地图区域点击时，处理地图下钻
+  // const handleMapAreaClick = (areaName: string) => {
+  //   if (currentMapType === MapTypeEnum.area && streetNameToEnum[areaName]) {
+  //     const nextMapType = streetNameToEnum[areaName];
+  //     setCurrentMapType(nextMapType);
+  //   }
+  // };
+
+  useEffect(() => {
+    // 数据来源
+    getSourceCountData();
+    // 民有所呼 我有所为
+    getLevel1CountData();
+    // 人群画像
+    getPeopleTicketCountData();
+    // 攻坚重点
+    getKeyFocusData();
+    // 二级分类
+    getTwoCateGoryData();
+    // 社会攻坚项目
+    // getSocialChallengeData();
+    // 关注人群重点诉求
+    getSocialRiskData();
+    // 词云数据
+    getKeyWordsData();
+    // 二级趋势预测
+    getLevel2TrendData();
+    // 治理画像-热力图
+    getGovProfile1Data();
+    // 治理画像-折线图
+    getGovProfile2Data();
+    // 区域工单数量统计 - 初始化时获取一次数据
+    getTicketCountData();
+  }, [timeRange]);
+
+  // 二级趋势预测
+  useEffect(() => {
+    getLevel2TrendData();
+  }, [trendKey]);
+
+  // 攻坚重点
+  useEffect(() => {
+    getKeyFocusData();
+  }, [focusKey]);
+
+  // 二级分类
+  useEffect(() => {
+    getTwoCateGoryData();
+  }, [categoryKey]);
+  // 关注人群重点诉求
+  useEffect(() => {
+    getSocialRiskData();
+  }, [requestKey]);
 
   const pieOption: EChartsOption = useMemo(() => {
     return {
@@ -121,38 +540,54 @@ const Screen = () => {
     };
   }, []);
   const cloudOption: EChartsOption = useMemo(() => {
+    // 从screenData中获取词云数据
+    const wordCloudData = screenData.wordCloudData || [];
+
     return {
       backgroundColor: "transparent",
-      graphic: [
-        {
-          type: "circle",
-          shape: {
-            cx: 400,
-            cy: 300,
-            r: 180,
-          },
-          style: {
-            stroke: "#dddd",
-            lineWidth: 1,
-            lineDash: [5, 5],
-            fill: "transparent",
-          },
+      // 移除背景圆形线条
+      // graphic: [
+      //   {
+      //     type: "circle",
+      //     shape: {
+      //       cx: 400,
+      //       cy: 300,
+      //       r: 180,
+      //     },
+      //     style: {
+      //       // stroke: "#dddd",
+      //       lineWidth: 1,
+      //       lineDash: [5, 5],
+      //       fill: "transparent",
+      //     },
+      //   },
+      //   {
+      //     type: "circle",
+      //     shape: {
+      //       cx: 400,
+      //       cy: 300,
+      //       r: 260,
+      //     },
+      //     style: {
+      //       stroke: "#2C83C4",
+      //       lineWidth: 1,
+      //       lineDash: [5, 5],
+      //       fill: "transparent",
+      //     },
+      //   },
+      // ],
+      // 添加tooltip配置，实现悬停显示count
+      tooltip: {
+        trigger: "item",
+        formatter: function (params: any) {
+          return `${params.name}: ${params.value}条`;
         },
-        {
-          type: "circle",
-          shape: {
-            cx: 400,
-            cy: 300,
-            r: 260,
-          },
-          style: {
-            stroke: "#2C83C4",
-            lineWidth: 1,
-            lineDash: [5, 5],
-            fill: "transparent",
-          },
+        backgroundColor: "rgba(0,0,0,0.7)",
+        borderColor: "#2C83C4",
+        textStyle: {
+          color: "#fff",
         },
-      ],
+      },
       series: [
         {
           type: "graph",
@@ -164,68 +599,120 @@ const Screen = () => {
             fontSize: 10,
             fontWeight: "bold",
           },
-          symbolSize: 80,
+          // 鼠标悬停效果增强
+          emphasis: {
+            focus: "adjacency" as const,
+            label: {
+              fontSize: 12,
+              fontWeight: "bold",
+              color: "#30D8FF",
+            },
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: "rgba(48, 216, 255, 0.5)",
+            },
+          },
+          symbolSize: (val) => {
+            // 根据count动态设置大小，确保最小不低于30，最大不超过120
+            if (!val) return 30; // 防止无数据情况
+
+            // 使用对数比例，避免数值差异过大时节点大小差异也过大
+            // 对数增长更合理：数量级的增长体现为大小的线性增长
+            return Math.max(30, Math.min(120, 30 + 15 * Math.log10(val)));
+          },
           data: (() => {
             const centerX = 400;
             const centerY = 300;
             const innerRadius = 180;
             const outerRadius = 260;
 
-            const innerLabels = [
-              "生活服务",
-              "积分入学",
-              "农民工培训",
-              "出租房屋管理",
-              "其他",
-            ];
+            // 如果没有数据，显示默认中心点
+            if (!wordCloudData.length) {
+              return [
+                {
+                  name: "暂无词云数据",
+                  x: centerX,
+                  y: centerY,
+                  symbolSize: 110,
+                  itemStyle: { color: "#30D8FF" },
+                  label: { fontSize: 12 },
+                  value: 0,
+                },
+              ];
+            }
 
-            const outerLabels = [
-              "权益保障",
-              "就业创业服务",
-              "职业技能培训",
-              "乐居保障",
-              "外来人员子女教育",
-            ];
+            // 中心点显示数量最多的分类
+            const centerData =
+              wordCloudData.length > 0
+                ? wordCloudData.sort(
+                    (
+                      a: { category: string; count: number },
+                      b: { category: string; count: number }
+                    ) => b.count - a.count
+                  )[0]
+                : { category: "热点问题", count: 0 };
 
             const centerNode = {
-              name: "新市民劳动者服务与保障",
+              name: centerData.category,
               x: centerX,
               y: centerY,
-              symbolSize: 110,
+              // 中心节点大小特殊处理，确保其始终是最大的
+              symbolSize: centerData.count
+                ? Math.max(100, 30 + 15 * Math.log10(centerData.count))
+                : 80,
               itemStyle: { color: "#30D8FF" },
-              label: { fontSize: 12 },
+              label: {
+                fontSize: 12,
+                // 根据文本长度自动调整字体大小
+                formatter: (params: any) => {
+                  const name = params.name as string;
+                  // 太长的文本进行截断显示
+                  return name.length > 8 ? name.substring(0, 7) + "..." : name;
+                },
+              },
+              value: centerData.count,
             };
 
-            const innerNodes = innerLabels.map((label, i) => {
-              const angle = (2 * Math.PI * i) / innerLabels.length;
+            // 将剩余数据分配到内圈和外圈
+            const remainingData = wordCloudData.slice(1);
+
+            // 内圈数据（取前5条或更少）
+            const innerCount = Math.min(5, Math.ceil(remainingData.length / 2));
+            const innerData = remainingData.slice(0, innerCount);
+
+            // 外圈数据（取剩余的，最多10条）
+            const outerData = remainingData.slice(innerCount, innerCount + 10);
+
+            // 生成内圈节点
+            const innerNodes = innerData.map((item, i) => {
+              const angle = (2 * Math.PI * i) / innerData.length;
               return {
-                name: label,
+                name: item.category,
                 x: centerX + innerRadius * Math.cos(angle),
                 y: centerY + innerRadius * Math.sin(angle),
                 itemStyle: { color: "#0079C2" },
+                value: item.count,
               };
             });
 
-            const outerNodes = outerLabels.map((label, i) => {
-              const angle = (2 * Math.PI * i) / outerLabels.length;
+            // 生成外圈节点
+            const outerNodes = outerData.map((item, i) => {
+              const angle = (2 * Math.PI * i) / outerData.length;
               return {
-                name: label,
+                name: item.category,
                 x: centerX + outerRadius * Math.cos(angle),
                 y: centerY + outerRadius * Math.sin(angle),
                 itemStyle: { color: "#3DA2FF" },
+                value: item.count,
               };
             });
 
             return [centerNode, ...innerNodes, ...outerNodes];
           })(),
-          links: [],
-          lineStyle: {
-            opacity: 0,
-          },
         },
       ],
     };
-  }, []);
+  }, [screenData.wordCloudData]);
 
   // 攻坚项目弹窗
   const [workOpen, setWorkOpen] = useState(false);
@@ -258,7 +745,7 @@ const Screen = () => {
               value={trendKey}
             />
             <LineChart
-              {...screenData.lineData}
+              {...level2TrendLineData}
               enableSlide={true}
               slideInterval={2000}
               visibleDataPoints={8}
@@ -284,7 +771,7 @@ const Screen = () => {
               </div>
               <ComTable
                 columns={columns3}
-                dataSource={screenData.wordTableData || []}
+                dataSource={screenData.keyFocusData || []}
                 onRowClick={async (record) => {
                   setWorkOpen(true);
                   setWorkRecord(record);
@@ -294,7 +781,7 @@ const Screen = () => {
                     setWorkLoading(true);
                     const { data } = await apiGetWorkDetail({
                       category: record?.category as string,
-                      street: record?.street as string,
+                      community: record?.community as string,
                     });
 
                     setWorkDetail(data.data);
@@ -310,7 +797,7 @@ const Screen = () => {
                       .join("");
 
                     fetchEventSource(
-                      `${import.meta.env.VITE_BASE_API_URL}/v1/process-data`,
+                      `${import.meta.env.VITE_BASE_API_URL}/process-data`,
                       {
                         method: "POST",
                         headers: {
@@ -367,7 +854,7 @@ const Screen = () => {
             <ComTable
               className={styles.table}
               columns={columns1}
-              dataSource={dataSource1}
+              dataSource={twoCateGoryDataSource}
             />
           </div>
         ),
@@ -386,14 +873,15 @@ const Screen = () => {
       },
     ],
     [
+      categoryKey,
+      focusKey,
+      level2TrendLineData,
+      pieOption,
+      screenData.keyFocusData,
       screenData.oneData,
       screenData.twoData,
-      screenData.lineData,
-      screenData.wordTableData,
       trendKey,
-      focusKey,
-      pieOption,
-      categoryKey,
+      twoCateGoryDataSource,
       wrokLoading,
     ]
   );
@@ -416,9 +904,10 @@ const Screen = () => {
               enableSlide={true}
               slideInterval={3500}
               visibleDataPoints={3}
+              data={screenData.heatmapData}
             />
             <LineChart
-              {...screenData.lineData}
+              {...govProfile2LineData}
               enableSlide={true}
               slideInterval={2000}
               visibleDataPoints={8}
@@ -428,7 +917,7 @@ const Screen = () => {
         ),
       },
     ],
-    [screenData.lineData, screenData.threeData]
+    [screenData.threeData, govProfile2LineData, screenData.heatmapData]
   );
 
   /**
@@ -456,6 +945,26 @@ const Screen = () => {
 
   return (
     <div className={styles.screen}>
+      {/* 时间选择 */}
+      <div className={styles.selectWrap}>
+        <Select
+          className={styles.select}
+          options={TimeRangeOption}
+          onChange={(value) => {
+            setTimeRange(value);
+          }}
+          value={timeRange}
+        />
+        <Select
+          className={styles.select}
+          value={currentMapType}
+          onChange={handleMapTypeChange}
+          options={Object.values(MapTypeEnum).map((type) => ({
+            label: MapTypeNames[type as MapTypeEnum],
+            value: type,
+          }))}
+        />
+      </div>
       {/* 标题 */}
 
       <div className={styles.header}>
@@ -467,6 +976,7 @@ const Screen = () => {
         >
           民情全息感知与数智治理平台
         </span>
+
         <Button type="link" className={styles.logoutBtn} onClick={handleLogout}>
           退出登录
         </Button>
@@ -474,8 +984,8 @@ const Screen = () => {
 
       {/* 内容 */}
       <div className={styles.contentWrap}>
-        {/* 地图 */}
-        <Map></Map>
+        {/* 地图 - 传递地图类型和工单数据 */}
+        <Map currentMapType={currentMapType} ticketData={ticketData}></Map>
         {/* 左侧 */}
         <div className={styles.left}>
           {
@@ -529,7 +1039,7 @@ const Screen = () => {
                 <ComTable
                   className={styles.table}
                   columns={columns2}
-                  dataSource={dataSource2}
+                  dataSource={socialRiskDataSource}
                 />
               </div>
             </div>
@@ -596,7 +1106,7 @@ const Screen = () => {
         }}
         workAiComment={workAiComment}
         workDetail={workDetail}
-        textTitle={`${workRecord?.street}${workRecord?.category}事项`}
+        textTitle={`${workRecord?.community}${workRecord?.category}事项`}
       />
     </div>
   );
