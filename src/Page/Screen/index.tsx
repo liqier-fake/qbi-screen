@@ -438,7 +438,7 @@ const Screen = () => {
     setCurrentMapType(value);
   };
 
-  // 在地图区域点击时，处理地图下钻
+  // // 在地图区域点击时，处理地图下钻
   // const handleMapAreaClick = (areaName: string) => {
   //   if (currentMapType === MapTypeEnum.area && streetNameToEnum[areaName]) {
   //     const nextMapType = streetNameToEnum[areaName];
@@ -1030,7 +1030,15 @@ const Screen = () => {
       {/* 内容 */}
       <div className={styles.contentWrap}>
         {/* 地图 - 传递地图类型和工单数据 */}
-        <Map currentMapType={currentMapType} ticketData={ticketData}></Map>
+        <Map
+          currentMapType={currentMapType}
+          ticketData={ticketData}
+          onDrillDown={(nextMapType) => {
+            setCurrentMapType(nextMapType);
+            // 获取新地图类型的工单数据
+            getTicketCountData(nextMapType);
+          }}
+        />
         {/* 左侧 */}
         <div className={styles.left}>
           {

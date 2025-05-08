@@ -2,16 +2,7 @@ import { Column } from "./components/ComTable";
 
 // 定义数据类型接口
 interface TableData {
-  date?: string;
-  content?: string;
-  c2?: string;
-  threaten?: number;
-  street?: string;
-  community?: string;
-  project?: string;
-  category?: string;
-  count?: number;
-  ds1?: string;
+  [key: string]: any;
 }
 
 export const columns1: Column<TableData>[] = [

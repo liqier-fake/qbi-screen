@@ -92,9 +92,14 @@ export const streetNameToEnum: Record<string, MapTypeEnum> = {
 interface MapProps {
   currentMapType: MapTypeEnum; // 当前地图类型
   ticketData?: TicketCountData[]; // 工单数据
+  onDrillDown?: (nextMapType: MapTypeEnum) => void; // 添加下钻回调函数
 }
 
-const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
+const Map: React.FC<MapProps> = ({
+  currentMapType,
+  ticketData = [],
+  onDrillDown,
+}) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
   const [chartOption, setChartOption] = useState<EChartsOption>({});
@@ -224,7 +229,7 @@ const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
         backgroundColor: "transparent",
 
         // 添加工具提示配置
-        // @ts-ignore  
+        // @ts-ignore
         tooltip: {
           trigger: "item",
           formatter: function (params: {
@@ -363,7 +368,7 @@ const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
         ],
 
         // 地图数据系列
-        // @ts-ignore 
+        // @ts-ignore
         series: [
           // 地图数据层 - 根据工单数量显示不同颜色
           {
@@ -379,7 +384,7 @@ const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
               color: "#fff",
             },
             itemStyle: {
-              // @ts-ignore 忽略类型错误，ECharts支持函数返回颜色类型
+              //@ts-ignore
               areaColor: function (params: { name: string }) {
                 // 根据区域名称获取颜色
                 return getColorByCount(params.name);
@@ -395,10 +400,25 @@ const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
                 fontWeight: "bold",
               },
               itemStyle: {
-                areaColor: "rgba(0,254,233,0.6)",
-                shadowColor: "rgba(0,254,233,0.6)",
-                shadowBlur: 20,
+                areaColor: "rgba(0,254,233,0.3)", // 调整高亮颜色，更加柔和
+                shadowColor: "rgba(0,254,233,0.3)",
+                shadowBlur: 10,
                 borderWidth: 1,
+                borderColor: "#fff",
+              },
+            },
+            select: {
+              label: {
+                show: true,
+                color: "#fff",
+              },
+              itemStyle: {
+                // 确保选中状态的样式与普通状态一致
+                areaColor: function (params: { name: string }) {
+                  return getColorByCount(params.name);
+                },
+                borderColor: "#fff",
+                borderWidth: 0.2,
               },
             },
             layoutCenter: ["50%", "50%"],
@@ -421,61 +441,61 @@ const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
           },
 
           // 散点动效 - 在地图上显示数据点标记
-          {
-            type: "effectScatter",
-            coordinateSystem: "geo",
-            silent: false, // 启用鼠标交互
-            rippleEffect: {
-              period: 4, // 动画时间，值越小速度越快
-              scale: 5, // 波纹圆环最大限制，值越大波纹越大
-              brushType: "stroke", // 波纹绘制方式
-            },
-            label: {
-              show: true,
-              position: "right", // 显示位置
-              offset: [5, 0], // 偏移设置
-              formatter: function (
-                params: echarts.DefaultLabelFormatterCallbackParams
-              ) {
-                // 圆环显示文字
-                let value =
-                  params.value instanceof Array
-                    ? params.value[2]
-                    : params.value;
-                // 确保值是数字，避免NaN
-                value = isNaN(Number(value)) ? 0 : value;
-                return `${params.name}: ${value}条`;
-              },
-              fontSize: 13,
-              color: "white",
-            },
-            emphasis: {
-              label: {
-                show: true,
-              },
-            },
-            symbol: "circle",
-            symbolSize: 10,
-            itemStyle: {
-              borderWidth: 1,
-              color: "rgba(255, 86, 11, 1)",
-            },
-            // 使用坐标和值构建数据，优先使用工单数量
-            data: currentAreaData
-              .filter((item) => item.coordinate) // 确保有坐标
-              .map((item) => {
-                // 查找对应的工单数据
-                const ticketItem = ticketData.find((t) => t.name === item.name);
-                const value = ticketItem
-                  ? Number(ticketItem.count) || 0
-                  : item.value;
+          // {
+          //   type: "effectScatter",
+          //   coordinateSystem: "geo",
+          //   silent: false, // 启用鼠标交互
+          //   rippleEffect: {
+          //     period: 4, // 动画时间，值越小速度越快
+          //     scale: 5, // 波纹圆环最大限制，值越大波纹越大
+          //     brushType: "stroke", // 波纹绘制方式
+          //   },
+          //   label: {
+          //     show: true,
+          //     position: "right", // 显示位置
+          //     offset: [5, 0], // 偏移设置
+          //     formatter: function (
+          //       params: echarts.DefaultLabelFormatterCallbackParams
+          //     ) {
+          //       // 圆环显示文字
+          //       let value =
+          //         params.value instanceof Array
+          //           ? params.value[2]
+          //           : params.value;
+          //       // 确保值是数字，避免NaN
+          //       value = isNaN(Number(value)) ? 0 : value;
+          //       return `${params.name}: ${value}条`;
+          //     },
+          //     fontSize: 13,
+          //     color: "white",
+          //   },
+          //   emphasis: {
+          //     label: {
+          //       show: true,
+          //     },
+          //   },
+          //   symbol: "circle",
+          //   symbolSize: 10,
+          //   itemStyle: {
+          //     borderWidth: 1,
+          //     color: "rgba(255, 86, 11, 1)",
+          //   },
+          //   // 使用坐标和值构建数据，优先使用工单数量
+          //   data: currentAreaData
+          //     .filter((item) => item.coordinate) // 确保有坐标
+          //     .map((item) => {
+          //       // 查找对应的工单数据
+          //       const ticketItem = ticketData.find((t) => t.name === item.name);
+          //       const value = ticketItem
+          //         ? Number(ticketItem.count) || 0
+          //         : item.value;
 
-                return {
-                  name: item.name,
-                  value: [...(item.coordinate || [0, 0]), value],
-                };
-              }),
-          },
+          //       return {
+          //         name: item.name,
+          //         value: [...(item.coordinate || [0, 0]), value],
+          //       };
+          //     }),
+          // },
         ],
       };
 
@@ -489,22 +509,15 @@ const Map: React.FC<MapProps> = ({ currentMapType, ticketData = [] }) => {
   const handleDrillDown = (params: echarts.ECElementEvent) => {
     if (currentMapType === MapTypeEnum.area && streetNameToEnum[params.name]) {
       const nextMapType = streetNameToEnum[params.name];
-      // 使用setBreadcrumbs更新面包屑
+
+      // 更新面包屑
       setBreadcrumbs((prev) => [
         ...prev,
         { type: nextMapType, name: MapTypeNames[nextMapType] },
       ]);
 
-      // 触发街道点击的回调，通知父组件
-      // 这里不再直接修改mapType，而是通知父组件
-      // 通过事件委派方式解决，父组件监听地图点击事件
-      const chartInstance = chartRef.current?.getChartInstance();
-      if (chartInstance) {
-        chartInstance.dispatchAction({
-          type: "mapSelect",
-          name: params.name,
-        });
-      }
+      // 调用父组件的下钻回调
+      onDrillDown?.(nextMapType);
     }
   };
 
