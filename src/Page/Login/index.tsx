@@ -82,7 +82,9 @@ const Login = () => {
       {/* 登录框 */}
       <div className={styles.loginPanel}>
         <div className={styles.panelHeader}>
-          <h1 className={styles.mainTitle}>"民情全息感知与数智治理平台</h1>
+          <h1 className={styles.mainTitle}>
+            "苏州工业园区“智汇民意”民情分析平台
+          </h1>
           <h2 className={styles.subTitle}>欢迎登录系统！</h2>
         </div>
 
