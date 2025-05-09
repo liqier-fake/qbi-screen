@@ -92,7 +92,7 @@ const Screen = () => {
     MapTypeEnum.area
   );
   // 添加工单数据状态
-  const [ticketData, setTicketData] = useState<TicketCountData[]>([]);
+  const [ticketData, setTicketData] = useState<TicketCountData[][]>([]);
 
   // 二级趋势预测
   const getLevel2TrendData = async () => {
@@ -391,62 +391,42 @@ const Screen = () => {
   };
 
   // 区域工单数量统计 - 根据地图类型获取对应工单数据
-  const getTicketCountData = async (
-    mapType: MapTypeEnum = MapTypeEnum.area
-  ) => {
+  const getTicketCountData = async () => {
     try {
-      // 根据地图类型获取街道名称
-      const streetName =
-        mapType === MapTypeEnum.area ? "" : MapTypeNames[mapType];
+      const streets = Object.values(MapTypeNames);
+      streets.splice(0, 1, "");
 
-      // 调用接口获取工单数据
-      const { data } = await apiGetTicketCount({
-        time_range: timeRange,
-        street: streetName,
+      const result = await Promise.allSettled(
+        streets?.map((street) =>
+          apiGetTicketCount({
+            time_range: timeRange,
+            street,
+          })
+        )
+      );
+
+      const ticketData = result.map((item) => {
+        if (item.status === "fulfilled") {
+          const {
+            data: { data: ticketData },
+          } = item.value;
+          return ticketData;
+        }
+        return [];
       });
 
-      console.log("工单数据:", data.data);
-      // 确保数据符合 TicketCountData 接口格式
-      const formattedData: TicketCountData[] = Array.isArray(data.data)
-        ? data.data.map((item: { name: string; count: number | string }) => {
-            // 确保count是数字类型，并处理可能的NaN情况
-            const count =
-              typeof item.count === "number"
-                ? item.count
-                : Number(item.count) || 0; // 使用 || 0 防止NaN
-
-            return {
-              name: item.name,
-              count: count,
-            };
-          })
-        : [];
-
       // 更新工单数据状态
-      setTicketData(formattedData);
+      setTicketData(ticketData);
     } catch (error) {
       console.error("获取工单数据失败:", error);
       setTicketData([]);
     }
   };
 
-  // 监听地图类型变化，获取对应的工单数据
-  useEffect(() => {
-    getTicketCountData(currentMapType);
-  }, [currentMapType, timeRange]);
-
   // 处理地图类型选择变化
   const handleMapTypeChange = (value: MapTypeEnum) => {
     setCurrentMapType(value);
   };
-
-  // // 在地图区域点击时，处理地图下钻
-  // const handleMapAreaClick = (areaName: string) => {
-  //   if (currentMapType === MapTypeEnum.area && streetNameToEnum[areaName]) {
-  //     const nextMapType = streetNameToEnum[areaName];
-  //     setCurrentMapType(nextMapType);
-  //   }
-  // };
 
   useEffect(() => {
     // 数据来源
@@ -986,18 +966,6 @@ const Screen = () => {
     triggerAuthChangeEvent(false);
   };
 
-  // return (
-  //   <Map
-  //     currentMapType={currentMapType}
-  //     ticketData={ticketData}
-  //     onDrillDown={(nextMapType) => {
-  //       setCurrentMapType(nextMapType);
-  //       // 获取新地图类型的工单数据
-  //       getTicketCountData(nextMapType);
-  //     }}
-  //   />
-  // );
-
   return (
     <div className={styles.screen}>
       {/* 时间选择 */}
@@ -1050,7 +1018,7 @@ const Screen = () => {
           onDrillDown={(nextMapType) => {
             setCurrentMapType(nextMapType);
             // 获取新地图类型的工单数据
-            getTicketCountData(nextMapType);
+            getTicketCountData();
           }}
         />
         {/* 左侧 */}

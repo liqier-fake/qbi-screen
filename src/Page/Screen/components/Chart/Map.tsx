@@ -5,7 +5,7 @@ import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
 import BaseChart, { BaseChartRef } from "./BaseChart";
 import { geojsonMap } from "./geojson";
-
+import { flatten } from "lodash";
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
   area = "area", // 园区
@@ -31,15 +31,6 @@ export const MapTypeNames: Record<MapTypeEnum, string> = {
   [MapTypeEnum.spstreet]: "胜浦街道",
   [MapTypeEnum.xtstreet]: "斜塘街道",
 };
-
-// 区域数据，包含名称、值和坐标
-// interface AreaData {
-//   name: string;
-//   value: number;
-//   coordinate?: [number, number]; // 经纬度坐标
-// }
-
-// 工单数据接口
 export interface TicketCountData {
   name: string;
   count: number;
@@ -58,7 +49,7 @@ export const streetNameToEnum: Record<string, MapTypeEnum> = {
 // 定义Map组件的props接口
 interface MapProps {
   currentMapType: MapTypeEnum; // 当前地图类型
-  ticketData?: TicketCountData[]; // 工单数据
+  ticketData?: TicketCountData[][]; // 工单数据
   onDrillDown?: (nextMapType: MapTypeEnum) => void; // 添加下钻回调函数
 }
 
@@ -95,7 +86,7 @@ const getCommunityCoordinates = (name: string): [number, number] => {
   // 从sip_comm数据中查找对应社区的中心点坐标
   try {
     // 优先查找社区地图数据
-    const obj = geojsonMap["sip_comm"]?.find((f) => f?.street === name);
+    const obj = geojsonMap["sip_comm"]?.find((f) => f?.Community === name);
 
     if (obj) {
       return [obj.x, obj.y];
@@ -139,10 +130,19 @@ const Map: React.FC<MapProps> = ({
   useEffect(() => {
     if (!mapLoaded) return;
 
-    // 计算最大值用于颜色映射
-    const maxValue = Math.max(...ticketData.map((item) => item.count), 1); // 至少为1，防止除0错误
+    const curentIndex = Object.keys(MapTypeNames).findIndex(
+      (item) => item === currentMapType
+    );
 
-    const seriesData = ticketData.map((item) => {
+    const currentTicketData = ticketData?.[curentIndex] || [];
+
+    // 计算最大值用于颜色映射
+    const maxValue = Math.max(
+      ...currentTicketData.map((item) => item.count),
+      1
+    ); // 至少为1，防止除0错误
+
+    const seriesData = currentTicketData?.map((item) => {
       return {
         name: item.name,
         value: item.count,
@@ -159,7 +159,7 @@ const Map: React.FC<MapProps> = ({
     // 生成散点数据，使用社区地图数据
     const scatterData =
       currentMapType === MapTypeEnum.area
-        ? ticketData
+        ? flatten(ticketData)
             .map((item) => {
               // 根据社区名称获取坐标
               const [centerX, centerY] = getCommunityCoordinates(item.name);
@@ -178,8 +178,6 @@ const Map: React.FC<MapProps> = ({
             })
             .filter(Boolean) // 过滤掉无效数据
         : [];
-
-    console.log(scatterData, "scatterData");
 
     try {
       const option: EChartsOption = {
@@ -418,6 +416,12 @@ const Map: React.FC<MapProps> = ({
             //     color: "#F41C19",
             //   },
             // },
+            tooltip: {
+              show: true,
+              formatter: (params) => {
+                return `${params.name}: ${params.value[2]}条`;
+              },
+            },
             data: scatterData,
           },
         ],
