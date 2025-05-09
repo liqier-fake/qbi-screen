@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useEffect, useState, useRef } from "react";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
@@ -31,53 +33,17 @@ export const MapTypeNames: Record<MapTypeEnum, string> = {
 };
 
 // 区域数据，包含名称、值和坐标
-interface AreaData {
-  name: string;
-  value: number;
-  coordinate?: [number, number]; // 经纬度坐标
-}
+// interface AreaData {
+//   name: string;
+//   value: number;
+//   coordinate?: [number, number]; // 经纬度坐标
+// }
 
 // 工单数据接口
 export interface TicketCountData {
   name: string;
   count: number;
 }
-
-// 模拟数据，为每个区域添加坐标
-const mockData: Record<MapTypeEnum, AreaData[]> = {
-  [MapTypeEnum.area]: [
-    { name: "金鸡湖街道", value: 820, coordinate: [120.7559, 31.3215] },
-    { name: "唯亭街道", value: 730, coordinate: [120.6982, 31.3401] },
-    { name: "娄葑街道", value: 650, coordinate: [120.7158, 31.2979] },
-    { name: "胜浦街道", value: 580, coordinate: [120.7881, 31.3692] },
-    { name: "斜塘街道", value: 750, coordinate: [120.7233, 31.3478] },
-  ],
-  [MapTypeEnum.jjhstreet]: [
-    { name: "金鸡湖社区1", value: 300, coordinate: [120.7559, 31.3215] },
-    { name: "金鸡湖社区2", value: 220, coordinate: [120.76, 31.325] },
-    { name: "金鸡湖社区3", value: 180, coordinate: [120.752, 31.318] },
-  ],
-  [MapTypeEnum.wtstreet]: [
-    { name: "唯亭社区1", value: 250, coordinate: [120.6982, 31.3401] },
-    { name: "唯亭社区2", value: 210, coordinate: [120.7, 31.345] },
-    { name: "唯亭社区3", value: 190, coordinate: [120.695, 31.338] },
-  ],
-  [MapTypeEnum.lfstreet]: [
-    { name: "娄葑社区1", value: 280, coordinate: [120.7158, 31.2979] },
-    { name: "娄葑社区2", value: 230, coordinate: [120.72, 31.3] },
-    { name: "娄葑社区3", value: 170, coordinate: [120.71, 31.295] },
-  ],
-  [MapTypeEnum.spstreet]: [
-    { name: "胜浦社区1", value: 260, coordinate: [120.7881, 31.3692] },
-    { name: "胜浦社区2", value: 220, coordinate: [120.79, 31.372] },
-    { name: "胜浦社区3", value: 180, coordinate: [120.785, 31.365] },
-  ],
-  [MapTypeEnum.xtstreet]: [
-    { name: "斜塘社区1", value: 290, coordinate: [120.7233, 31.3478] },
-    { name: "斜塘社区2", value: 240, coordinate: [120.725, 31.35] },
-    { name: "斜塘社区3", value: 190, coordinate: [120.72, 31.345] },
-  ],
-};
 
 // 街道名称到枚举的映射 - 导出给父组件使用
 export const streetNameToEnum: Record<string, MapTypeEnum> = {
@@ -86,6 +52,7 @@ export const streetNameToEnum: Record<string, MapTypeEnum> = {
   娄葑街道: MapTypeEnum.lfstreet,
   胜浦街道: MapTypeEnum.spstreet,
   斜塘街道: MapTypeEnum.xtstreet,
+  苏州工业园区: MapTypeEnum.area,
 };
 
 // 定义Map组件的props接口
@@ -94,6 +61,53 @@ interface MapProps {
   ticketData?: TicketCountData[]; // 工单数据
   onDrillDown?: (nextMapType: MapTypeEnum) => void; // 添加下钻回调函数
 }
+
+// 根据数据值大小返回不同的颜色
+const getColorByValue = (value: number, maxValue: number): string => {
+  // 设置不同的颜色等级，从低到高
+  if (value <= 0) return "rgba(0,30,60,0.3)"; // 无数据或值为0
+
+  // 计算相对值的百分比
+  const ratio = value / maxValue;
+
+  if (ratio < 0.2) return "rgba(0,102,204,0.5)"; // 非常低
+  if (ratio < 0.4) return "rgba(0,153,255,0.6)"; // 低
+  if (ratio < 0.6) return "rgba(0,204,255,0.7)"; // 中
+  if (ratio < 0.8) return "rgba(0,255,255,0.8)"; // 高
+  return "rgba(0,255,204,0.9)"; // 非常高
+};
+
+// 根据数据值获取散点图的颜色
+const getScatterColorByValue = (value: number, maxValue: number): string => {
+  // 计算相对值的百分比
+  const ratio = value / maxValue;
+
+  // 散点图使用红色系，透明度随值增加而增加
+  if (ratio < 0.2) return "rgba(244,28,25,0.5)"; // 非常低
+  if (ratio < 0.4) return "rgba(244,28,25,0.6)"; // 低
+  if (ratio < 0.6) return "rgba(244,28,25,0.7)"; // 中
+  if (ratio < 0.8) return "rgba(244,28,25,0.8)"; // 高
+  return "rgba(244,28,25,0.9)"; // 非常高
+};
+
+// 根据社区名称获取坐标
+const getCommunityCoordinates = (name: string): [number, number] => {
+  // 从sip_comm数据中查找对应社区的中心点坐标
+  try {
+    // 优先查找社区地图数据
+    const obj = geojsonMap["sip_comm"]?.find((f) => f?.street === name);
+
+    if (obj) {
+      return [obj.x, obj.y];
+    }
+
+    // 如果找不到社区数据，回退到默认点
+    return [0, 0];
+  } catch (error) {
+    console.error(`获取社区 ${name} 的坐标失败:`, error);
+    return [0, 0];
+  }
+};
 
 const Map: React.FC<MapProps> = ({
   currentMapType,
@@ -121,120 +135,61 @@ const Map: React.FC<MapProps> = ({
     }
   }, []);
 
-  // 根据工单数量获取颜色
-  const getColorByCount = (name: string): echarts.LinearGradientObject => {
-    console.log(ticketData, name, "ticketData,name");
-
-    // 查找对应名称的工单数据
-    const ticketItem = ticketData.find((item) => item.name === name);
-
-    if (!ticketItem) {
-      // 没有找到对应工单数据，使用默认颜色
-      return {
-        type: "linear",
-        x: 1200,
-        y: 0,
-        x2: 0,
-        y2: 0,
-        colorStops: [
-          {
-            offset: 0,
-            color: "rgba(3,27,78,0.75)", // 默认起始颜色
-          },
-          {
-            offset: 1,
-            color: "rgba(58,149,253,0.75)", // 默认结束颜色
-          },
-        ],
-        global: true,
-      };
-    }
-
-    // 根据工单数量级别设置不同的颜色
-    if (ticketItem.count > 10) {
-      // 高工单数量 - 红色系
-      return {
-        type: "linear",
-        x: 1200,
-        y: 0,
-        x2: 0,
-        y2: 0,
-        colorStops: [
-          {
-            offset: 0,
-            color: "rgba(255,0,0,0.75)", // 高数量红色
-          },
-          {
-            offset: 1,
-            color: "rgba(255,80,80,0.75)",
-          },
-        ],
-        global: true,
-      };
-    } else if (ticketItem.count > 5) {
-      // 中等工单数量 - 橙色系
-      return {
-        type: "linear",
-        x: 1200,
-        y: 0,
-        x2: 0,
-        y2: 0,
-        colorStops: [
-          {
-            offset: 0,
-            color: "rgba(255,165,0,0.75)", // 中数量橙色
-          },
-          {
-            offset: 1,
-            color: "rgba(255,200,0,0.75)",
-          },
-        ],
-        global: true,
-      };
-    } else {
-      // 低工单数量 - 绿色系
-      return {
-        type: "linear",
-        x: 1200,
-        y: 0,
-        x2: 0,
-        y2: 0,
-        colorStops: [
-          {
-            offset: 0,
-            color: "rgba(0,128,0,0.75)", // 低数量绿色
-          },
-          {
-            offset: 1,
-            color: "rgba(144,238,144,0.75)",
-          },
-        ],
-        global: true,
-      };
-    }
-  };
-
   // 更新图表配置
   useEffect(() => {
     if (!mapLoaded) return;
 
-    try {
-      // 获取当前区域的数据点坐标
-      const currentAreaData = mockData[currentMapType];
+    // 计算最大值用于颜色映射
+    const maxValue = Math.max(...ticketData.map((item) => item.count), 1); // 至少为1，防止除0错误
 
-      // 构建地图配置
-      // @ts-ignore 忽略类型错误，ECharts可以接受函数返回颜色类型，但TypeScript定义可能不完整
+    const seriesData = ticketData.map((item) => {
+      return {
+        name: item.name,
+        value: item.count,
+        // 非园区视图时，为不同区域设置不同的自定义样式
+        itemStyle:
+          currentMapType !== MapTypeEnum.area
+            ? {
+                areaColor: getColorByValue(item.count, maxValue),
+              }
+            : undefined,
+      };
+    });
+
+    // 生成散点数据，使用社区地图数据
+    const scatterData =
+      currentMapType === MapTypeEnum.area
+        ? ticketData
+            .map((item) => {
+              // 根据社区名称获取坐标
+              const [centerX, centerY] = getCommunityCoordinates(item.name);
+
+              // 如果找不到坐标，则跳过该点
+              if (!centerX || !centerY) return null;
+
+              return {
+                name: item.name,
+                value: [centerX, centerY, item.count], // [x, y, 值]
+                // 根据数值大小设置自定义颜色
+                itemStyle: {
+                  color: getScatterColorByValue(item.count, maxValue),
+                },
+              };
+            })
+            .filter(Boolean) // 过滤掉无效数据
+        : [];
+
+    console.log(scatterData, "scatterData");
+
+    try {
       const option: EChartsOption = {
         // 背景色
         backgroundColor: "transparent",
-
-        // 添加工具提示配置
-        // @ts-ignore
         tooltip: {
           trigger: "item",
           formatter: function (params: {
             name: string;
-            value: number | Array<any>;
+            value: number | Array<number>;
           }) {
             // 对于散点图，value是数组，对于地图，value是数字
             let value = params.value;
@@ -366,11 +321,7 @@ const Map: React.FC<MapProps> = ({
             },
           },
         ],
-
-        // 地图数据系列
-        // @ts-ignore
         series: [
-          // 地图数据层 - 根据工单数量显示不同颜色
           {
             name: "区域数据",
             type: "map",
@@ -384,11 +335,7 @@ const Map: React.FC<MapProps> = ({
               color: "#fff",
             },
             itemStyle: {
-              //@ts-ignore
-              areaColor: function (params: { name: string }) {
-                // 根据区域名称获取颜色
-                return getColorByCount(params.name);
-              },
+              areaColor: "transparent",
               borderColor: "#fff",
               borderWidth: 0.2,
             },
@@ -407,95 +354,72 @@ const Map: React.FC<MapProps> = ({
                 borderColor: "#fff",
               },
             },
-            select: {
-              label: {
-                show: true,
-                color: "#fff",
-              },
-              itemStyle: {
-                // 确保选中状态的样式与普通状态一致
-                areaColor: function (params: { name: string }) {
-                  return getColorByCount(params.name);
-                },
-                borderColor: "#fff",
-                borderWidth: 0.2,
-              },
-            },
             layoutCenter: ["50%", "50%"],
             layoutSize: "100%",
-            // 结合工单数据，优先使用工单数量作为值
-            data: currentAreaData.map((item) => {
-              // 查找对应的工单数据
-              const ticketItem = ticketData.find((t) => t.name === item.name);
-
-              // 如果有工单数据，使用工单数量作为值
-              if (ticketItem) {
-                return {
-                  ...item,
-                  value: Number(ticketItem.count) || 0, // 确保是数字，避免NaN
-                };
-              }
-
-              return item;
-            }),
+            data: seriesData,
           },
-
-          // 散点动效 - 在地图上显示数据点标记
           // {
+          //   name: "工单数量",
           //   type: "effectScatter",
           //   coordinateSystem: "geo",
-          //   silent: false, // 启用鼠标交互
+          //   geoIndex: 0,
+          //   data: scatterData,
+          //   id: "mainMap",
+          //   symbolSize: function (val) {
+          //     return val[2] / 3;
+          //   },
+          //   showEffectOn: "render",
           //   rippleEffect: {
-          //     period: 4, // 动画时间，值越小速度越快
-          //     scale: 5, // 波纹圆环最大限制，值越大波纹越大
-          //     brushType: "stroke", // 波纹绘制方式
+          //     brushType: "stroke",
           //   },
+          //   hoverAnimation: true,
           //   label: {
-          //     show: true,
-          //     position: "right", // 显示位置
-          //     offset: [5, 0], // 偏移设置
-          //     formatter: function (
-          //       params: echarts.DefaultLabelFormatterCallbackParams
-          //     ) {
-          //       // 圆环显示文字
-          //       let value =
-          //         params.value instanceof Array
-          //           ? params.value[2]
-          //           : params.value;
-          //       // 确保值是数字，避免NaN
-          //       value = isNaN(Number(value)) ? 0 : value;
-          //       return `${params.name}: ${value}条`;
-          //     },
-          //     fontSize: 13,
-          //     color: "white",
-          //   },
-          //   emphasis: {
-          //     label: {
+          //     normal: {
+          //       formatter: "{b}",
+          //       position: "right",
           //       show: true,
           //     },
           //   },
-          //   symbol: "circle",
-          //   symbolSize: 10,
           //   itemStyle: {
-          //     borderWidth: 1,
-          //     color: "rgba(255, 86, 11, 1)",
+          //     normal: {
+          //       color: "rgba(0,254,233,0.3)",
+          //       shadowBlur: 10,
+          //       shadowColor: "#333",
+          //     },
           //   },
-          //   // 使用坐标和值构建数据，优先使用工单数量
-          //   data: currentAreaData
-          //     .filter((item) => item.coordinate) // 确保有坐标
-          //     .map((item) => {
-          //       // 查找对应的工单数据
-          //       const ticketItem = ticketData.find((t) => t.name === item.name);
-          //       const value = ticketItem
-          //         ? Number(ticketItem.count) || 0
-          //         : item.value;
-
-          //       return {
-          //         name: item.name,
-          //         value: [...(item.coordinate || [0, 0]), value],
-          //       };
-          //     }),
+          //   zlevel: 1,
+          //   data: scatterData,
           // },
+          currentMapType === MapTypeEnum.area && {
+            geoIndex: 0,
+            type: "effectScatter",
+            coordinateSystem: "geo",
+            zlevel: 0,
+            rippleEffect: {
+              //涟漪特效
+              period: 4, //动画时间，值越小速度越快
+              brushType: "fill", //波纹绘制方式 stroke, fill
+              scale: 5, //波纹圆环最大限制，值越大波纹越大
+            },
+            symbol: "circle",
+            // symbolSize: function (val) {
+            //   return (5 + val[2] * 5) / 150; //圆环大小
+            // },
+
+            symbolSize: (val) => Math.sqrt(val[2]) * 2,
+            // label: {
+            //   show: true,
+            //   formatter: (params) => `${params.name}\n${params.value[2]}`,
+            // },
+
+            // itemStyle: {
+            //   normal: {
+            //     show: true,
+            //     color: "#F41C19",
+            //   },
+            // },
+            data: scatterData,
+          },
         ],
       };
 

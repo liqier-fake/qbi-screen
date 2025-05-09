@@ -4,8 +4,10 @@ import wtstreet from "./sip_wt_street.json";
 import lfstreet from "./sip_lf_street.json";
 import spstreet from "./sip_sp_street.json";
 import xtstreet from "./sip_xt_street.json";
+import sip_comm from "./sip_comm.json";
 
 export const geojsonMap = {
+  sip_comm, // 社区平面坐标
   area, // 园区
   jjhstreet, // 金鸡湖街道
   wtstreet, // 唯亭街道

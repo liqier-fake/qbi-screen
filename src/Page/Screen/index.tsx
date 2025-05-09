@@ -397,7 +397,7 @@ const Screen = () => {
     try {
       // 根据地图类型获取街道名称
       const streetName =
-        mapType === MapTypeEnum.area ? undefined : MapTypeNames[mapType];
+        mapType === MapTypeEnum.area ? "" : MapTypeNames[mapType];
 
       // 调用接口获取工单数据
       const { data } = await apiGetTicketCount({
@@ -985,6 +985,18 @@ const Screen = () => {
     // 触发自定义登出事件
     triggerAuthChangeEvent(false);
   };
+
+  // return (
+  //   <Map
+  //     currentMapType={currentMapType}
+  //     ticketData={ticketData}
+  //     onDrillDown={(nextMapType) => {
+  //       setCurrentMapType(nextMapType);
+  //       // 获取新地图类型的工单数据
+  //       getTicketCountData(nextMapType);
+  //     }}
+  //   />
+  // );
 
   return (
     <div className={styles.screen}>
