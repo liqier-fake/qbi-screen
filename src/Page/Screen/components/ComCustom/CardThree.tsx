@@ -5,7 +5,8 @@ import { Flex } from "antd";
 import { ComCustomItemType } from "./types";
 import { useHoverSummary } from "./useHoverSummary";
 import { getPeopleGroupDescription } from "./categoryDescriptions";
-
+import Odometer from "react-odometerjs";
+import "odometer/themes/odometer-theme-default.css";
 interface CardThreeProps {
   list: ComCustomItemType[];
   onHoverItem?: (content: string) => void;
@@ -40,7 +41,13 @@ const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
           >
             <img src={threeIcon} alt="" />
             <Flex justify="center" align="center">
-              <span className={styles.title}>{item.value}</span>
+              <span className={styles.title}>
+                <Odometer
+                  value={Number(item.value)}
+                  format="(d)"
+                  duration={1000}
+                />
+              </span>
               <span className={styles.value}>人</span>
             </Flex>
             <span className={styles.value}>{item.title}</span>

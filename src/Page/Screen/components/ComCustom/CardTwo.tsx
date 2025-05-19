@@ -5,7 +5,8 @@ import CategoryModal from "../CategoryModal";
 import { apiGetTicketCount, TimeRange } from "../../api";
 import { useHoverSummary } from "./useHoverSummary";
 import { getCategoryLevelOneDescription } from "./categoryDescriptions";
-
+import Odometer from "react-odometerjs";
+import "odometer/themes/odometer-theme-default.css";
 interface CardTwoProps {
   list: ComCustomItemType[];
   timeRange: TimeRange;
@@ -72,7 +73,13 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
             onMouseEnter={() => onMouseEnter(item)}
             onMouseLeave={onMouseLeave}
           >
-            <span className={styles.showItemTitle}>{item.value}</span>
+            <span className={styles.showItemTitle}>
+              <Odometer
+                value={Number(item.value)}
+                format="(d)"
+                duration={1000}
+              />
+            </span>
             <span className={styles.showItemValue}>{item.title}</span>
           </div>
         ))}

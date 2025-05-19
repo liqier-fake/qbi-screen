@@ -19,10 +19,10 @@
       align-items: center;
       color: #ffffff;
       padding: var(--flap-item-padding);
-      span {
-        font-size: var(--flap-item-font-size);
-        line-height: var(--flap-item-line-height);
-      }
+      // span {
+      //   font-size: var(--flap-item-font-size);
+      //   line-height: var(--flap-item-line-height);
+      // }
       .totalList {
         color: #ffffff;
         display: flex;
@@ -30,6 +30,9 @@
         align-items: center;
         padding: var(--flap-item-total-list-padding);
         .totalItem {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: var(--flap-item-total-item-width);
           height: var(--flap-item-total-item-height);
           line-height: var(--flap-item-total-item-line-height);
@@ -38,7 +41,7 @@
           background-repeat: no-repeat;
           background-position: center center;
           text-align: center;
-          font-size: var(--flap-item-total-item-font-size);
+          font-size: var(--flap-item-total-item-font-size) !important;
           margin-right: var(--flap-item-total-item-margin-right);
           font-weight: 600;
         }
@@ -53,6 +56,12 @@
       align-items: center;
       justify-content: center;
       flex-wrap: wrap;
+      height: 70%;
+      overflow: auto;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
       .iconItem {
         display: flex;
         align-items: center;
