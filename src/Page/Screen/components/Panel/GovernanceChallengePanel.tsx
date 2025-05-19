@@ -67,10 +67,10 @@ const GovernanceChallengePanel: React.FC<{
       },
     ];
 
-    const { threaten, date, c2, content } = record;
+    const { challenge_score, date, c2, content } = record;
 
     return [
-      { key: "threaten", label: "治理挑战指数", value: threaten },
+      { key: "challenge_score", label: "治理挑战指数", value: challenge_score },
       { key: "date", label: "诉求时间", value: date },
       { key: "c2", label: "二级分类", value: c2 },
       {
@@ -86,7 +86,19 @@ const GovernanceChallengePanel: React.FC<{
         type: "render",
         render: () => {
           return (
-            <Table dataSource={[record]} columns={columns} pagination={false} />
+            <Table
+              dataSource={[
+                record,
+                {
+                  ds1: "21.05",
+                  impact_scope: "10.3",
+                  sentiment: "29.95",
+                  threaten: "23.74",
+                },
+              ]}
+              columns={columns}
+              pagination={false}
+            />
           );
         },
       },

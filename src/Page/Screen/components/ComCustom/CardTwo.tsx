@@ -3,6 +3,8 @@ import styles from "./index.module.less";
 import { ComCustomItemType } from "./types";
 import CategoryModal from "../CategoryModal";
 import { apiGetTicketCount, TimeRange } from "../../api";
+import { useHoverSummary } from "./useHoverSummary";
+import { getCategoryLevelOneDescription } from "./categoryDescriptions";
 
 interface CardTwoProps {
   list: ComCustomItemType[];
@@ -18,6 +20,8 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
   const [open, setOpen] = useState(false);
   const [record, setRecord] = useState<ComCustomItemType | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
+
+  // 获取分类数据
   useEffect(() => {
     const fetchData = async () => {
       const { data } = await apiGetTicketCount({
@@ -31,24 +35,31 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
     fetchData();
   }, [timeRange]);
 
+  // 根据当前选中记录获取对应的子分类列表
   const categoryList = useMemo(() => {
     return (
       categories.find((item) => item?.name === record?.title)?.subcategories ||
       []
     );
   }, [categories, record]);
+
+  // 显示模态框
   const showModal = (item: ComCustomItemType) => {
     setOpen(true);
     setRecord(item);
   };
 
-  const onMouseEnter = (item: ComCustomItemType) => {
-    onHoverItem?.(`${item.title}分类有${item.value}件`);
+  // 定义获取项目内容的函数
+  const getItemContent = (item: ComCustomItemType): string => {
+    return `${item.title}分类有${item.value}件`;
   };
 
-  const onMouseLeave = () => {
-    // onHoverItem?.("");
-  };
+  // 使用自定义Hook处理hover事件
+  const { onMouseEnter, onMouseLeave } = useHoverSummary(
+    onHoverItem,
+    getItemContent,
+    getCategoryLevelOneDescription
+  );
 
   return (
     <div className={styles.comCustom}>
@@ -59,7 +70,7 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
             key={i}
             onClick={() => showModal(item)}
             onMouseEnter={() => onMouseEnter(item)}
-            onMouseLeave={() => onMouseLeave()}
+            onMouseLeave={onMouseLeave}
           >
             <span className={styles.showItemTitle}>{item.value}</span>
             <span className={styles.showItemValue}>{item.title}</span>

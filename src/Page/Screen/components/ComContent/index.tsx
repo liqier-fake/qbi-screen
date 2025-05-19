@@ -7,15 +7,19 @@ interface ComContentProps {
   content: string;
   markdown?: boolean;
   maxHeight?: number;
+  ghost?: boolean;
 }
 
 const ComContent = ({
   content,
   markdown = false,
-  maxHeight = 250,
+  maxHeight = 160,
+  ghost = false,
 }: ComContentProps) => {
   const [userScrolled, setUserScrolled] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // 记录上一次内容，用于判断是否真正变化
+  const prevContentRef = useRef<string>("");
   // 初始化 markdown-it
   const md = markdownit({
     html: true, // 允许 HTML 标签
@@ -34,7 +38,8 @@ const ComContent = ({
     const { scrollTop, scrollHeight, clientHeight } =
       scrollContainerRef.current;
     // 如果用户向上滚动（不在底部），则标记为用户已滚动
-    if (scrollHeight - scrollTop - clientHeight > 20) {
+    if (scrollHeight - scrollTop - clientHeight > 5) {
+      // 减小判断阈值，提高精确度
       setUserScrolled(true);
     } else {
       // 如果滚动到底部，重置用户滚动状态
@@ -47,23 +52,43 @@ const ComContent = ({
     if (!markdown) {
       return;
     }
-    // 滚动到底部
+
+    // 如果内容没有实质变化，不触发滚动
+    if (prevContentRef.current === content) {
+      return;
+    }
+
+    // 更新内容引用
+    prevContentRef.current = content;
+
+    // 滚动到底部，使用requestAnimationFrame确保DOM更新后再滚动
     const scrollToBottom = () => {
       if (scrollContainerRef.current && !userScrolled) {
-        const container = scrollContainerRef.current;
-        container.scrollTop = container.scrollHeight;
+        requestAnimationFrame(() => {
+          if (scrollContainerRef.current) {
+            const container = scrollContainerRef.current;
+            container.scrollTop = container.scrollHeight;
+          }
+        });
       }
     };
-    scrollToBottom();
+
+    // 延迟执行滚动，等待内容渲染完成
+    const timeoutId = setTimeout(scrollToBottom, 10);
+    return () => clearTimeout(timeoutId);
   }, [content, userScrolled, markdown]);
 
   return (
-    <div className={styles.comContentWrap}>
+    <div
+      className={classNames(styles.comContentWrap, {
+        [styles.ghost]: ghost,
+      })}
+    >
       <div
         className={styles.comContent}
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        style={{ maxHeight: maxHeight }}
+        style={{ height: maxHeight }}
       >
         {markdown ? (
           <Typography style={{ width: "100%", height: "100%" }}>

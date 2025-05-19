@@ -4,6 +4,7 @@ import close from "./close.png";
 import formulaIcon from "./formula.png";
 export interface ComModalProps extends ModalProps {
   showCloseIcon?: boolean;
+  height?: string;
 }
 const ComModal = (props: ComModalProps) => {
   const {
@@ -12,6 +13,7 @@ const ComModal = (props: ComModalProps) => {
     onCancel,
     width = "60%",
     showCloseIcon = false,
+    height = "60vh",
     ...rest
   } = props;
 
@@ -26,9 +28,9 @@ const ComModal = (props: ComModalProps) => {
       title={null}
       width={width}
     >
-      <div className={styles.comModalContent}>
+      <div className={styles.comModalContent} style={{ height }}>
         {title && <h2 className={styles.comModalTitle}>{title}</h2>}
-        {children}
+        <div className={styles.comModalContentInner}>{children}</div>
         {showCloseIcon && (
           <div className={styles.formulaIcon}>
             <img src={formulaIcon} alt="公式" />

@@ -240,8 +240,11 @@ const Screen = () => {
   };
 
   const onHoverCardTwo = (content: string) => {
+    console.log("Screen收到hover内容:", content);
     // 添加时间戳确保每次hover都是新的值
-    setBubuleContent(`${content}_${Date.now()}`);
+    const newContent = `${content}_${Date.now()}`;
+    console.log("Screen设置气泡内容:", newContent);
+    setBubuleContent(newContent);
   };
 
   return (

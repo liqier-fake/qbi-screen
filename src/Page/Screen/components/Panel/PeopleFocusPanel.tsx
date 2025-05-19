@@ -61,10 +61,10 @@ const PeopleFocusPanel: React.FC<{
       },
     ];
 
-    const { threaten, date, c2, content } = record;
+    const { date, c2, content, challenge_score } = record;
 
     return [
-      { key: "threaten", label: "治理挑战指数", value: threaten },
+      { key: "challenge_score", label: "治理挑战指数", value: challenge_score },
       { key: "date", label: "诉求时间", value: date },
       { key: "c2", label: "二级分类", value: c2 },
       {

@@ -22,6 +22,10 @@ const DetailModal = ({ formData, ...rest }: DetailModalProps) => {
             </div>
             <div className={styles.formContent}>
               {(() => {
+                if (!item.value) {
+                  return "-";
+                }
+
                 switch (item.type) {
                   case "comcontent":
                     return <ComContent content={item.value} />;

@@ -3,6 +3,8 @@ import styles from "./index.module.less";
 import threeIcon from "./img/three_icon.png";
 import { Flex } from "antd";
 import { ComCustomItemType } from "./types";
+import { useHoverSummary } from "./useHoverSummary";
+import { getPeopleGroupDescription } from "./categoryDescriptions";
 
 interface CardThreeProps {
   list: ComCustomItemType[];
@@ -14,6 +16,18 @@ interface CardThreeProps {
  * @param list 列表数据
  */
 const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
+  // 定义获取项目内容的函数
+  const getItemContent = (item: ComCustomItemType): string => {
+    return `${item.title}群体有${item.value}人`;
+  };
+
+  // 使用自定义Hook处理hover事件
+  const { onMouseEnter, onMouseLeave } = useHoverSummary(
+    onHoverItem,
+    getItemContent,
+    getPeopleGroupDescription
+  );
+
   return (
     <div className={styles.comCustom}>
       <div className={styles.cardThree}>
@@ -21,10 +35,8 @@ const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
           <div
             className={styles.listItem}
             key={i}
-            onMouseEnter={() => onHoverItem?.(item.title)}
-            onMouseLeave={() => {
-              // onHoverItem?.("");
-            }}
+            onMouseEnter={() => onMouseEnter(item)}
+            onMouseLeave={onMouseLeave}
           >
             <img src={threeIcon} alt="" />
             <Flex justify="center" align="center">

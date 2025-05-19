@@ -85,7 +85,7 @@ const SocialChallengePanel: React.FC<{
         key: "llm_intro",
         label: "项目简介(大模型)",
         value: llm_intro || "",
-        type: "comcontent" as const,
+        // type: "comcontent" as const,
       },
     ] as DetailModalProps["formData"];
   }, [JSON.stringify(record)]);

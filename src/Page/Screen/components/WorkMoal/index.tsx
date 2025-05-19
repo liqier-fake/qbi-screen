@@ -319,9 +319,9 @@ const WorkListModal = ({
             total: paginationInfo.total,
             onChange: handleTableChange,
             showSizeChanger: false,
-            showQuickJumper: true,
+            showQuickJumper: false,
           }}
-          scroll={{ y: 249 }}
+          scroll={{ y: 200 }} // 使表格宽度自适应
         />
       </div>
     </ComModal>

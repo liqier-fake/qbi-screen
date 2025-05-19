@@ -24,6 +24,7 @@ const AIChat = ({ bubuleContent }: { bubuleContent: string }) => {
 
   // 当bubuleContent变化时显示气泡
   useEffect(() => {
+    console.log("AIChat接收到新内容:", bubuleContent);
     if (bubuleContent) {
       setShowTipContent(true);
     }
@@ -66,7 +67,9 @@ const AIChat = ({ bubuleContent }: { bubuleContent: string }) => {
   };
 
   // 移除时间戳，只显示实际内容
-  const displayContent = bubuleContent.split("_")[0];
+  const displayContent = bubuleContent ? bubuleContent.split("_")[0] : "";
+
+  console.log("AIChat显示内容:", displayContent);
 
   return (
     <div className={styles.AIChat}>

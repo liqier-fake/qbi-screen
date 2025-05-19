@@ -29,7 +29,7 @@ export const columns1: Column<TableData>[] = [
   },
   {
     title: "治理挑战指数",
-    dataIndex: "threaten",
+    dataIndex: "challenge_score",
     width: 20,
     align: "left",
     render: (text: number) => (
@@ -89,7 +89,7 @@ export const columns2: Column<TableData>[] = [
   },
   {
     title: "治理挑战指数",
-    dataIndex: "threaten",
+    dataIndex: "challenge_score",
     width: 20,
     align: "left",
     render: (text: number) => (
@@ -146,7 +146,7 @@ export const worckColumns: Column<TableData>[] = [
   },
   {
     title: "治理挑战指数",
-    dataIndex: "threaten",
+    dataIndex: "challenge_score",
     width: 20,
     align: "left",
   },
