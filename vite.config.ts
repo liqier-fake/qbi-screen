@@ -24,4 +24,8 @@ export default defineConfig({
       ],
     },
   },
+  // 构建配置
+  build: {
+    sourcemap: false,
+  },
 });
