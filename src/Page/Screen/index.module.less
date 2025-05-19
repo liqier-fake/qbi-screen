@@ -22,34 +22,34 @@
   background-image: @bg-color;
   align-items: flex-end;
 
-  // 添加旋转边框动画
-  @keyframes rotate {
-    0% {
-      background-position: 0% 0%;
-    }
-    100% {
-      background-position: 200% 0%;
-    }
-  }
+  // // 添加旋转边框动画
+  // @keyframes rotate {
+  //   0% {
+  //     background-position: 0% 0%;
+  //   }
+  //   100% {
+  //     background-position: 200% 0%;
+  //   }
+  // }
 
-  @keyframes antiRotate {
-    0% {
-      transform: rotate(360deg);
-    }
-    100% {
-      transform: rotate(0deg);
-    }
-  }
+  // @keyframes antiRotate {
+  //   0% {
+  //     transform: rotate(360deg);
+  //   }
+  //   100% {
+  //     transform: rotate(0deg);
+  //   }
+  // }
 
-  // 添加旋转边框动画
-  @keyframes borderRotate {
-    0% {
-      stroke-dashoffset: 0;
-    }
-    100% {
-      stroke-dashoffset: -400;
-    }
-  }
+  // // 添加旋转边框动画
+  // @keyframes borderRotate {
+  //   0% {
+  //     stroke-dashoffset: 0;
+  //   }
+  //   100% {
+  //     stroke-dashoffset: -400;
+  //   }
+  // }
 
   // 容器包装器
   .contentWrap {
@@ -272,7 +272,7 @@
       flex-wrap: wrap;
       align-items: space-between;
       .leftItem {
-        .animated-border();
+        // .animated-border();
         overflow: hidden;
         // width: calc((100% - 37px) / 2);
         flex: 1 1 calc(50% - var(--left-item-margin-right));
@@ -293,7 +293,7 @@
             rgba(6, 22, 43, 0.6) 0%,
             #061627 100%
           );
-          border-radius: 8px;
+          // border-radius: 8px;
           overflow: hidden;
         }
         margin-right: var(--left-item-margin-right);
@@ -339,7 +339,7 @@
       }
 
       .rightItem:not(.rightItemSpecial) {
-        .animated-border();
+        // .animated-border();
       }
 
       .rightItem {
@@ -370,8 +370,8 @@
             rgba(6, 22, 43, 0.6) 0%,
             #061627 100%
           );
-          .animated-border();
-          border-radius: 8px;
+          // .animated-border();
+          // border-radius: 8px;
           overflow: hidden;
         }
       }
@@ -382,14 +382,14 @@
   }
 
   .manageChart {
-    background: linear-gradient(180deg, rgba(4, 18, 45, 0) 0%, #061627 100%);
+    width: 100%;
     height: 100%;
-    height: 90%;
+    // background: linear-gradient(180deg, rgba(4, 18, 45, 0) 0%, #061627 100%);
     min-height: 0;
     overflow: hidden;
     .flex-between();
     // padding: 40px 10px;
-    padding: 10px;
+    // padding: 10px;
     .manageChartItem {
       width: var(--manage-chart-item-width);
     }
@@ -400,18 +400,19 @@
     min-width: 0;
     min-height: 0;
     .flex-column();
-    padding: var(--warp-padding);
+    // padding: var(--warp-padding);
     height: 100%;
     .select {
       margin-bottom: var(--select-margin-bottom);
     }
     .table {
-      height: 100%;
+      flex: 1;
       min-height: 0;
+      // border: 1px solid red;
     }
   }
   .twoTrend {
-    margin-top: var(--two-trend-margin-top);
+    // margin-top: var(--two-trend-margin-top);
     .flex-between();
     .pieWrap {
       flex-shrink: 0;
@@ -428,7 +429,7 @@
       // box-shadow: inset 0px 5px 20px 1px rgba(43, 46, 52, 0.56);
       border-radius: 6px;
       border: none;
-      .animated-border();
+      // .animated-border();
     }
     height: 100%;
     overflow: hidden;
@@ -444,8 +445,70 @@
     // box-sizing: border-box;
     // padding: 30px 0;
     // height: 100%;
-    height: 70%;
-    transform: translateY(17%);
-    padding: 20px;
+    height: 100%;
+    // transform: translateY(17%);
+
+    padding: 20px 10px;
+  }
+}
+:global {
+  .ant-table {
+    font-size: 12px;
+  }
+  .ant-modal-body {
+    &::-webkit-scrollbar {
+      display: none !important;
+    }
+    .ant-table-cell {
+      background-color: #1d73c0 !important;
+      color: #fff;
+      border: 1px solid #32b1eb !important;
+      font-size: 12px;
+      padding: 18px 28px;
+    }
+  }
+  .ant-table-thead {
+    .ant-table-cell {
+      background-color: #24a7e2 !important;
+      color: #fff !important;
+      border: 1px solid #32b1eb !important;
+      border: none !important;
+      font-size: 12px;
+      padding: 10px 28px;
+    }
+    .ant-table-cell::before {
+      display: none;
+    }
+
+    .ant-table-cell-scrollbar {
+      // display: none;
+    }
+  }
+
+  // 在 Ant Design 5.x 版本中，滚动条样式由 scrollbar-width 和 scrollbar-color 控制，
+  // 可能导致 ::-webkit-scrollbar 失效
+
+  .ant-table-body {
+    scrollbar-width: auto; /* 允许自定义滚动条样式 */
+    scrollbar-color: auto;
+  }
+  .ant-table-header {
+    .ant-table-cell-scrollbar {
+      box-shadow: 0 1px 0 1px #32b1eb !important;
+    }
+  }
+
+  /* 全局修改 Table 滚动条样式 */
+  .ant-table-body::-webkit-scrollbar {
+    width: 6px; /* 纵向滚动条宽度 */
+    height: 6px; /* 横向滚动条高度 */
+  }
+
+  .ant-table-body::-webkit-scrollbar-thumb {
+    background-color: #2792f0;
+  }
+
+  .ant-table-body::-webkit-scrollbar-track {
+    background-color: #1d73c0;
   }
 }

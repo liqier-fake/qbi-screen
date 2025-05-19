@@ -101,13 +101,24 @@ export function apiGetSocialRisk(
 }
 
 // 社会攻坚项目
-export function apiGetSocialChallenge(params: ApiParams) {
+export function apiGetSocialChallenge(
+  params: ApiParams & { page: number; page_size: number }
+) {
   return axios({
-    url: "/stats/social_challenge",
+    url: "/community_improvement",
     method: "GET",
     params,
   });
 }
+
+// 社会攻坚项目详情
+export function apiGetSocialChallengeDetail(params: { id: string }) {
+  return axios({
+    url: `/community_improvement/${params.id}`,
+    method: "GET",
+  });
+}
+
 // 治理画像-热力图
 export function apiGetGovProfile1(params: ApiParams) {
   return axios({
@@ -136,10 +147,31 @@ export function apiGetKeyWords(params: ApiParams) {
 export function apiGetTicketCount(
   params: ApiParams & {
     street?: string;
+    type?: string;
   }
 ) {
   return axios({
     url: "/stats/ticket_count",
+    method: "GET",
+    params,
+  });
+}
+// 根据分类获取工单列表
+export function apiGetTicketList(
+  params: ApiParams & {
+    category: string;
+    time_range: TimeRange;
+    c1?: string;
+    c2?: string;
+    c3?: string;
+    /** 页码 */
+    page?: number;
+    /** 每页条数 */
+    page_size?: number;
+  }
+) {
+  return axios({
+    url: "/stats/ticket_list",
     method: "GET",
     params,
   });

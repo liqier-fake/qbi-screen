@@ -313,7 +313,7 @@ const ComTable = <T extends TableRecord = TableRecord>({
                     title={
                       typeof cellContent === "string" ||
                       typeof cellContent === "number"
-                        ? cellContent
+                        ? ""
                         : ""
                     }
                     placement="topLeft"

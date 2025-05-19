@@ -95,14 +95,14 @@ const LineChart: React.FC<LineChartProps> = ({
         },
         axisLabel: {
           color: "#fff",
-          interval: 0,      // 强制显示所有标签
-          rotate: 0,        // 保持不倾斜
-          fontSize: 10,     // 保持小字体
-          margin: 14,       // 与轴线距离
-          width: 80,        // 标签容器宽度
-          overflow: 'break',// 文字过长时换行
-          lineHeight: 12,   // 行高
-          align: 'left',    // 文字左对齐
+          interval: 0, // 强制显示所有标签
+          rotate: 0, // 保持不倾斜
+          fontSize: 10, // 保持小字体
+          margin: 14, // 与轴线距离
+          width: 80, // 标签容器宽度
+          overflow: "break", // 文字过长时换行
+          lineHeight: 12, // 行高
+          align: "left", // 文字左对齐
           padding: [0, 0, 0, -30], // 向左偏移标签
         },
         splitLine: {

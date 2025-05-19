@@ -1,0 +1,50 @@
+import { Modal, ModalProps } from "antd";
+import styles from "./index.module.less";
+import close from "./close.png";
+import formulaIcon from "./formula.png";
+export interface ComModalProps extends ModalProps {
+  showCloseIcon?: boolean;
+}
+const ComModal = (props: ComModalProps) => {
+  const {
+    title,
+    children,
+    onCancel,
+    width = "60%",
+    showCloseIcon = false,
+    ...rest
+  } = props;
+
+  return (
+    <Modal
+      {...rest}
+      destroyOnClose
+      centered
+      footer={null}
+      className={styles.comModal}
+      closeIcon={null}
+      title={null}
+      width={width}
+    >
+      <div className={styles.comModalContent}>
+        {title && <h2 className={styles.comModalTitle}>{title}</h2>}
+        {children}
+        {showCloseIcon && (
+          <div className={styles.formulaIcon}>
+            <img src={formulaIcon} alt="公式" />
+          </div>
+        )}
+        <div
+          className={styles.closeIcon}
+          onClick={(e) => {
+            onCancel?.(e as unknown as React.MouseEvent<HTMLButtonElement>);
+          }}
+        >
+          <img src={close} alt="关闭" />
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+export default ComModal;

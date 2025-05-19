@@ -53,13 +53,13 @@ export const columns4: Column<TableData>[] = [
   },
   {
     title: "攻坚项目",
-    dataIndex: "project",
+    dataIndex: "challenge",
     width: 30,
     align: "left",
   },
   {
     title: "热点事项",
-    dataIndex: "content",
+    dataIndex: "llm_hot_items",
     width: 30,
     align: "left",
   },

@@ -192,7 +192,8 @@ const Heatmap: React.FC<HeatmapProps> = ({
     const maxValue = Math.max(...heatmapData.map((item) => item[2]), 1000);
 
     return {
-      backgroundColor: "rgba(11, 30, 58, 0.8)",
+      // backgroundColor: "rgba(11, 30, 58, 0.8)",
+      backgroundColor: "transparent",
       tooltip: {
         position: "top",
         formatter: (params: unknown) => {
@@ -204,6 +205,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
                   数量: <b>${value}</b>`;
         },
         backgroundColor: "rgba(50, 50, 50, 0.9)",
+        // backgroundColor: "transparent",
         borderColor: "#777",
         borderWidth: 1,
         padding: 10,
@@ -214,10 +216,10 @@ const Heatmap: React.FC<HeatmapProps> = ({
       },
       graphic: graphic,
       grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        top: "15%",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        top: "0",
         containLabel: true,
       },
       xAxis: {

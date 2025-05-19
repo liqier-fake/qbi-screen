@@ -655,7 +655,6 @@ export interface ScreenDataType {
     lineData: Array<{
       name: string;
       data: number[];
-      itemStyle?: { color: string };
     }>;
   };
   level2TrendLineData?: {
