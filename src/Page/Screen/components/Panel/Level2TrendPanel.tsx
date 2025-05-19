@@ -76,6 +76,12 @@ const Level2TrendPanel: React.FC<{
     getLevel2TrendData();
   }, [timeRange, value]);
 
+  // 当默认值变化时，更新当前选中的值
+  useEffect(() => {
+    if (!defautValue) return;
+    setValue(defautValue);
+  }, [defautValue]);
+
   return (
     <PanelItem
       title="二级趋势预测"
