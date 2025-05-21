@@ -79,7 +79,12 @@ const Screen = () => {
 
     const sourceCountData = {
       total: sourceData
-        ?.reduce((acc: number, item: { count: number }) => acc + item.count, 0)
+        ?.reduce((acc: number, item: { count: number; source: string }) => {
+          if (item.source == "知社区") {
+            return acc;
+          }
+          return acc + item.count;
+        }, 0)
         ?.toString(),
       list: sourceData.map((item: { source: string; count: number }) => ({
         title: item.source,
@@ -246,6 +251,18 @@ const Screen = () => {
     console.log("Screen设置气泡内容:", newContent);
     setBubuleContent(newContent);
   };
+
+  // return (
+  //   <Map
+  //     currentMapType={currentMapType}
+  //     ticketData={ticketData}
+  //     onDrillDown={(nextMapType) => {
+  //       setCurrentMapType(nextMapType);
+  //       // 获取新地图类型的工单数据
+  //       getTicketCountData();
+  //     }}
+  //   />
+  // );
 
   return (
     <div className={styles.screen}>

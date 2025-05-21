@@ -6,6 +6,9 @@ import type { EChartsOption } from "echarts";
 import BaseChart, { BaseChartRef } from "./BaseChart";
 import { geojsonMap } from "./geojson";
 import { flatten } from "lodash";
+import icon from "./icon.png";
+import styles from "./map.module.less";
+
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
   area = "area", // 园区
@@ -46,6 +49,16 @@ export const streetNameToEnum: Record<string, MapTypeEnum> = {
   苏州工业园区: MapTypeEnum.area,
 };
 
+// 定义驿站信息接口
+interface StationInfo {
+  name: string;
+  position: [number, number];
+  // 可以添加更多驿站相关信息字段
+  address?: string;
+  contact?: string;
+  services?: string[];
+}
+
 // 定义Map组件的props接口
 interface MapProps {
   currentMapType: MapTypeEnum; // 当前地图类型
@@ -74,11 +87,11 @@ const getScatterColorByValue = (value: number, maxValue: number): string => {
   const ratio = value / maxValue;
 
   // 散点图使用红色系，透明度随值增加而增加
-  if (ratio < 0.2) return "rgba(244,28,25,0.5)"; // 非常低
-  if (ratio < 0.4) return "rgba(244,28,25,0.6)"; // 低
-  if (ratio < 0.6) return "rgba(244,28,25,0.7)"; // 中
-  if (ratio < 0.8) return "rgba(244,28,25,0.8)"; // 高
-  return "rgba(244,28,25,0.9)"; // 非常高
+  if (ratio < 0.2) return "rgba(0,255,204, 0.5)"; // 非常低
+  if (ratio < 0.4) return "rgba(0,255,204, 0.6)"; // 低
+  if (ratio < 0.6) return "rgba(0,255,204, 0.7)"; // 中
+  if (ratio < 0.8) return "rgba(0,255,204, 0.8)"; // 高
+  return "rgba(0,255,204, 1)"; // 非常高
 };
 
 // 根据社区名称获取坐标
@@ -112,6 +125,28 @@ const Map: React.FC<MapProps> = ({
     { type: MapTypeEnum.area, name: MapTypeNames[MapTypeEnum.area] },
   ]);
 
+  // 添加驿站弹窗相关状态
+  const [showStationPopup, setShowStationPopup] = useState<boolean>(false);
+  const [selectedStation, setSelectedStation] = useState<StationInfo | null>(
+    null
+  );
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+
+  // 驿站数据
+  const stationList: StationInfo[] = [
+    {
+      siteName: "工会驿站（苏州工业园区娄葑街道饿了么站点）",
+      address: "苏州工业园区娄葑街道北摆宴街怡葑庭一栋商铺108",
+      services: "苏州工业园区娄葑街道饿了么站点",
+      district: "娄葑区域",
+      name: "工会驿站（苏州工业园区娄葑街道饿了么站点）",
+      position: [64885.6826, 50343.5419],
+    },
+  ];
+
   // 注册地图数据
   useEffect(() => {
     try {
@@ -125,6 +160,42 @@ const Map: React.FC<MapProps> = ({
       console.log("地图注册失败:", error);
     }
   }, []);
+
+  // 关闭弹窗
+  const handleClosePopup = () => {
+    setShowStationPopup(false);
+  };
+
+  const seriesItemAreaColor = {
+    type: "linear",
+    x: 0,
+    y: 0,
+    x2: 1,
+    y2: 0,
+    colorStops: [
+      {
+        offset: 0,
+        color: "rgba(3,27,78,0.75)", // 0% 处的颜色
+      },
+      {
+        offset: 1,
+        color: "rgba(58,149,253,0.75)", // 80% 处的颜色
+      },
+    ],
+    global: true, // 全局坐标系
+  };
+
+  // 恢复stationData定义到组件内部
+  const stationData = geojsonMap["station"]?.map((item) => {
+    return {
+      name: item.siteName,
+      value: [item.x, item.y, 888],
+      // 保留item的其他属性以确保数据完整
+      ...item,
+    };
+  });
+
+  console.log(stationData, "stationData");
 
   // 更新图表配置
   useEffect(() => {
@@ -152,7 +223,9 @@ const Map: React.FC<MapProps> = ({
             ? {
                 areaColor: getColorByValue(item.count, maxValue),
               }
-            : undefined,
+            : {
+                areaColor: seriesItemAreaColor,
+              },
       };
     });
 
@@ -178,10 +251,11 @@ const Map: React.FC<MapProps> = ({
             })
             .filter(Boolean) // 过滤掉无效数据
         : [];
+    console.log(scatterData, "scatterData");
 
     try {
       const option: EChartsOption = {
-        // 背景色
+        // backgroundColor: "#030528",
         backgroundColor: "transparent",
         tooltip: {
           trigger: "item",
@@ -208,7 +282,6 @@ const Map: React.FC<MapProps> = ({
           },
           extraCssText: "box-shadow: 0 0 15px rgba(0,149,255,0.5);",
         },
-
         // 地图配置（多层叠加，创造立体效果）
         geo: [
           // 主地图层
@@ -217,10 +290,13 @@ const Map: React.FC<MapProps> = ({
             aspectScale: 1,
             zoom: 1.0,
             layoutCenter: ["50%", "50%"],
-            layoutSize: "100%",
+            layoutSize: "80%",
             show: true,
             label: {
               show: false,
+              emphasis: {
+                show: false,
+              },
             },
             itemStyle: {
               borderColor: "#c0f3fb",
@@ -232,7 +308,7 @@ const Map: React.FC<MapProps> = ({
             },
             emphasis: {
               label: {
-                show: true,
+                show: false,
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: "bold",
@@ -253,10 +329,12 @@ const Map: React.FC<MapProps> = ({
             aspectScale: 1,
             zoom: 1.0,
             layoutCenter: ["50%", "51%"],
-            layoutSize: "100%",
+            layoutSize: "80%",
             silent: true,
+            roam: false,
             itemStyle: {
               borderWidth: 1,
+              // borderColor:"rgba(17, 149, 216,0.6)",
               borderColor: "rgba(58,149,253,0.8)",
               shadowColor: "rgba(172, 122, 255,0.5)",
               shadowOffsetY: 5,
@@ -271,35 +349,38 @@ const Map: React.FC<MapProps> = ({
             aspectScale: 1,
             zoom: 1.0,
             layoutCenter: ["50%", "52%"],
-            layoutSize: "100%",
+            layoutSize: "80%",
             silent: true,
+            roam: false,
             itemStyle: {
               borderWidth: 1,
+              // borderColor: "rgba(57, 132, 188,0.4)",
               borderColor: "rgba(58,149,253,0.6)",
-              shadowColor: "rgba(65, 214, 255,0.6)",
+              shadowColor: "rgba(65, 214, 255,1)",
               shadowOffsetY: 5,
               shadowBlur: 15,
-              areaColor: "rgba(5,21,35,0.1)",
+              areaColor: "transpercent",
             },
           },
           // 重影3 - 注意保持roam一致性
-          // {
-          //   map: currentMapType,
-          //   zlevel: -3,
-          //   aspectScale: 1,
-          //   zoom: 1.0,
-          //   layoutCenter: ["50%", "53%"],
-          //   layoutSize: "100%",
-          //   silent: true,
-          //   itemStyle: {
-          //     borderWidth: 1,
-          //     borderColor: "rgba(58,149,253,0.4)",
-          //     shadowColor: "rgba(29, 111, 165,1)",
-          //     shadowOffsetY: 15,
-          //     shadowBlur: 10,
-          //     areaColor: "rgba(5,21,35,0.1)",
-          //   },
-          // },
+          {
+            map: currentMapType,
+            zlevel: -3,
+            aspectScale: 1,
+            zoom: 1.0,
+            layoutCenter: ["50%", "53%"],
+            layoutSize: "80%",
+            silent: true,
+            roam: false,
+            itemStyle: {
+              borderWidth: 1,
+              borderColor: "rgba(58,149,253,0.4)",
+              shadowColor: "rgba(58,149,253,1)",
+              shadowOffsetY: 15,
+              shadowBlur: 10,
+              areaColor: "transpercent",
+            },
+          },
           // 重影4（最底层） - 注意保持roam一致性
           {
             map: currentMapType,
@@ -307,8 +388,9 @@ const Map: React.FC<MapProps> = ({
             aspectScale: 1,
             zoom: 1.0,
             layoutCenter: ["50%", "53%"],
-            layoutSize: "100%",
+            layoutSize: "80%",
             silent: true,
+            roam: false,
             itemStyle: {
               borderWidth: 5,
               borderColor: "rgba(5,9,57,0.8)",
@@ -328,71 +410,39 @@ const Map: React.FC<MapProps> = ({
             zoom: 1.0,
             showLegendSymbol: true,
             label: {
-              show: true,
-              fontSize: "120%",
-              color: "#fff",
+              show: false,
+              textStyle: { color: "#fff", fontSize: "120%" },
+              emphasis: {
+                show: false,
+              },
             },
             itemStyle: {
-              areaColor: "transparent",
+              areaColor: seriesItemAreaColor,
               borderColor: "#fff",
               borderWidth: 0.2,
             },
             emphasis: {
               label: {
-                show: true,
-                color: "#fff", // 高亮时标签颜色
-                fontSize: 15,
-                fontWeight: "bold",
+                show: false,
               },
               itemStyle: {
-                areaColor: "rgba(0,254,233,0.3)", // 调整高亮颜色，更加柔和
-                shadowColor: "rgba(0,254,233,0.3)",
-                shadowBlur: 10,
-                borderWidth: 1,
+                show: false,
                 borderColor: "#fff",
+                areaColor: "rgba(0,254,233,0.6)",
               },
             },
+            select: {
+              disabled: true,
+            },
             layoutCenter: ["50%", "50%"],
-            layoutSize: "100%",
+            layoutSize: "80%",
             data: seriesData,
           },
-          // {
-          //   name: "工单数量",
-          //   type: "effectScatter",
-          //   coordinateSystem: "geo",
-          //   geoIndex: 0,
-          //   data: scatterData,
-          //   id: "mainMap",
-          //   symbolSize: function (val) {
-          //     return val[2] / 3;
-          //   },
-          //   showEffectOn: "render",
-          //   rippleEffect: {
-          //     brushType: "stroke",
-          //   },
-          //   hoverAnimation: true,
-          //   label: {
-          //     normal: {
-          //       formatter: "{b}",
-          //       position: "right",
-          //       show: true,
-          //     },
-          //   },
-          //   itemStyle: {
-          //     normal: {
-          //       color: "rgba(0,254,233,0.3)",
-          //       shadowBlur: 10,
-          //       shadowColor: "#333",
-          //     },
-          //   },
-          //   zlevel: 1,
-          //   data: scatterData,
-          // },
           currentMapType === MapTypeEnum.area && {
             geoIndex: 0,
             type: "effectScatter",
             coordinateSystem: "geo",
-            zlevel: 0,
+            zlevel: 1,
             rippleEffect: {
               //涟漪特效
               period: 4, //动画时间，值越小速度越快
@@ -424,6 +474,53 @@ const Map: React.FC<MapProps> = ({
             },
             data: scatterData,
           },
+          {
+            name: "驿站",
+            type: "scatter",
+            coordinateSystem: "geo",
+            geoIndex: 0,
+            zlevel: 2,
+            symbol: `image://${icon}`,
+            symbolSize: (value: Array<number>, params: object) => {
+              console.log(value, params, "value, params");
+              return [70, 20];
+            },
+            // 为驿站添加特殊的点击事件类型标记
+            seriesId: "station", // 添加唯一标识符，用于区分点击事件
+            // 添加emphasis配置，修改hover效果
+            emphasis: {
+              disabled: false, // 启用强调状态
+              scale: 1.2, // 稍微放大
+              itemStyle: {
+                opacity: 1, // 保持原有透明度
+              },
+            },
+            label: {
+              show: true,
+              formatter: (params) => {
+                return `${params.name}`;
+              },
+              symbolOffset: 1000,
+              position: "inside", // 或者 'top', 'bottom', 'right', 'left'
+              color: "#fff",
+              offset: [6, 0],
+              fontSize: 8,
+            },
+            tooltip: {
+              show: true,
+              trigger: "item",
+              formatter: (params) => {
+                return `${params.name}：驿站`;
+              },
+            },
+
+            data: stationList.map((station) => ({
+              name: station.name,
+              value: [...station.position, 1],
+              // 存储完整的驿站信息以便点击时使用
+              stationInfo: station,
+            })),
+          },
         ],
       };
 
@@ -433,8 +530,39 @@ const Map: React.FC<MapProps> = ({
     }
   }, [currentMapType, mapLoaded, ticketData]);
 
-  // 地图下钻处理函数 - 点击园区地图时下钻到街道级别
-  const handleDrillDown = (params: echarts.ECElementEvent) => {
+  // 地图点击事件处理函数
+  const handleMapClick = (params: echarts.ECElementEvent) => {
+    const chart = chartRef.current?.getChartInstance();
+    if (!chart) return;
+
+    // 获取点击位置相对于容器的坐标
+    const pointInPixel = chart.convertToPixel("geo", params.value);
+
+    // 判断点击的是否为驿站
+    if (params.seriesId === "station" || params.seriesName === "驿站") {
+      // 获取驿站信息
+      const stationInfo = params.data.stationInfo;
+
+      if (stationInfo) {
+        // 设置选中的驿站
+        setSelectedStation(stationInfo);
+
+        // 计算弹窗位置 - 这里可以根据需要调整
+        setPopupPosition({
+          x: params.event.offsetX,
+          y: params.event.offsetY,
+        });
+
+        // 显示弹窗
+        setShowStationPopup(true);
+
+        // 阻止事件冒泡，不触发区域下钻
+        params.event.stop();
+        return;
+      }
+    }
+
+    // 如果不是点击驿站，则处理区域下钻逻辑
     if (currentMapType === MapTypeEnum.area && streetNameToEnum[params.name]) {
       const nextMapType = streetNameToEnum[params.name];
 
@@ -451,44 +579,60 @@ const Map: React.FC<MapProps> = ({
 
   // 图表实例准备完成的回调
   const handleChartReady = (instance: echarts.ECharts) => {
-    instance.on("click", handleDrillDown);
+    instance.on("click", handleMapClick);
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        zIndex: 0,
-        width: "100vw",
-        height: "100vh",
-      }}
-    >
-      {/* 地图组件 */}
-      {mapLoaded ? (
+    <div className={styles.mapChart}>
+      <div className={styles.mapWrapper}>
         <BaseChart
           ref={chartRef}
           option={chartOption}
-          style={{ height: "100vh", width: "100vw" }}
           loading={!mapLoaded}
           onChartReady={handleChartReady}
         />
-      ) : (
-        <div
-          style={{
-            height: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#030528",
-            fontSize: "16px",
-            color: "#fff",
-          }}
-        >
-          地图加载中...
-        </div>
-      )}
+
+        {/* 驿站弹窗 */}
+        {showStationPopup && selectedStation && (
+          <div
+            className={styles.stationPopup}
+            style={{
+              left: `${popupPosition.x}px`,
+              top: `${popupPosition.y}px`,
+            }}
+          >
+            <div className={styles.stationPopupHeader}>
+              <h3>{selectedStation.name}</h3>
+              <span className={styles.closeBtn} onClick={handleClosePopup}>
+                ×
+              </span>
+            </div>
+            <div className={styles.stationPopupContent}>
+              {selectedStation.address && (
+                <p>
+                  <strong>地址：</strong>
+                  {selectedStation.address}
+                </p>
+              )}
+              {selectedStation.contact && (
+                <p>
+                  <strong>联系方式：</strong>
+                  {selectedStation.contact}
+                </p>
+              )}
+              {selectedStation.services &&
+                selectedStation.services.length > 0 && (
+                  <div>
+                    <p>
+                      <strong>服务项目：</strong>
+                      {selectedStation.services}
+                    </p>
+                  </div>
+                )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

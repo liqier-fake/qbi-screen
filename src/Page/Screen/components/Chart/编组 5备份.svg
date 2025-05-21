@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="87px" height="19px" viewBox="0 0 87 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 5备份</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="87" height="19" rx="9.5"></rect>
+        <filter x="-3.4%" y="-15.8%" width="106.9%" height="131.6%" filterUnits="objectBoundingBox" id="filter-2">
+            <feGaussianBlur stdDeviation="2.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.32570503   0 0 0 0 1   0 0 0 0 0.843730373  0 0 0 1 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+        <linearGradient x1="0%" y1="50%" x2="97.6917614%" y2="50%" id="linearGradient-3">
+            <stop stop-color="#08BBB0" offset="0%"></stop>
+            <stop stop-color="#0A9BE5" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-4" x="0" y="0" width="19" height="19" rx="9.5"></rect>
+        <filter x="-15.8%" y="-15.8%" width="131.6%" height="131.6%" filterUnits="objectBoundingBox" id="filter-5">
+            <feGaussianBlur stdDeviation="2.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.164748476   0 0 0 0 1   0 0 0 0 0.990006551  0 0 0 0.5 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="可视化大屏" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="弹出框-工会" transform="translate(-892, -512)">
+            <g id="编组-5备份" transform="translate(892, 512)">
+                <g id="矩形备份-21">
+                    <use fill="#0A83D6" fill-rule="evenodd" xlink:href="#path-1"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                </g>
+                <g id="矩形备份-22">
+                    <use fill="url(#linearGradient-3)" fill-rule="evenodd" xlink:href="#path-4"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-4"></use>
+                </g>
+                <path d="M9.5,4.75 C11.6861271,4.75 13.4583333,6.5174685 13.4583333,8.6977514 C13.4583333,10.1512733 12.1388889,12.2659117 9.5,15.0416667 C6.86111111,12.2659117 5.54166667,10.1512733 5.54166667,8.6977514 C5.54166667,6.5174685 7.31387287,4.75 9.5,4.75 Z M9.5,7.125 C8.62554915,7.125 7.91666667,7.83388248 7.91666667,8.70833333 C7.91666667,9.58278419 8.62554915,10.2916667 9.5,10.2916667 C10.3744509,10.2916667 11.0833333,9.58278419 11.0833333,8.70833333 C11.0833333,7.83388248 10.3744509,7.125 9.5,7.125 Z" id="形状结合备份-11" fill="#FFFFFF"></path>
+            </g>
+        </g>
+    </g>
+</svg>

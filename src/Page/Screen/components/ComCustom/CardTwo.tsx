@@ -7,6 +7,18 @@ import { useHoverSummary } from "./useHoverSummary";
 import { getCategoryLevelOneDescription } from "./categoryDescriptions";
 import Odometer from "react-odometerjs";
 import "odometer/themes/odometer-theme-default.css";
+import { useNumberAnimation } from "./useNumberAnimation";
+
+// 确保与CategoryModal组件中使用的Category类型定义一致
+// 如果无法导入，可以使用与源组件一致的类型定义
+interface CategoryBase {
+  name: string;
+  count: number;
+}
+
+// 避免多次定义Category类型造成冲突
+type CategoryType = CategoryBase;
+
 interface CardTwoProps {
   list: ComCustomItemType[];
   timeRange: TimeRange;
@@ -20,7 +32,11 @@ interface CardTwoProps {
 const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
   const [open, setOpen] = useState(false);
   const [record, setRecord] = useState<ComCustomItemType | null>(null);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<
+    { name: string; subcategories: CategoryType[] }[]
+  >([]);
+  // 存储实际值（不变）
+  const [realValues, setRealValues] = useState<number[]>([]);
 
   // 获取分类数据
   useEffect(() => {
@@ -35,6 +51,17 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
     };
     fetchData();
   }, [timeRange]);
+
+  // 初始化实际数据
+  useEffect(() => {
+    // 计算实际值
+    const actualValues = list.map((item) => Number(item.value) || 0);
+    // 保存实际值
+    setRealValues(actualValues);
+  }, [list]);
+
+  // 使用自定义Hook处理数字动效
+  const animatedValues = useNumberAnimation(realValues);
 
   // 根据当前选中记录获取对应的子分类列表
   const categoryList = useMemo(() => {
@@ -51,10 +78,9 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
   };
 
   // 定义获取项目内容的函数
-  const getItemContent = (item: ComCustomItemType): string => {
-    return `${item.title}分类有${item.value}件`;
+  const getItemContent = (): string => {
+    return list.map((l) => `${l.title}:${l.value}`)?.toString();
   };
-
   // 使用自定义Hook处理hover事件
   const { onMouseEnter, onMouseLeave } = useHoverSummary(
     onHoverItem,
@@ -75,7 +101,7 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
           >
             <span className={styles.showItemTitle}>
               <Odometer
-                value={Number(item.value)}
+                value={animatedValues[i] || 0}
                 format="(d)"
                 duration={1000}
               />
@@ -86,7 +112,7 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
       </div>
       <CategoryModal
         timeRange={timeRange}
-        categoryList={categoryList}
+        categoryList={categoryList as any} // 使用类型断言解决类型冲突问题
         open={open}
         onCancel={() => setOpen(false)}
         title={record?.title}

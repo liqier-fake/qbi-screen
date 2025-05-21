@@ -11,6 +11,7 @@ import DetailModal, { DetailModalProps } from "../DetailModal";
 import { Table } from "antd";
 import { areaOption } from "../../mock";
 import { apiGetSocialRisk, TimeRange } from "../../api";
+import { center } from "@antv/g2/lib/data/utils/d3-sankey/align";
 
 const GovernanceChallengePanel: React.FC<{
   timeRange: TimeRange;
@@ -44,26 +45,41 @@ const GovernanceChallengePanel: React.FC<{
   }, [timeRange, value]);
 
   const formData = useMemo(() => {
+    const renderText = (text: string) => {
+      return <div style={{ whiteSpace: "pre-line" }}>{text}</div>;
+    };
+
     const columns = [
       {
         title: "诉求来源",
         dataIndex: "ds1",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
       {
         title: "诉求人数",
         dataIndex: "impact_scope",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
       {
         title: "影响范围",
         dataIndex: "impact_scope",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
       {
         title: "情感分值",
         dataIndex: "sentiment",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
+
       {
         title: "扬言分值",
         dataIndex: "threaten",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
     ];
 
@@ -88,14 +104,14 @@ const GovernanceChallengePanel: React.FC<{
           return (
             <Table
               dataSource={[
-                record,
                 {
-                  ds1: "21.05",
-                  impact_scope: "10.3",
-                  sentiment: "29.95",
-                  threaten: "23.74",
+                  ds1: record.ds1,
+                  impact_scope: `${record.impact_scope}\n(10.3)`,
+                  sentiment: `${record.sentiment}\n(29.95)`,
+                  threaten: `${record.threaten}\n(23.74)`,
                 },
               ]}
+              // @ts-ignore
               columns={columns}
               pagination={false}
             />

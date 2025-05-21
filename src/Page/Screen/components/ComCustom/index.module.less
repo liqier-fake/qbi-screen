@@ -3,6 +3,14 @@
 .comCustom {
   @text-color: #77a4ed;
   @number-color: #ffffff;
+  @keyframes scrollAnimation {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-50%); /* 滚动一半高度，刚好是一份列表的高度 */
+    }
+  }
 
   width: 100%;
   height: 100%;
@@ -51,23 +59,59 @@
       }
     }
 
+    /* 新增：图标列表容器，用于控制动画区域 */
+    .iconListContainer {
+      height: 65%; /* 减少高度，增加与总计的间距 */
+      margin-top: 15px; /* 增加与总计部分的间距 */
+      overflow: hidden;
+      position: relative;
+
+      /* 当需要滚动时应用的样式 */
+      &.needScroll {
+        .scrollContent {
+          animation: scrollAnimation 20s linear infinite; /* 设置动画，20秒滚动一次 */
+          will-change: transform; /* 优化动画性能 */
+        }
+      }
+
+      /* 鼠标悬停时暂停动画 */
+      &.paused .scrollContent {
+        animation-play-state: paused;
+      }
+
+      /* 滚动内容容器 */
+      .scrollContent {
+        width: 100%;
+        position: relative;
+      }
+    }
+
+    /* 图标列表，现在作为滚动内容的子元素 */
     .iconList {
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-wrap: wrap;
-      height: 70%;
-      overflow: auto;
+      flex-direction: row; /* 恢复水平布局 */
+      flex-wrap: wrap; /* 恢复换行 */
+      width: 100%;
+      padding: 5px;
 
-      &::-webkit-scrollbar {
-        display: none;
-      }
       .iconItem {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: var(--card-one-icon-list-item-width);
+        width: 33%; /* 设置宽度为33%，确保每行显示3个 */
         flex-shrink: 0;
+        margin-bottom: 15px; /* 增加项目之间的垂直间距 */
+        padding: 0 10px; /* 添加水平内边距 */
+        box-sizing: border-box; /* 确保padding包含在宽度内 */
+        transition: transform 0.2s ease; /* 平滑过渡效果 */
+
+        /* 悬停效果 */
+        &:hover {
+          transform: scale(1.02);
+        }
+
         img {
           width: var(--card-one-icon-list-item-img-width);
           height: var(--card-one-icon-list-item-img-height);
@@ -92,6 +136,11 @@
           line-height: var(--card-one-icon-item-value-line-height);
           letter-spacing: var(--card-one-icon-item-value-letter-spacing);
         }
+      }
+
+      /* 最后一个项目不需要底部边距 */
+      .iconItem:last-child {
+        margin-bottom: 0;
       }
     }
   }

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import styles from "./index.module.less";
 import threeIcon from "./img/three_icon.png";
 import { Flex } from "antd";
@@ -7,6 +7,8 @@ import { useHoverSummary } from "./useHoverSummary";
 import { getPeopleGroupDescription } from "./categoryDescriptions";
 import Odometer from "react-odometerjs";
 import "odometer/themes/odometer-theme-default.css";
+import { useNumberAnimation } from "./useNumberAnimation";
+
 interface CardThreeProps {
   list: ComCustomItemType[];
   onHoverItem?: (content: string) => void;
@@ -17,9 +19,23 @@ interface CardThreeProps {
  * @param list 列表数据
  */
 const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
+  // 存储实际值（不变）
+  const [realValues, setRealValues] = useState<number[]>([]);
+
+  // 初始化实际数据
+  useEffect(() => {
+    // 计算实际值
+    const actualValues = list.map((item) => Number(item.value) || 0);
+    // 保存实际值
+    setRealValues(actualValues);
+  }, [list]);
+
+  // 使用自定义Hook处理数字动效
+  const animatedValues = useNumberAnimation(realValues);
+
   // 定义获取项目内容的函数
-  const getItemContent = (item: ComCustomItemType): string => {
-    return `${item.title}群体有${item.value}人`;
+  const getItemContent = (): string => {
+    return list.map((l) => `${l.title}:${l.value}`)?.toString();
   };
 
   // 使用自定义Hook处理hover事件
@@ -43,7 +59,7 @@ const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
             <Flex justify="center" align="center">
               <span className={styles.title}>
                 <Odometer
-                  value={Number(item.value)}
+                  value={animatedValues[i] || 0}
                   format="(d)"
                   duration={1000}
                 />

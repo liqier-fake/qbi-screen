@@ -11,6 +11,7 @@ import DetailModal, { DetailModalProps } from "../DetailModal";
 import { Table } from "antd";
 import { peopleOption } from "../../mock";
 import { apiGetSocialRisk, TimeRange } from "../../api";
+import { ColumnType } from "antd/es/table";
 const PeopleFocusPanel: React.FC<{
   defautValue?: string;
   onChange?: (value: string) => void;
@@ -38,26 +39,41 @@ const PeopleFocusPanel: React.FC<{
   };
 
   const formData = useMemo(() => {
+    const renderText = (text: string) => {
+      return <div style={{ whiteSpace: "pre-line" }}>{text}</div>;
+    };
+
     const columns = [
       {
         title: "诉求来源",
         dataIndex: "ds1",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
       {
         title: "诉求人数",
         dataIndex: "impact_scope",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
       {
         title: "影响范围",
         dataIndex: "impact_scope",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
       {
         title: "情感分值",
         dataIndex: "sentiment",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
+
       {
         title: "扬言分值",
         dataIndex: "threaten",
+        render: (text: string) => renderText(text),
+        align: "center",
       },
     ];
 
@@ -80,7 +96,19 @@ const PeopleFocusPanel: React.FC<{
         type: "render",
         render: () => {
           return (
-            <Table dataSource={[record]} columns={columns} pagination={false} />
+            <Table
+              dataSource={[
+                {
+                  ds1: record.ds1,
+                  impact_scope: `${record.impact_scope}\n(10.3)`,
+                  sentiment: `${record.sentiment}\n(29.95)`,
+                  threaten: `${record.threaten}\n(23.74)`,
+                },
+              ]}
+              // @ts-ignore
+              columns={columns}
+              pagination={false}
+            />
           );
         },
       },

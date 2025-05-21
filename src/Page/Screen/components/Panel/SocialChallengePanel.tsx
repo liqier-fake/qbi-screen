@@ -74,7 +74,6 @@ const SocialChallengePanel: React.FC<{
         key: "intro",
         label: "项目简介",
         value: intro || "",
-        type: "comcontent",
       },
       {
         key: "llm_hot_items",

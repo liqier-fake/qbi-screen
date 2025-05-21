@@ -5,6 +5,7 @@ import lfstreet from "./sip_lf_street.json";
 import spstreet from "./sip_sp_street.json";
 import xtstreet from "./sip_xt_street.json";
 import sip_comm from "./sip_comm.json";
+import station from "./station";
 
 export const geojsonMap = {
   sip_comm, // 社区平面坐标
@@ -14,4 +15,5 @@ export const geojsonMap = {
   lfstreet, // 娄葑街道
   spstreet, // 胜浦街道
   xtstreet, // 斜塘街道
+  station, // 驿站
 };
