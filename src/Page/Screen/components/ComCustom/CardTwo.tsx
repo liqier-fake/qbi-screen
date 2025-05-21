@@ -101,7 +101,9 @@ const CardTwo = ({ list = [], timeRange, onHoverItem }: CardTwoProps) => {
           >
             <span className={styles.showItemTitle}>
               <Odometer
-                value={animatedValues[i] || 0}
+                value={
+                  Array.isArray(animatedValues) ? animatedValues[i] || 0 : 0
+                }
                 format="(d)"
                 duration={1000}
               />

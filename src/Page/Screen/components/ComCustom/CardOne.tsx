@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState, useRef } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import styles from "./index.module.less";
 import partOneIcon1 from "./img/part_one_icon_1.png";
 import partOneIcon2 from "./img/part_one_icon_2.png";

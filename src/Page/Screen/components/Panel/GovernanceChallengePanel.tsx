@@ -11,7 +11,6 @@ import DetailModal, { DetailModalProps } from "../DetailModal";
 import { Table } from "antd";
 import { areaOption } from "../../mock";
 import { apiGetSocialRisk, TimeRange } from "../../api";
-import { center } from "@antv/g2/lib/data/utils/d3-sankey/align";
 
 const GovernanceChallengePanel: React.FC<{
   timeRange: TimeRange;

@@ -11,7 +11,6 @@ import DetailModal, { DetailModalProps } from "../DetailModal";
 import { Table } from "antd";
 import { peopleOption } from "../../mock";
 import { apiGetSocialRisk, TimeRange } from "../../api";
-import { ColumnType } from "antd/es/table";
 const PeopleFocusPanel: React.FC<{
   defautValue?: string;
   onChange?: (value: string) => void;

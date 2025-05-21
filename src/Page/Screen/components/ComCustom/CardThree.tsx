@@ -59,7 +59,9 @@ const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
             <Flex justify="center" align="center">
               <span className={styles.title}>
                 <Odometer
-                  value={animatedValues[i] || 0}
+                  value={
+                    Array.isArray(animatedValues) ? animatedValues[i] || 0 : 0
+                  }
                   format="(d)"
                   duration={1000}
                 />
