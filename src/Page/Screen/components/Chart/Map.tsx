@@ -80,6 +80,7 @@ interface MapProps {
   ticketData?: TicketCountData[][]; // 工单数据
   onDrillDown?: (nextMapType: MapTypeEnum) => void; // 添加下钻回调函数
   selectKey?: MapSelectTypeEnum;
+  onAskQuestion?: (question: string) => void; // 添加提问回调函数
 }
 
 /**
@@ -284,6 +285,7 @@ const Map: React.FC<MapProps> = ({
   ticketData = [],
   onDrillDown,
   selectKey,
+  onAskQuestion,
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -914,7 +916,16 @@ const Map: React.FC<MapProps> = ({
 
             <div>
               <div className={styles.tip}>试着问问</div>
-              <div className={styles.list}>
+              <div
+                className={styles.list}
+                onClick={() => {
+                  // 调用提问回调函数，传递问题内容
+                  onAskQuestion?.(`针对${selectedStation.siteName}的投诉信息`);
+                  // 关闭当前弹窗
+                  handleClosePopup();
+                }}
+                style={{ cursor: "pointer" }} // 添加手型光标样式，提示可点击
+              >
                 <span> 【针对{selectedStation.siteName}的投诉信息】</span>
                 <ArrowRightOutlined
                   style={{

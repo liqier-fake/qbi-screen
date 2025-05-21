@@ -52,6 +52,8 @@ function Chat({
     "斜塘街道，治理挑战指数最大的社区是哪个？",
     "请帮我从新市民劳动者群体中，筛选10条含极端扬言的工单",
   ],
+  initialQuestion = "",
+  initialInput = "",
 }: ChatProps) {
   // 存储聊天气泡列表
   const [bubbleList, setBubbleList] = useState<BubbleType[]>([]);
@@ -272,6 +274,24 @@ function Chat({
   const handleDelete = () => {
     setIsDeleteModalOpen(true);
   };
+
+  // 当初始问题存在时，自动提交
+  useEffect(() => {
+    if (initialQuestion && !isSending) {
+      // 延迟一点执行，确保组件完全挂载
+      const timer = setTimeout(() => {
+        onSubmit(initialQuestion);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialQuestion]);
+
+  // 当初始输入内容存在时，填充到输入框但不自动发送
+  useEffect(() => {
+    if (initialInput) {
+      setMessage(initialInput);
+    }
+  }, [initialInput]);
 
   return (
     <Flex justify="space-between" className="chat-container">

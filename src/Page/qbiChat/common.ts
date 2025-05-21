@@ -110,4 +110,6 @@ export interface ChatProps {
   showAvatar?: boolean;
   tipStr?: React.ReactNode;
   tips?: string[];
+  initialQuestion?: string;
+  initialInput?: string;
 }

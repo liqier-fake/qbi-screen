@@ -21,6 +21,11 @@ import Map, {
   // streetNameToEnum,
 } from "./components/Chart/Map.tsx";
 
+// 定义AIChat组件的ref类型
+interface AIChatRef {
+  openChatWithQuestion: (question: string) => void;
+}
+
 // 引入Panel组件
 import {
   Level2TrendPanel,
@@ -72,6 +77,9 @@ const Screen = () => {
     }
     return MapTypeNames[currentMapType];
   }, [currentMapType]);
+
+  // 添加AIChat组件的ref
+  const aiChatRef = useRef<AIChatRef | null>(null);
 
   // 数据来源
   const getSourceCountData = async () => {
@@ -260,6 +268,13 @@ const Screen = () => {
     setBubuleContent(newContent);
   };
 
+  // 处理地图组件发起的提问
+  const handleAskQuestion = (question: string) => {
+    console.log("从地图发起提问:", question);
+    // 调用AIChat组件的方法打开对话框并设置问题
+    aiChatRef.current?.openChatWithQuestion(question);
+  };
+
   // return (
   //   <Map
   //     currentMapType={currentMapType}
@@ -344,6 +359,7 @@ const Screen = () => {
             // 获取新地图类型的工单数据
             getTicketCountData();
           }}
+          onAskQuestion={handleAskQuestion} // 添加问题回调
         />
         {/* 左侧 */}
         <div className={styles.left}>
@@ -392,7 +408,10 @@ const Screen = () => {
         {/* 中间 */}
         <div className={styles.center}>
           <div className={styles.centerItem}>
-            <AIChat bubuleContent={bubuleContent} />
+            <AIChat
+              bubuleContent={bubuleContent}
+              onRef={(ref) => (aiChatRef.current = ref)} // 设置ref
+            />
           </div>
         </div>
         {/* 右侧 */}
