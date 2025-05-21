@@ -130,6 +130,10 @@ interface WorkListModalProps extends Omit<ComModalProps, "children"> {
      */
     defaultPageSize?: number;
   };
+  /**
+   * 表格行属性配置函数
+   */
+  onRow?: (record: any, index?: number) => object;
 }
 
 /**
@@ -146,6 +150,7 @@ const WorkListModal = ({
     defaultCurrent: 1,
     defaultPageSize: 10,
   },
+  onRow,
   ...rest
 }: WorkListModalProps) => {
   // 表格数据
@@ -322,6 +327,7 @@ const WorkListModal = ({
             showQuickJumper: false,
           }}
           scroll={{ y: 200 }} // 使表格宽度自适应
+          onRow={onRow}
         />
       </div>
     </ComModal>

@@ -50,7 +50,7 @@ const GovernanceChallengePanel: React.FC<{
 
     const columns = [
       {
-        title: "诉求来源",
+        title: "来源",
         dataIndex: "ds1",
         render: (text: string) => renderText(text),
         align: "center",
@@ -82,12 +82,22 @@ const GovernanceChallengePanel: React.FC<{
       },
     ];
 
-    const { challenge_score, date, c2, content } = record;
+    const {
+      challenge_score,
+      date,
+      c1,
+      c2,
+      c3,
+      category,
+      content,
+      address_detail,
+      smqt,
+    } = record;
 
     return [
       { key: "challenge_score", label: "治理挑战指数", value: challenge_score },
       { key: "date", label: "诉求时间", value: date },
-      { key: "c2", label: "二级分类", value: c2 },
+
       {
         key: "content",
         label: "诉求内容",
@@ -117,6 +127,9 @@ const GovernanceChallengePanel: React.FC<{
           );
         },
       },
+      { key: "c1", label: "分类", value: `${c1}/${c2}/${c3}/${category}` },
+      { key: "smqt", label: "市民群体", value: smqt },
+      { key: "address_detail", label: "详细地址", value: address_detail },
     ] as DetailModalProps["formData"];
   }, [JSON.stringify(record)]);
   return (
