@@ -312,23 +312,25 @@ const Screen = () => {
           }))}
           popupClassName="customSelectDropdown"
         />
-        <Select
-          style={{ width: 120 }}
-          className={styles.select}
-          value={currentMapSelectType}
-          onChange={handleMapSelectTypeChange}
-          options={[
-            {
-              label: "工单数量",
-              value: MapSelectTypeEnum.number,
-            },
-            {
-              label: "驿站",
-              value: MapSelectTypeEnum.site,
-            },
-          ]}
-          popupClassName="customSelectDropdown"
-        />
+        {currentMapType === MapTypeEnum.area && (
+          <Select
+            style={{ width: 120 }}
+            className={styles.select}
+            value={currentMapSelectType}
+            onChange={handleMapSelectTypeChange}
+            options={[
+              {
+                label: "工单数量",
+                value: MapSelectTypeEnum.number,
+              },
+              {
+                label: "驿站",
+                value: MapSelectTypeEnum.site,
+              },
+            ]}
+            popupClassName="customSelectDropdown"
+          />
+        )}
       </div>
       {/* 标题 */}
 
