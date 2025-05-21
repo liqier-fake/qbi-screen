@@ -14,6 +14,7 @@ import {
 
 import { AuthChangeEventDetail } from "../../types/events";
 import Map, {
+  MapSelectTypeEnum,
   MapTypeEnum,
   MapTypeNames,
   TicketCountData,
@@ -55,6 +56,10 @@ const Screen = () => {
   const [currentMapType, setCurrentMapType] = useState<MapTypeEnum>(
     MapTypeEnum.area
   );
+
+  const [currentMapSelectType, setCurrentMapSelectType] =
+    useState<MapSelectTypeEnum>(MapSelectTypeEnum.number);
+
   // 添加工单数据状态
   const [ticketData, setTicketData] = useState<TicketCountData[][]>([]);
 
@@ -196,6 +201,9 @@ const Screen = () => {
   const handleMapTypeChange = (value: MapTypeEnum) => {
     setCurrentMapType(value);
   };
+  const handleMapSelectTypeChange = (value: MapSelectTypeEnum) => {
+    setCurrentMapSelectType(value);
+  };
 
   useEffect(() => {
     // 数据来源
@@ -289,6 +297,23 @@ const Screen = () => {
           }))}
           popupClassName="customSelectDropdown"
         />
+        <Select
+          style={{ width: 120 }}
+          className={styles.select}
+          value={currentMapSelectType}
+          onChange={handleMapSelectTypeChange}
+          options={[
+            {
+              label: "工单数量",
+              value: MapSelectTypeEnum.number,
+            },
+            {
+              label: "驿站",
+              value: MapSelectTypeEnum.site,
+            },
+          ]}
+          popupClassName="customSelectDropdown"
+        />
       </div>
       {/* 标题 */}
 
@@ -312,6 +337,7 @@ const Screen = () => {
         {/* 地图 - 传递地图类型和工单数据 */}
         <Map
           currentMapType={currentMapType}
+          selectKey={currentMapSelectType}
           ticketData={ticketData}
           onDrillDown={(nextMapType) => {
             setCurrentMapType(nextMapType);
