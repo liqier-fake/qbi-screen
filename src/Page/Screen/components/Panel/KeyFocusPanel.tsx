@@ -22,7 +22,7 @@ const KeyFocusPanel: React.FC<{
   defautValue?: string;
   onChange?: (value: string) => void;
 }> = ({ timeRange, defautValue, onChange }) => {
-  const [value, setValue] = useState(defautValue || areaOption[2].value);
+  const [value, setValue] = useState(defautValue || areaOption[0].value);
   const [dataSource, setDataSource] = useState<any[]>([]);
   // 攻坚项目弹窗
   const [workOpen, setWorkOpen] = useState(false);

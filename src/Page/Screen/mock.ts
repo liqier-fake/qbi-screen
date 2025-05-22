@@ -156,6 +156,7 @@ export const lineData = {
 };
 
 export const peopleOption = [
+  { label: "全部", value: "all" },
   { label: "新市民劳动者", value: "新市民劳动者" },
   { label: "新就业群体", value: "新就业群体" },
   { label: "青年群体", value: "青年群体" },
@@ -164,6 +165,7 @@ export const peopleOption = [
 ];
 
 export const areaOption = [
+  { label: "全部", value: "all" },
   { label: "娄葑街道", value: "娄葑街道" },
   { label: "斜塘街道", value: "斜塘街道" },
   { label: "唯亭街道", value: "唯亭街道" },

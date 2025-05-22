@@ -66,7 +66,7 @@ const CardThree = ({ list = [], onHoverItem }: CardThreeProps) => {
                   duration={1000}
                 />
               </span>
-              <span className={styles.value}>人</span>
+              {/* <span className={styles.value}>人</span> */}
             </Flex>
             <span className={styles.value}>{item.title}</span>
           </div>
