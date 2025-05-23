@@ -63,6 +63,8 @@ interface CloudProps {
   moveRange?: number;
   padding?: number;
   fontSizeRatio?: number;
+  // 点击事件回调
+  onItemClick?: (params: { word: string; count: number }) => void;
 }
 
 /**
@@ -76,6 +78,7 @@ const Cloud: React.FC<CloudProps> = ({
   moveRange = 10,
   padding = 15,
   fontSizeRatio = 0.16,
+  onItemClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = useState({
@@ -195,6 +198,14 @@ const Cloud: React.FC<CloudProps> = ({
           className={styles.cloudItem}
           style={style}
           title={`${data[index].name}: ${data[index].value}`}
+          onClick={() => {
+            if (onItemClick && data[index].value > 0) {
+              onItemClick({
+                word: data[index].name,
+                count: data[index].value,
+              });
+            }
+          }}
         >
           <div style={{ fontSize: "inherit" }}>{data[index].name}</div>
           <div

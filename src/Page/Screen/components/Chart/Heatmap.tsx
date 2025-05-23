@@ -28,6 +28,8 @@ interface HeatmapProps {
   className?: string;
   // API数据
   data?: HeatmapDataItem[];
+  // 点击事件回调
+  onItemClick?: (params: { c3: string; smqt: string; count: number }) => void;
 }
 
 interface EChartsGraphicItem {
@@ -54,6 +56,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
   style = { height: "100%", width: "100%" },
   className = "heatmap-example",
   data = [],
+  onItemClick,
 }) => {
   // 图表实例引用
   const chartInstanceRef = useRef<ECharts | null>(null);
@@ -415,6 +418,36 @@ const Heatmap: React.FC<HeatmapProps> = ({
   // 获取图表实例的回调函数
   const handleChartReady = (instance: ECharts) => {
     chartInstanceRef.current = instance;
+
+    // 添加点击事件监听
+    if (onItemClick) {
+      instance.on("click", (params: any) => {
+        // 确保是点击的热力图数据点
+        if (
+          params.componentType === "series" &&
+          params.seriesType === "heatmap"
+        ) {
+          const { data: clickedData } = params;
+
+          // 获取点击位置对应的数据
+          const adjustedXIndex = clickedData[0] + startIndexRef.current;
+          const yIndex = clickedData[1];
+          const count = clickedData[2];
+
+          // 获取对应的c3和smqt值
+          const c3 = xData[adjustedXIndex];
+          const smqt = yData[yIndex];
+
+          if (c3 && smqt && count > 0) {
+            onItemClick({
+              c3,
+              smqt,
+              count,
+            });
+          }
+        }
+      });
+    }
   };
 
   return (

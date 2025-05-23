@@ -159,11 +159,12 @@ export function apiGetTicketCount(
 // 根据分类获取工单列表
 export function apiGetTicketList(
   params: ApiParams & {
-    category: string;
-    time_range: TimeRange;
+    category?: string;
+    word?: string;
+    c3?: string;
+    smqt?: string;
     c1?: string;
     c2?: string;
-    c3?: string;
     /** 页码 */
     page?: number;
     /** 每页条数 */

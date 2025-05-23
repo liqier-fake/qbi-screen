@@ -5,6 +5,7 @@ import React, { memo, useEffect, useState } from "react";
 import Heatmap from "../Chart/Heatmap";
 import LineChart from "../Chart/LineChart";
 import PanelItem from "../PanelItem";
+import WorkListWithDetail from "../WorkListWithDetail";
 import styles from "../../index.module.less";
 import { apiGetGovProfile1, apiGetGovProfile2, TimeRange } from "../../api";
 import { ScreenDataType } from "../../mock";
@@ -21,6 +22,14 @@ const GovernanceProfilePanel: React.FC<{
     xData: [],
     lineData: [],
   });
+
+  // 工单弹窗状态
+  const [workListOpen, setWorkListOpen] = useState<boolean>(false);
+  const [fetchParams, setFetchParams] = useState<{
+    c3?: string;
+    smqt?: string;
+  }>({});
+
   useEffect(() => {
     // 治理画像-热力图
     const getGovProfile1Data = async () => {
@@ -99,6 +108,39 @@ const GovernanceProfilePanel: React.FC<{
     getGovProfile2Data();
   }, [timeRange]);
 
+  /**
+   * 处理热力图点击事件
+   */
+  const handleHeatmapClick = ({
+    c3,
+    smqt,
+    count,
+  }: {
+    c3: string;
+    smqt: string;
+    count: number;
+  }) => {
+    if (count > 0) {
+      setFetchParams({ c3, smqt });
+      setWorkListOpen(true);
+    }
+  };
+
+  /**
+   * 关闭工单弹窗
+   */
+  const handleCloseWorkList = () => {
+    setWorkListOpen(false);
+    setFetchParams({});
+  };
+
+  /**
+   * 生成弹窗标题
+   */
+  const getWorkListTitle = () => {
+    return `${fetchParams.c3}-${fetchParams.smqt}-相关工单`;
+  };
+
   return (
     <PanelItem
       title="治理画像"
@@ -108,6 +150,7 @@ const GovernanceProfilePanel: React.FC<{
             className={styles.manageChartItem}
             enableSlide={false}
             data={heatmapData}
+            onItemClick={handleHeatmapClick}
           />
           <LineChart
             xData={lineData?.xData || []}
@@ -116,6 +159,13 @@ const GovernanceProfilePanel: React.FC<{
             slideInterval={2000}
             visibleDataPoints={3}
             className={styles.manageChartItem}
+          />
+          <WorkListWithDetail
+            title={getWorkListTitle()}
+            open={workListOpen}
+            onCancel={handleCloseWorkList}
+            timeRange={timeRange}
+            fetchParams={fetchParams}
           />
         </div>
       }

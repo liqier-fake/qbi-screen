@@ -3,29 +3,12 @@
  */
 import { useMemo, useState, useEffect } from "react";
 import ComModal, { ComModalProps } from "../ComModal";
-import { WorkListModal } from "../WorkMoal";
+import WorkListWithDetail from "../WorkListWithDetail";
 import styles from "./index.module.less";
 import classNames from "classnames";
-import { Table, Tooltip } from "antd";
-import { apiGetTicketList, TimeRange } from "../../api";
-import columns from "./columns";
-import DetailModal, { DetailModalProps } from "../DetailModal";
-
-interface CategoryItem {
-  count: number;
-  name: string;
-}
-
-interface SubCategory {
-  name: string;
-  total?: number;
-  items: CategoryItem[];
-}
-
-interface Category {
-  name: string;
-  subcategories: SubCategory[];
-}
+import { Tooltip } from "antd";
+import { TimeRange } from "../../api";
+import { Category, CategoryItem } from "../../types";
 
 export interface CategoryModalProps extends ComModalProps {
   categoryList: Category[];
@@ -46,10 +29,6 @@ const CategoryModal = ({
   const [open, setOpen] = useState<boolean>(false);
   // 当前选中的分类名
   const [currentCategory, setCurrentCategory] = useState<string>("");
-
-  const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
-
-  const [record, setRecord] = useState<any>({});
 
   // 初始化选中第一个分类
   useEffect(() => {
@@ -166,99 +145,6 @@ const CategoryModal = ({
     setCurrentCategory("");
   };
 
-  const formData = useMemo(() => {
-    const renderText = (text: string) => {
-      return <div style={{ whiteSpace: "pre-line" }}>{text}</div>;
-    };
-
-    const columns = [
-      {
-        title: "来源",
-        dataIndex: "ds1",
-        render: (text: string) => renderText(text),
-        align: "center",
-      },
-      {
-        title: "诉求人数",
-        dataIndex: "impact_scope",
-        render: (text: string) => renderText(text),
-        align: "center",
-      },
-      {
-        title: "影响范围",
-        dataIndex: "impact_scope",
-        render: (text: string) => renderText(text),
-        align: "center",
-      },
-      {
-        title: "情感分值",
-        dataIndex: "sentiment",
-        render: (text: string) => renderText(text),
-        align: "center",
-      },
-
-      {
-        title: "扬言分值",
-        dataIndex: "threaten",
-        render: (text: string) => renderText(text),
-        align: "center",
-      },
-    ];
-    const {
-      challenge_score,
-      date,
-      c1,
-      c2,
-      c3,
-      category,
-      content,
-      address_detail,
-      smqt,
-    } = record;
-
-    return [
-      {
-        key: "challenge_score",
-        label: "治理挑战指数",
-        value: challenge_score,
-      },
-      { key: "date", label: "诉求时间", value: date },
-
-      {
-        key: "content",
-        label: "诉求内容",
-        value: content,
-        type: "comcontent" as const,
-      },
-      {
-        key: "source",
-        label: "",
-        value: "source",
-        type: "render",
-        render: () => {
-          return (
-            <Table
-              dataSource={[
-                {
-                  ds1: record.ds1,
-                  impact_scope: `${record.impact_scope}\n(10.3)`,
-                  sentiment: `${record.sentiment}\n(29.95)`,
-                  threaten: `${record.threaten}\n(23.74)`,
-                },
-              ]}
-              // @ts-ignore
-              columns={columns}
-              pagination={false}
-            />
-          );
-        },
-      },
-      { key: "c1", label: "分类", value: `${c1}/${c2}/${c3}/${category}` },
-      { key: "smqt", label: "市民群体", value: smqt },
-      { key: "address_detail", label: "详细地址", value: address_detail },
-    ] as DetailModalProps["formData"];
-  }, [JSON.stringify(record)]);
-
   return (
     <ComModal {...rest}>
       <div className={styles.categoryModal}>
@@ -280,7 +166,7 @@ const CategoryModal = ({
             </span>
           </div>
           <div className={styles.rightList}>
-            {rightList?.map((r: SubCategory) => {
+            {rightList?.map((r) => {
               const total = r.items?.reduce((a, c) => {
                 return a + c.count;
               }, 0);
@@ -290,40 +176,14 @@ const CategoryModal = ({
         </div>
       </div>
 
-      <WorkListModal
+      <WorkListWithDetail
         title="按分类统计工单数量详情"
         open={open}
         onCancel={handleCloseTicketModal}
-        columns={columns}
-        fetchDataApi={apiGetTicketList}
+        timeRange={timeRange}
         fetchParams={{
           category: currentCategory,
-          time_range: timeRange,
         }}
-        pagination={{
-          defaultCurrent: 1,
-          defaultPageSize: 10,
-        }}
-        onRow={(record) => {
-          const { challenge_score } = record;
-          return {
-            onClick: () => {
-              if (!challenge_score) return;
-              setRecord(record);
-              setDetailModalOpen(true);
-            },
-            style: {
-              cursor: "pointer",
-            },
-          };
-        }}
-      />
-      <DetailModal
-        title="工单详情"
-        open={detailModalOpen}
-        onCancel={() => setDetailModalOpen(false)}
-        formData={formData}
-        showCloseIcon={true}
       />
     </ComModal>
   );
