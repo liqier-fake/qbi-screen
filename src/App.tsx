@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.less";
 import Screen from "./Page/Screen";
 import Login from "./Page/Login";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, message } from "antd";
 import LoadingScreen from "./components/LoadingScreen";
 import { AuthChangeEvent } from "./types/events";
 
@@ -11,6 +11,13 @@ import { AuthChangeEvent } from "./types/events";
  * 处理登录验证和路由控制
  */
 function App() {
+  // 配置message全局设置
+  message.config({
+    top: 100,
+    duration: 3,
+    maxCount: 3,
+  });
+
   // 登录状态
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // 是否正在检查登录状态

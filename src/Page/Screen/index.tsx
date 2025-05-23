@@ -4,7 +4,7 @@ import classNames from "classnames";
 import AIChat from "./components/AIChat";
 import { CardOne, CardTwo, CardThree } from "./components/ComCustom";
 import { createMockData, ScreenDataType } from "./mock";
-import { Flex, Button, Select } from "antd";
+import { Flex, Button, Select, message } from "antd";
 import {
   apiGetStaticBasic,
   apiGetTicketCount,
@@ -49,6 +49,7 @@ const TimeRangeOption = [
 ];
 
 const Screen = () => {
+  const [messageApi, contextHolder] = message.useMessage();
   const [timeRange, setTimeRange] = useState<TimeRange>(TimeRange.this_year);
 
   const [screenData, setScreenData] = useState<ScreenDataType>(
@@ -209,8 +210,20 @@ const Screen = () => {
   const handleMapTypeChange = (value: MapTypeEnum) => {
     setCurrentMapType(value);
   };
-  const handleMapSelectTypeChange = (value: MapSelectTypeEnum) => {
-    setCurrentMapSelectType(value);
+
+  // 处理CardThree图标点击，切换地图选择类型
+  const handleCardThreeIconClick = () => {
+    if (currentMapType !== MapTypeEnum.area) {
+      messageApi.info("请先选择地图类型为苏州工业园区");
+      return;
+    }
+
+    const newSelectType =
+      currentMapSelectType === MapSelectTypeEnum.number
+        ? MapSelectTypeEnum.site
+        : MapSelectTypeEnum.number;
+
+    setCurrentMapSelectType(newSelectType);
   };
 
   useEffect(() => {
@@ -289,6 +302,7 @@ const Screen = () => {
 
   return (
     <div className={styles.screen}>
+      {contextHolder}
       {/* 时间选择 */}
       <div className={styles.selectWrap}>
         <Select
@@ -312,25 +326,6 @@ const Screen = () => {
           }))}
           popupClassName="customSelectDropdown"
         />
-        {currentMapType === MapTypeEnum.area && (
-          <Select
-            style={{ width: 120 }}
-            className={styles.select}
-            value={currentMapSelectType}
-            onChange={handleMapSelectTypeChange}
-            options={[
-              {
-                label: "工单数量",
-                value: MapSelectTypeEnum.number,
-              },
-              {
-                label: "驿站",
-                value: MapSelectTypeEnum.site,
-              },
-            ]}
-            popupClassName="customSelectDropdown"
-          />
-        )}
       </div>
       {/* 标题 */}
 
@@ -430,6 +425,8 @@ const Screen = () => {
                   <CardThree
                     list={screenData.threeData.list}
                     onHoverItem={onHoverCardTwo}
+                    onIconClick={handleCardThreeIconClick}
+                    currentSelectType={currentMapSelectType}
                   />
                 </Flex>
               }
