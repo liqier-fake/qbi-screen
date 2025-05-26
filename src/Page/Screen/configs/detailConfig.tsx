@@ -1,7 +1,6 @@
 /**
  * 详情弹窗可重用配置
  */
-import React from "react";
 import { Table } from "antd";
 import { DetailModalProps } from "../components/DetailModal";
 import { TicketRecord } from "../types";

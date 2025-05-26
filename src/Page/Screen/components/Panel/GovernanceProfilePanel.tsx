@@ -38,7 +38,6 @@ const GovernanceProfilePanel: React.FC<{
       } = await apiGetGovProfile1({
         time_range: timeRange,
       });
-      console.log(govProfile1Data, "govProfile1Data");
       setHeatmapData(govProfile1Data);
     };
 
@@ -57,15 +56,15 @@ const GovernanceProfilePanel: React.FC<{
       // 遍历所有月份数据并收集所有人群类型
       Object.keys(govProfile2Data).forEach((month) => {
         govProfile2Data[month].forEach(
-          ({ group, count }: { group: string; count: number }) => {
-            smqtGroups.add(group);
+          ({ smqt, count }: { smqt: string; count: number }) => {
+            smqtGroups.add(smqt);
             // 初始化月份数据结构
             if (!monthData[month]) {
               monthData[month] = {};
             }
 
             // 只按smqt分类，相同smqt的count相加
-            monthData[month][group] = (monthData[month][group] || 0) + count;
+            monthData[month][smqt] = (monthData[month][smqt] || 0) + count;
           }
         );
       });

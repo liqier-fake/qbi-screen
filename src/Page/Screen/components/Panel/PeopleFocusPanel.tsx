@@ -65,8 +65,8 @@ const PeopleFocusPanel: React.FC<{
             className={styles.table}
             columns={columns1}
             dataSource={dataSource}
-            onRowClick={(record: TicketRecord) => {
-              detailModal.openModal(record);
+            onRowClick={(record) => {
+              detailModal.openModal(record as unknown as TicketRecord);
             }}
           />
           <DetailModal
