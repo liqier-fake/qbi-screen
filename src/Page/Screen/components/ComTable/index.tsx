@@ -281,7 +281,6 @@ const ComTable = <T extends TableRecord = TableRecord>({
                   title={column.title}
                   placement="topLeft"
                   mouseEnterDelay={0.5}
-                  overlayStyle={{ maxWidth: 500 }}
                 >
                   <div className={styles.titleContent}>{column.title}</div>
                 </Tooltip>

@@ -9,6 +9,8 @@ import WorkListWithDetail from "../WorkListWithDetail";
 import styles from "../../index.module.less";
 import { apiGetGovProfile1, apiGetGovProfile2, TimeRange } from "../../api";
 import { ScreenDataType } from "../../mock";
+import { Flex, Tag } from "antd";
+import { transformByField } from "./util";
 
 const GovernanceProfilePanel: React.FC<{
   timeRange: TimeRange;
@@ -22,16 +24,23 @@ const GovernanceProfilePanel: React.FC<{
     xData: [],
     lineData: [],
   });
+  const [comparisonType, setComparisonType] = useState<"tb" | "hb" | null>(
+    null
+  );
 
-  // 工单弹窗状态
-  const [workListOpen, setWorkListOpen] = useState<boolean>(false);
-  const [fetchParams, setFetchParams] = useState<{
-    c3?: string;
-    smqt?: string;
-  }>({});
+  // 比较类型配置
+  const comparisonConfig = [
+    { type: "tb", label: "同比", color: "#145E55" },
+    { type: "hb", label: "环比", color: "#145E55" },
+  ] as const;
 
+  // 处理标签点击
+  const handleTagClick = (type: "tb" | "hb") => {
+    setComparisonType(comparisonType === type ? null : type);
+  };
+
+  // 获取热力图数据
   useEffect(() => {
-    // 治理画像-热力图
     const getGovProfile1Data = async () => {
       const {
         data: { data: govProfile1Data },
@@ -41,71 +50,63 @@ const GovernanceProfilePanel: React.FC<{
       setHeatmapData(govProfile1Data);
     };
 
-    // 治理画像-折线图
+    getGovProfile1Data();
+  }, [timeRange]);
+
+  // 获取折线图数据
+  useEffect(() => {
     const getGovProfile2Data = async () => {
+      interface ApiParams {
+        time_range: TimeRange;
+        comparison_type?: "tb" | "hb";
+      }
+
       const {
-        data: { data: govProfile2Data },
+        data: { data: govProfile2Data, comparison_ratios },
       } = await apiGetGovProfile2({
         time_range: timeRange,
-      });
+        ...(comparisonType ? { comparison_type: comparisonType } : {}),
+      } as ApiParams);
 
-      // 准备LineChart所需的数据格式
-      const smqtGroups = new Set<string>();
-      const monthData: { [key: string]: { [key: string]: number } } = {};
+      const transformedData = transformByField(
+        govProfile2Data,
+        "smqt",
+        "count"
+      );
 
-      // 遍历所有月份数据并收集所有人群类型
-      Object.keys(govProfile2Data).forEach((month) => {
-        govProfile2Data[month].forEach(
-          ({ smqt, count }: { smqt: string; count: number }) => {
-            smqtGroups.add(smqt);
-            // 初始化月份数据结构
-            if (!monthData[month]) {
-              monthData[month] = {};
-            }
+      console.log(comparison_ratios, "comparison_ratios");
 
-            // 只按smqt分类，相同smqt的count相加
-            monthData[month][smqt] = (monthData[month][smqt] || 0) + count;
-          }
-        );
-      });
+      const transformedComparisonData = comparisonType
+        ? transformByField(comparison_ratios, "smqt", "change_ratio", "ratios")
+        : transformedData;
 
-      // 将所有月份按时间顺序排序
+      console.log(transformedComparisonData, "transformedComparisonData");
+
       const sortedMonths = Object.keys(govProfile2Data).sort();
 
-      // 构建lineData数据结构，只按人群类型分组
+      // 构建折线图数据
       const lineData = {
         xData: sortedMonths,
-        lineData: Array.from(smqtGroups)
-          .map((smqt) => {
-            const data = sortedMonths.map(
-              (month) => monthData[month]?.[smqt] || 0
-            );
-
-            // 只返回有数据的系列（至少有一个非零值）
-            if (data.some((val) => val > 0)) {
-              return {
-                name: smqt,
-                data,
-              };
-            }
-            return null;
+        lineData: Object.entries(transformedComparisonData).map(
+          ([key, values]) => ({
+            name: key, // 使用 smqt 字段值作为线条名称
+            data: sortedMonths.map((month) => values[month] || 0), // 确保每个月都有对应的值，如果没有则为0
           })
-          .filter(
-            (
-              item
-            ): item is {
-              name: string;
-              data: number[];
-              itemStyle: { color: string };
-            } => item !== null
-          ), // 使用类型谓词确保过滤掉null值
+        ),
       };
+
       setLineData(lineData);
     };
 
-    getGovProfile1Data();
     getGovProfile2Data();
-  }, [timeRange]);
+  }, [timeRange, comparisonType]);
+
+  // 工单弹窗状态
+  const [workListOpen, setWorkListOpen] = useState<boolean>(false);
+  const [fetchParams, setFetchParams] = useState<{
+    c3?: string;
+    smqt?: string;
+  }>({});
 
   /**
    * 处理热力图点击事件
@@ -144,21 +145,47 @@ const GovernanceProfilePanel: React.FC<{
     <PanelItem
       title="治理画像"
       render={
-        <div className={styles.manageChart}>
-          <Heatmap
-            className={styles.manageChartItem}
-            enableSlide={false}
-            data={heatmapData}
-            onItemClick={handleHeatmapClick}
-          />
-          <LineChart
-            xData={lineData?.xData || []}
-            lineData={lineData?.lineData || []}
-            enableSlide={true}
-            slideInterval={2000}
-            visibleDataPoints={4}
-            className={styles.manageChartItem}
-          />
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+          }}
+        >
+          <Flex justify="end">
+            {comparisonConfig.map(({ type, label, color }) => (
+              <Tag
+                key={type}
+                color={comparisonType === type ? color : "#054b4b"}
+                onClick={() => handleTagClick(type)}
+                style={{
+                  cursor: "pointer",
+                  fontSize: 10,
+                }}
+              >
+                {label}
+              </Tag>
+            ))}
+          </Flex>
+          <div className={styles.manageChart} style={{ flex: 1, minHeight: 0 }}>
+            <Heatmap
+              className={styles.manageChartItem}
+              enableSlide={false}
+              data={heatmapData}
+              onItemClick={handleHeatmapClick}
+            />
+            <LineChart
+              xData={lineData?.xData || []}
+              lineData={lineData?.lineData || []}
+              enableSlide={true}
+              slideInterval={2000}
+              visibleDataPoints={4}
+              isPercentage={!!comparisonType}
+              className={styles.manageChartItem}
+            />
+          </div>
           <WorkListWithDetail
             title={getWorkListTitle()}
             open={workListOpen}

@@ -14,6 +14,7 @@ interface LineData {
 interface LineChartProps {
   lineData: LineData[];
   xData: string[] | number[];
+  chartSeries?: EChartsOption;
   className?: string;
   style?: React.CSSProperties;
   // 是否启用平移动画效果
@@ -22,6 +23,17 @@ interface LineChartProps {
   slideInterval?: number;
   // 可视区域宽度（显示多少个数据点）
   visibleDataPoints?: number;
+  isPercentage?: boolean;
+  yAxis?: EChartsOption["yAxis"];
+  tooltip?: EChartsOption["tooltip"];
+}
+
+// 定义 tooltip 参数类型
+interface TooltipParam {
+  axisValue: string;
+  marker: string;
+  seriesName: string;
+  value: number;
 }
 
 const LineChart: React.FC<LineChartProps> = ({
@@ -32,6 +44,9 @@ const LineChart: React.FC<LineChartProps> = ({
   enableSlide = false,
   slideInterval = 2000,
   visibleDataPoints = 10,
+  yAxis = {},
+  tooltip = {},
+  isPercentage = false,
 }) => {
   // 图表实例引用
   const chartInstanceRef = useRef<ECharts | null>(null);
@@ -84,6 +99,15 @@ const LineChart: React.FC<LineChartProps> = ({
         textStyle: {
           fontSize: 10,
         },
+        formatter: function (params: TooltipParam[]) {
+          let result = params[0].axisValue + "<br/>";
+          params.forEach((item) => {
+            const value = isPercentage ? `${item.value}%` : item.value;
+            result += `${item.marker} ${item.seriesName}: ${value}<br/>`;
+          });
+          return result;
+        },
+        ...tooltip,
       },
       xAxis: {
         type: "category" as const,
@@ -116,11 +140,9 @@ const LineChart: React.FC<LineChartProps> = ({
       },
       yAxis: {
         type: "value",
-        // min: 0,
-        // max: 500,
-        // interval: 100,
         axisLabel: {
           color: "#fff",
+          formatter: isPercentage ? "{value}%" : "{value}",
         },
         axisLine: {
           lineStyle: {
@@ -133,6 +155,7 @@ const LineChart: React.FC<LineChartProps> = ({
             type: "dashed",
           },
         },
+        ...yAxis,
       },
       series: visibleLineData.map((item, index) => ({
         name: item.name,

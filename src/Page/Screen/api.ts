@@ -66,6 +66,7 @@ export function apiGetStaticBasic(
 export function apiGetLevel2Trend(
   params: ApiParams & {
     street: string;
+    comparison_type: "tb" | "hb" | null;
   }
 ) {
   return axios({

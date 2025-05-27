@@ -8,6 +8,8 @@ import PanelItem from "../PanelItem";
 import styles from "../../index.module.less";
 import { apiGetLevel2Trend, TimeRange } from "../../api";
 import { areaOption, ScreenDataType } from "../../mock";
+import { transformByField } from "./util";
+import { Flex, Tag } from "antd";
 
 const Level2TrendPanel: React.FC<{
   timeRange: TimeRange;
@@ -15,66 +17,58 @@ const Level2TrendPanel: React.FC<{
   onChange?: (value: string) => void;
 }> = ({ timeRange, defautValue, onChange }) => {
   const [value, setValue] = useState(defautValue || areaOption[0].value);
+  const [comparisonType, setComparisonType] = useState<"tb" | "hb" | null>(
+    null
+  ); // 默认不选择
   const [lineData, setLineData] = useState<ScreenDataType["lineData"]>({
     xData: [],
     lineData: [],
   });
+
+  // 比较类型配置
+  const comparisonConfig = [
+    { type: "tb", label: "同比", color: "#145E55" },
+    { type: "hb", label: "环比", color: "#145E55" },
+  ] as const;
+
+  // 处理标签点击
+  const handleTagClick = (type: "tb" | "hb") => {
+    setComparisonType(comparisonType === type ? null : type);
+  };
+
   useEffect(() => {
     // 二级趋势预测
     const getLevel2TrendData = async () => {
       const {
-        data: { data: level2TrendData },
+        data: { data: level2TrendData, comparison_ratios },
       } = await apiGetLevel2Trend({
         time_range: timeRange,
         street: value,
-      });
+        ...(comparisonType ? { comparison_type: comparisonType } : {}),
+      } as any);
 
-      console.log(level2TrendData, "level2TrendData");
-
-      const smqtGroups = new Set<string>();
-      const monthData: { [key: string]: { [key: string]: number } } = {};
-
-      Object.keys(level2TrendData).forEach((month) => {
-        level2TrendData[month].forEach(
-          ({ c2, count }: { c2: string; count: number }) => {
-            smqtGroups.add(c2);
-            if (!monthData[month]) {
-              monthData[month] = {};
-            }
-            monthData[month][c2] = (monthData[month][c2] || 0) + count;
-          }
-        );
-      });
+      const transformedData = transformByField(level2TrendData, "c2", "count");
+      const transformedComparisonData = comparisonType
+        ? transformByField(comparison_ratios, "c2", "change_ratio", "ratios")
+        : transformedData;
 
       const sortedMonths = Object.keys(level2TrendData).sort();
 
+      // 将转换后的数据处理成折线图所需的格式
       const lineData = {
         xData: sortedMonths,
-        lineData: Array.from(smqtGroups)
-          .map((c2) => {
-            const data = sortedMonths.map(
-              (month) => monthData[month]?.[c2] || 0
-            );
-
-            if (data.some((val) => val > 0)) {
-              return {
-                name: c2,
-                data,
-              };
-            }
-            return null;
+        lineData: Object.entries(transformedComparisonData).map(
+          ([key, values]) => ({
+            name: key, // 使用 c2 字段值作为线条名称
+            data: sortedMonths.map((month) => values[month] || 0), // 确保每个月都有对应的值，如果没有则为0
           })
-          .filter(
-            (item): item is { name: string; data: number[] } => item !== null
-          ), // 使用类型谓词确保过滤掉null值
+        ),
       };
 
       setLineData(lineData);
-
-      console.log(lineData, "level2TrendLineDatalevel2TrendLineData");
     };
     getLevel2TrendData();
-  }, [timeRange, value]);
+  }, [timeRange, value, comparisonType]);
 
   // 当默认值变化时，更新当前选中的值
   useEffect(() => {
@@ -96,11 +90,28 @@ const Level2TrendPanel: React.FC<{
             }}
             value={value}
           />
+          <Flex>
+            {comparisonConfig.map(({ type, label, color }) => (
+              <Tag
+                key={type}
+                color={comparisonType === type ? color : "#054b4b"}
+                onClick={() => handleTagClick(type)}
+                style={{
+                  cursor: "pointer",
+                  fontSize: 10,
+                }}
+              >
+                {label}
+              </Tag>
+            ))}
+          </Flex>
+
           <LineChart
             {...lineData}
             enableSlide={true}
             slideInterval={2000}
             visibleDataPoints={4}
+            isPercentage={!!comparisonType}
           />
         </div>
       }
