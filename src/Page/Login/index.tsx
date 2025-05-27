@@ -38,7 +38,7 @@ const Login = () => {
 
     // 账号密码写死，不需要调用接口
     const validUsername = "admin";
-    const validPassword = "123456";
+    const validPassword = "XI9m)z^B7'ETVam";
 
     // 模拟登录请求延迟
     setTimeout(() => {
