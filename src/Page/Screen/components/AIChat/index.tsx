@@ -148,7 +148,7 @@ const AIChat = ({ bubuleContent, onRef }: AIChatProps) => {
             tips={[
               "请帮我分析一下胜浦街道，民生诉求最高的几类事项",
               "请帮我从新市民劳动者群体中，筛选10条含极端扬言的工单",
-              '按月统计"违规占用消防通道"，工单量数据的变化情况',
+              "按月统计“消防通道”分类下，工单量数据的变化情况",
             ]}
             initialQuestion={initialQuestion} // 传递初始问题给Chat组件
             initialInput={initialInput} // 传递初始输入内容给Chat组件

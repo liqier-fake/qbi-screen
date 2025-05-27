@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
  */
 export const useNumberAnimation = (
   realValues: number[] | number,
-  interval = 6000,
+  interval = 20000,
   animationDelay = 50,
   decreaseFactor = 0.9
 ) => {

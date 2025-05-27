@@ -27,8 +27,8 @@ const Level2TrendPanel: React.FC<{
 
   // 比较类型配置
   const comparisonConfig = [
-    { type: "tb", label: "同比", color: "#145E55" },
-    { type: "hb", label: "环比", color: "#145E55" },
+    { type: "tb", label: "同比", color: "rgba(20, 94, 85, 1)" },
+    { type: "hb", label: "环比", color: "rgba(20, 94, 85, 1)" },
   ] as const;
 
   // 处理标签点击
@@ -94,7 +94,9 @@ const Level2TrendPanel: React.FC<{
             {comparisonConfig.map(({ type, label, color }) => (
               <Tag
                 key={type}
-                color={comparisonType === type ? color : "#054b4b"}
+                color={
+                  comparisonType === type ? color : "rgba(20, 94, 85, 0.4)"
+                }
                 onClick={() => handleTagClick(type)}
                 style={{
                   cursor: "pointer",
