@@ -199,6 +199,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
       backgroundColor: "transparent",
       tooltip: {
         position: "top",
+        appendToBody: true,
         formatter: (params: unknown) => {
           // 安全地类型转换
           const typedParams = params as { name: string; data: number[] };

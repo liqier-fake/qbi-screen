@@ -87,6 +87,7 @@ const KeyFocusPanel: React.FC<{
       tooltip: {
         show: false,
         trigger: "item",
+        appendToBody: true,
         formatter: "{b}: {c}个 ({d}%)",
       },
       grid: {

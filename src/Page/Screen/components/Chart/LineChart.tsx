@@ -93,6 +93,7 @@ const LineChart: React.FC<LineChartProps> = ({
       },
       tooltip: {
         trigger: "axis",
+        appendToBody: true,
         axisPointer: {
           type: "cross",
         },
