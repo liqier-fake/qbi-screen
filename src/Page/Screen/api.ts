@@ -100,7 +100,7 @@ export function apiGetSocialRisk(
   });
 }
 
-// 社会攻坚项目
+// 社区攻坚项目
 export function apiGetSocialChallenge(
   params: ApiParams & { page: number; page_size: number }
 ) {
@@ -111,7 +111,7 @@ export function apiGetSocialChallenge(
   });
 }
 
-// 社会攻坚项目详情
+// 社区攻坚项目详情
 export function apiGetSocialChallengeDetail(params: { id: string }) {
   return axios({
     url: `/community_improvement/${params.id}`,
@@ -169,10 +169,23 @@ export function apiGetTicketList(
     page?: number;
     /** 每页条数 */
     page_size?: number;
+    community?: string;
+    year?: string;
   }
 ) {
   return axios({
     url: "/stats/ticket_list",
+    method: "GET",
+    params,
+  });
+}
+// 获取社区攻坚项目top分类
+export function apiGetTopCategory(params: {
+  community: string;
+  year?: string;
+}) {
+  return axios({
+    url: "/community_improvement/top_category",
     method: "GET",
     params,
   });

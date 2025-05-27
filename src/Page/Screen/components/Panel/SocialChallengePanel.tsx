@@ -1,5 +1,5 @@
 /**
- *  社会攻坚项目面板
+ *  社区攻坚项目面板
  */
 import React, { memo, useEffect, useMemo, useState } from "react";
 import ComTable from "../ComTable";
@@ -11,8 +11,11 @@ import { dataSource4 } from "../../mock";
 import {
   apiGetSocialChallenge,
   apiGetSocialChallengeDetail,
+  apiGetTopCategory,
   TimeRange,
 } from "../../api";
+import WorkListWithDetail from "../WorkListWithDetail";
+import { Flex, Tag } from "antd";
 
 // 定义数据类型接口
 interface SocialChallengeItem {
@@ -30,8 +33,13 @@ const SocialChallengePanel: React.FC<{
   const [record, setRecord] = useState<SocialChallengeItem>({});
   const [dataSource, setDataSource] =
     useState<SocialChallengeItem[]>(dataSource4);
-
-  // 获取社会攻坚项目数据
+  const [topCategory, setTopCategory] = useState<{
+    data?: { category: string; count: number }[];
+    year?: number;
+  }>({});
+  const [topCategoryOpen, setTopCategoryOpen] = useState(false);
+  const [currentCategoryRecord, setCurrentCategoryRecord] = useState<any>({});
+  // 获取社区攻坚项目数据
   const getSocialChallengeData = async (timeRange: TimeRange) => {
     try {
       const {
@@ -43,10 +51,16 @@ const SocialChallengePanel: React.FC<{
       });
       setDataSource(socialChallengeData || dataSource4);
     } catch (error) {
-      console.error("获取社会攻坚项目数据失败:", error);
+      console.error("获取社区攻坚项目数据失败:", error);
       // 失败时使用默认数据
       setDataSource(dataSource4);
     }
+  };
+
+  // 获取社区攻坚项目top分类
+  const getTopCategory = async (community: string) => {
+    const { data } = await apiGetTopCategory({ community });
+    setTopCategory(data);
   };
 
   useEffect(() => {
@@ -89,9 +103,15 @@ const SocialChallengePanel: React.FC<{
     ] as DetailModalProps["formData"];
   }, [JSON.stringify(record)]);
 
+  useEffect(() => {
+    if (record?.community) {
+      getTopCategory(record?.community);
+    }
+  }, [record?.community]);
+
   return (
     <PanelItem
-      title="社会攻坚项目"
+      title="社区攻坚项目"
       render={
         <div className={styles.warp}>
           <ComTable
@@ -104,10 +124,37 @@ const SocialChallengePanel: React.FC<{
             }}
           />
           <DetailModal
-            title="社会攻坚项目详情"
+            title="社区攻坚项目详情"
             open={open}
             onCancel={() => setOpen(false)}
             formData={formData}
+          >
+            <Flex gap={10} wrap justify="center">
+              {topCategory?.data?.map((item) => (
+                <Tag
+                  style={{ cursor: "pointer" }}
+                  key={item?.category}
+                  color="#2e8fe7"
+                  onClick={() => {
+                    setTopCategoryOpen(true);
+                    setCurrentCategoryRecord(item);
+                  }}
+                >
+                  {item?.category}:{item?.count}
+                </Tag>
+              ))}
+            </Flex>
+          </DetailModal>
+          <WorkListWithDetail
+            title={`${currentCategoryRecord?.category}工单详情`}
+            open={topCategoryOpen}
+            onCancel={() => setTopCategoryOpen(false)}
+            timeRange={timeRange}
+            fetchParams={{
+              ...currentCategoryRecord,
+              community: record?.community,
+              year: topCategory?.year,
+            }}
           />
         </div>
       }

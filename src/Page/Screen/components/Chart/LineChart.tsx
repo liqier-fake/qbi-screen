@@ -7,6 +7,7 @@ interface LineData {
   name: string;
   data: number[];
   color?: string;
+  type?: string;
 }
 
 // 组件 Props 类型定义
@@ -141,6 +142,7 @@ const LineChart: React.FC<LineChartProps> = ({
         symbol: "none",
         lineStyle: {
           width: 2,
+          type: item.type || "solid",
         },
         itemStyle: {
           color: item.color || colorList[index],

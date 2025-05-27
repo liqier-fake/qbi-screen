@@ -100,7 +100,7 @@ const Level2TrendPanel: React.FC<{
             {...lineData}
             enableSlide={true}
             slideInterval={2000}
-            visibleDataPoints={3}
+            visibleDataPoints={4}
           />
         </div>
       }

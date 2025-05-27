@@ -156,7 +156,7 @@ const GovernanceProfilePanel: React.FC<{
             lineData={lineData?.lineData || []}
             enableSlide={true}
             slideInterval={2000}
-            visibleDataPoints={3}
+            visibleDataPoints={4}
             className={styles.manageChartItem}
           />
           <WorkListWithDetail

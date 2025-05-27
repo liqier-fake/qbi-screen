@@ -39,6 +39,7 @@ const DetailModal = ({ formData, ...rest }: DetailModalProps) => {
             </div>
           </div>
         ))}
+        {rest?.children}
       </div>
     </ComModal>
   );

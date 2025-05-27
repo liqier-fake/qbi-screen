@@ -235,7 +235,7 @@ const Screen = () => {
     getPeopleTicketCountData();
     // 攻坚重点
     // getKeyFocusData();
-    // 社会攻坚项目
+    // 社区攻坚项目
     // getSocialChallengeData();
     // 关注人群重点诉求
     // getSocialRiskData(timeRange, "");
