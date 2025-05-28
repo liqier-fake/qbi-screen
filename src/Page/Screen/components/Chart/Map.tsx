@@ -303,31 +303,41 @@ const Map: React.FC<MapProps> = ({
     const view = chart.getOption();
     if (!view.geo?.[0]) return;
 
-    // 同步所有geo层的视图状态
-    const center = view.geo[0].center;
-    const zoom = view.geo[0].zoom;
+    // 获取主地图层的视图状态
+    const mainGeo = view.geo[0];
+    const center = mainGeo.center;
+    const zoom = mainGeo.zoom;
 
-    // 更新所有geo层和地图series的视图状态
-    chart.setOption({
-      geo: view.geo.map((geo: any, index: number) => ({
-        ...geo,
-        center,
-        zoom,
-        silent: index > 0, // 只有第一层响应鼠标事件
-        roam: index === 0, // 只有第一层可以缩放和平移
-      })),
-      series: view.series.map((series: any) => {
-        if (series?.type === "map") {
-          return {
-            ...series,
-            center,
-            zoom,
-            roam: false, // 地图series不需要独立缩放
-          };
-        }
-        return series;
-      }),
-    });
+    // 构建统一的视图配置
+    const viewConfig = {
+      center,
+      zoom,
+      roam: false, // 禁用其他层的独立缩放
+    };
+
+    // 批量更新所有图层，避免单独触发渲染
+    chart.setOption(
+      {
+        geo: view.geo.map((geo, index) => ({
+          ...geo,
+          ...viewConfig,
+          silent: index > 0, // 只有第一层响应鼠标事件
+          roam: index === 0, // 只有第一层可以缩放和平移
+        })),
+        series: view.series.map((series) => {
+          if (series?.type === "map") {
+            return {
+              ...series,
+              ...viewConfig,
+            };
+          }
+          return series;
+        }),
+      },
+      {
+        replaceMerge: ["geo", "series"], // 使用replaceMerge模式更新
+      }
+    );
   };
 
   // 添加驿站弹窗相关状态
@@ -652,6 +662,7 @@ const Map: React.FC<MapProps> = ({
             layoutCenter: ["50%", "50%"],
             layoutSize: "80%",
             show: true,
+            animation: false, // 禁用动画以提高性能
             label: {
               show: false,
               emphasis: {
@@ -681,6 +692,7 @@ const Map: React.FC<MapProps> = ({
                 shadowBlur: 25,
               },
             },
+            selectedMode: false, // 禁用选中模式
           },
           // 重影1 - 注意保持roam一致性
           {
@@ -688,13 +700,13 @@ const Map: React.FC<MapProps> = ({
             zlevel: -1,
             aspectScale: 1,
             zoom: 1.0,
-            roam: true, // 启用地图缩放和平移
+            roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "51%"],
             layoutSize: "80%",
             silent: true,
+            animation: false, // 禁用动画
             itemStyle: {
               borderWidth: 1,
-              // borderColor:"rgba(17, 149, 216,0.6)",
               borderColor: "rgba(58,149,253,0.8)",
               shadowColor: "rgba(172, 122, 255,0.5)",
               shadowOffsetY: 5,
@@ -708,13 +720,13 @@ const Map: React.FC<MapProps> = ({
             zlevel: -2,
             aspectScale: 1,
             zoom: 1.0,
-            roam: true, // 启用地图缩放和平移
+            roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "52%"],
             layoutSize: "80%",
             silent: true,
+            animation: false, // 禁用动画
             itemStyle: {
               borderWidth: 1,
-              // borderColor: "rgba(57, 132, 188,0.4)",
               borderColor: "rgba(58,149,253,0.6)",
               shadowColor: "rgba(65, 214, 255,1)",
               shadowOffsetY: 5,
@@ -728,10 +740,11 @@ const Map: React.FC<MapProps> = ({
             zlevel: -3,
             aspectScale: 1,
             zoom: 1.0,
-            roam: true, // 启用地图缩放和平移
+            roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "53%"],
             layoutSize: "80%",
             silent: true,
+            animation: false, // 禁用动画
             itemStyle: {
               borderWidth: 1,
               borderColor: "rgba(58,149,253,0.4)",
@@ -747,10 +760,11 @@ const Map: React.FC<MapProps> = ({
             zlevel: -3,
             aspectScale: 1,
             zoom: 1.0,
-            roam: true, // 启用地图缩放和平移
+            roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "53%"],
             layoutSize: "80%",
             silent: true,
+            animation: false, // 禁用动画
             itemStyle: {
               borderWidth: 5,
               borderColor: "rgba(5,9,57,0.8)",
@@ -1036,9 +1050,21 @@ const Map: React.FC<MapProps> = ({
 
   // 图表实例准备完成的回调
   const handleChartReady = (instance: echarts.ECharts) => {
+    // 使用防抖处理视图变更事件
+    let viewChangeTimer: NodeJS.Timeout;
+
     instance.on("click", handleMapClick);
-    // 添加视图变更事件监听
-    instance.on("georoam", handleViewChange);
+    // 添加视图变更事件监听，使用节流处理
+    instance.on("georoam", () => {
+      // 清除之前的定时器
+      if (viewChangeTimer) {
+        clearTimeout(viewChangeTimer);
+      }
+      // 设置新的定时器，延迟16ms（约一帧）执行
+      viewChangeTimer = setTimeout(() => {
+        handleViewChange();
+      }, 16);
+    });
   };
 
   // 创建Portal容器，确保弹窗渲染在body层级
