@@ -135,7 +135,7 @@ const AIChat = ({ bubuleContent, onRef }: AIChatProps) => {
         onOk={handleOk}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        maskClosable={false}
+        maskClosable={true}
         closable={false}
         destroyOnClose={true}
         centered={true}
