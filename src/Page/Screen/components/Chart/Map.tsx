@@ -294,6 +294,42 @@ const Map: React.FC<MapProps> = ({
     { type: MapTypeEnum.area, name: MapTypeNames[MapTypeEnum.area] },
   ]);
 
+  // 添加视图状态同步处理函数
+  const handleViewChange = () => {
+    const chart = chartRef.current?.getChartInstance();
+    if (!chart) return;
+
+    // 获取当前视图状态
+    const view = chart.getOption();
+    if (!view.geo?.[0]) return;
+
+    // 同步所有geo层的视图状态
+    const center = view.geo[0].center;
+    const zoom = view.geo[0].zoom;
+
+    // 更新所有geo层和地图series的视图状态
+    chart.setOption({
+      geo: view.geo.map((geo: any, index: number) => ({
+        ...geo,
+        center,
+        zoom,
+        silent: index > 0, // 只有第一层响应鼠标事件
+        roam: index === 0, // 只有第一层可以缩放和平移
+      })),
+      series: view.series.map((series: any) => {
+        if (series?.type === "map") {
+          return {
+            ...series,
+            center,
+            zoom,
+            roam: false, // 地图series不需要独立缩放
+          };
+        }
+        return series;
+      }),
+    });
+  };
+
   // 添加驿站弹窗相关状态
   const [showStationPopup, setShowStationPopup] = useState<boolean>(false);
   const [selectedStation, setSelectedStation] = useState<StationInfo | null>(
@@ -440,6 +476,135 @@ const Map: React.FC<MapProps> = ({
       const option: EChartsOption = {
         // backgroundColor: "#030528",
         backgroundColor: "transparent",
+        graphic: {
+          type: "group",
+          left: "center",
+          top: "center",
+          children: [
+            // 中心点
+            {
+              type: "circle",
+              shape: {
+                r: 20,
+              },
+              style: {
+                fill: "rgba(0,202,255,0)",
+                shadowColor: "rgba(0,202,255,0.8)",
+                shadowBlur: 20,
+              },
+            },
+            // 第一层涟漪
+            {
+              type: "circle",
+              shape: {
+                r: 80,
+              },
+              style: {
+                fill: "rgba(0,202,255,0.15)",
+                stroke: "rgba(0,202,255,0.3)",
+                lineWidth: 2,
+              },
+              keyframeAnimation: [
+                {
+                  duration: 4000,
+                  loop: true,
+                  keyframes: [
+                    {
+                      percent: 0,
+                      scaleX: 1,
+                      scaleY: 1,
+                      style: {
+                        opacity: 1,
+                      },
+                    },
+                    {
+                      percent: 1,
+                      scaleX: 5,
+                      scaleY: 5,
+                      style: {
+                        opacity: 0,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            // 第二层涟漪
+            {
+              type: "circle",
+              shape: {
+                r: 80,
+              },
+              style: {
+                fill: "rgba(0,202,255,0.15)",
+                stroke: "rgba(0,202,255,0.3)",
+                lineWidth: 2,
+              },
+              keyframeAnimation: [
+                {
+                  duration: 4000,
+                  delay: 1000,
+                  loop: true,
+                  keyframes: [
+                    {
+                      percent: 0,
+                      scaleX: 1,
+                      scaleY: 1,
+                      style: {
+                        opacity: 1,
+                      },
+                    },
+                    {
+                      percent: 1,
+                      scaleX: 5,
+                      scaleY: 5,
+                      style: {
+                        opacity: 0,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            // 第三层涟漪
+            {
+              type: "circle",
+              shape: {
+                r: 80,
+              },
+              style: {
+                fill: "rgba(0,202,255,0.15)",
+                stroke: "rgba(0,202,255,0.3)",
+                lineWidth: 2,
+              },
+              keyframeAnimation: [
+                {
+                  duration: 4000,
+                  delay: 500,
+                  loop: true,
+                  keyframes: [
+                    {
+                      percent: 0,
+                      scaleX: 1,
+                      scaleY: 1,
+                      style: {
+                        opacity: 1,
+                      },
+                    },
+                    {
+                      percent: 1,
+                      scaleX: 5,
+                      scaleY: 5,
+                      style: {
+                        opacity: 0,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         tooltip: {
           trigger: "item",
           formatter: function (params: {
@@ -483,6 +648,7 @@ const Map: React.FC<MapProps> = ({
             map: currentMapType,
             aspectScale: 1,
             zoom: 1.0,
+            roam: true, // 启用地图缩放和平移
             layoutCenter: ["50%", "50%"],
             layoutSize: "80%",
             show: true,
@@ -522,10 +688,10 @@ const Map: React.FC<MapProps> = ({
             zlevel: -1,
             aspectScale: 1,
             zoom: 1.0,
+            roam: true, // 启用地图缩放和平移
             layoutCenter: ["50%", "51%"],
             layoutSize: "80%",
             silent: true,
-            roam: false,
             itemStyle: {
               borderWidth: 1,
               // borderColor:"rgba(17, 149, 216,0.6)",
@@ -542,10 +708,10 @@ const Map: React.FC<MapProps> = ({
             zlevel: -2,
             aspectScale: 1,
             zoom: 1.0,
+            roam: true, // 启用地图缩放和平移
             layoutCenter: ["50%", "52%"],
             layoutSize: "80%",
             silent: true,
-            roam: false,
             itemStyle: {
               borderWidth: 1,
               // borderColor: "rgba(57, 132, 188,0.4)",
@@ -562,10 +728,10 @@ const Map: React.FC<MapProps> = ({
             zlevel: -3,
             aspectScale: 1,
             zoom: 1.0,
+            roam: true, // 启用地图缩放和平移
             layoutCenter: ["50%", "53%"],
             layoutSize: "80%",
             silent: true,
-            roam: false,
             itemStyle: {
               borderWidth: 1,
               borderColor: "rgba(58,149,253,0.4)",
@@ -581,10 +747,10 @@ const Map: React.FC<MapProps> = ({
             zlevel: -3,
             aspectScale: 1,
             zoom: 1.0,
+            roam: true, // 启用地图缩放和平移
             layoutCenter: ["50%", "53%"],
             layoutSize: "80%",
             silent: true,
-            roam: false,
             itemStyle: {
               borderWidth: 5,
               borderColor: "rgba(5,9,57,0.8)",
@@ -602,6 +768,7 @@ const Map: React.FC<MapProps> = ({
             map: currentMapType,
             aspectScale: 1,
             zoom: 1.0,
+            roam: true, // 启用地图缩放和平移
             showLegendSymbol: true,
             label: {
               show: false,
@@ -861,12 +1028,17 @@ const Map: React.FC<MapProps> = ({
 
       // 调用父组件的下钻回调
       onDrillDown?.(nextMapType);
+    } else if (currentMapType !== MapTypeEnum.area && !params.name) {
+      // 如果当前不是园区地图，且点击了空白区域（params.name为空），则返回上层
+      onDrillDown?.(MapTypeEnum.area);
     }
   };
 
   // 图表实例准备完成的回调
   const handleChartReady = (instance: echarts.ECharts) => {
     instance.on("click", handleMapClick);
+    // 添加视图变更事件监听
+    instance.on("georoam", handleViewChange);
   };
 
   // 创建Portal容器，确保弹窗渲染在body层级
