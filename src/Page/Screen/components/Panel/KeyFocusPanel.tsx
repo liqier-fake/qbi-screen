@@ -9,10 +9,10 @@ import PanelItem from "../PanelItem";
 import styles from "../../index.module.less";
 import { apiGetKeyFocus, apiGetWorkDetail, TimeRange } from "../../api";
 import { areaOption } from "../../mock";
-import { WorkListModal } from "../WorkMoal";
 import { EChartsOption } from "echarts";
 import { worckColumns } from "../../columns";
 import { columns3 } from "../../columns";
+import WorkListModal from "../WorkMoal";
 
 /**
  * 攻坚重点面板组件
@@ -187,7 +187,7 @@ const KeyFocusPanel: React.FC<{
             open={workOpen}
             onCancel={handleClose}
             columns={worckColumns}
-            fetchDataApi={apiGetWorkDetail}
+            fetchDataApi={apiGetWorkDetail as any}
             fetchParams={{
               category: workRecord?.category,
               community: workRecord?.community,

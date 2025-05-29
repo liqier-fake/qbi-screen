@@ -26,6 +26,8 @@ export enum BaseType {
   source_count = "source_count",
   // 民有所呼 我有所为
   level1_count = "level1_count",
+  // 新就业群体的组成信息
+  new_employment_group_count = "new_employment_group_count",
 }
 
 //  攻坚重点-事件列表

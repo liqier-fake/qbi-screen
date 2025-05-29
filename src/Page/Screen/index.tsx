@@ -427,6 +427,7 @@ const Screen = () => {
                     onHoverItem={onHoverCardTwo}
                     onIconClick={handleCardThreeIconClick}
                     currentSelectType={currentMapSelectType}
+                    timeRange={timeRange}
                   />
                 </Flex>
               }

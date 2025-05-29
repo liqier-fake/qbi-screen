@@ -1,7 +1,7 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState, useCallback, useMemo } from "react";
 import styles from "./index.module.less";
 import threeIcon from "./img/three_icon.png";
-import { Flex } from "antd";
+import { Flex, Tag } from "antd";
 import { ComCustomItemType } from "./types";
 import { useHoverSummary } from "./useHoverSummary";
 import { getPeopleGroupDescription } from "./categoryDescriptions";
@@ -12,12 +12,22 @@ import { EnvironmentOutlined } from "@ant-design/icons";
 
 // 导入地图选择类型枚举
 import { MapSelectTypeEnum } from "../../components/Chart/Map";
+import {
+  apiGetTicketList,
+  TimeRange,
+  apiGetStaticBasic,
+  BaseType,
+} from "../../api";
+import WorkListModal from "../WorkMoal";
+import columns from "../CategoryModal/columns";
+import DividerTitle from "../DividerTitle";
 
 interface CardThreeProps {
   list: ComCustomItemType[];
   onHoverItem?: (content: string) => void;
   onIconClick?: () => void;
   currentSelectType?: MapSelectTypeEnum; // 添加当前选择类型参数
+  timeRange: TimeRange; // 添加时间范围参数，使用TimeRange类型
 }
 
 /**
@@ -25,15 +35,30 @@ interface CardThreeProps {
  * @param list 列表数据
  * @param onHoverItem hover回调
  * @param onIconClick 图标点击回调
+ * @param timeRange 时间范围
  */
 const CardThree = ({
   list = [],
   onHoverItem,
   onIconClick,
   currentSelectType,
+  timeRange,
 }: CardThreeProps) => {
   // 存储实际值（不变）
   const [realValues, setRealValues] = useState<number[]>([]);
+  // 工单列表弹窗状态
+  const [workListOpen, setWorkListOpen] = useState(false);
+  // 当前选中的人群类型
+  const [selectedSmqt, setSelectedSmqt] = useState("");
+
+  const [total, setTotal] = useState(0);
+
+  const [smqtList, setSmqtList] = useState<
+    {
+      key: string;
+      count: number;
+    }[]
+  >([]);
 
   // 初始化实际数据
   useEffect(() => {
@@ -58,6 +83,37 @@ const CardThree = ({
     getPeopleGroupDescription
   );
 
+  // 处理点击事件，打开工单列表
+  const handleItemClick = (item: ComCustomItemType) => {
+    setSelectedSmqt(item.title);
+    setWorkListOpen(true);
+
+    if (item.title === "新就业群体") {
+      apiGetStaticBasic({
+        type: BaseType.new_employment_group_count,
+        time_range: timeRange,
+      }).then((res) => {
+        setSmqtList(res.data?.data || []);
+      });
+    }
+  };
+
+  // 使用useCallback缓存关闭弹窗函数
+  const handleCloseWorkList = useCallback(() => {
+    setWorkListOpen(false);
+    setSelectedSmqt("");
+  }, []);
+
+  // 构建请求参数
+  const modalParams = {
+    smqt: selectedSmqt,
+    time_range: timeRange,
+  };
+
+  const showSmqtList = useMemo(() => {
+    return selectedSmqt === "新就业群体" && smqtList.length > 0;
+  }, [selectedSmqt, smqtList]);
+
   return (
     <div className={styles.comCustom}>
       <div className={styles.cardThree}>
@@ -70,7 +126,8 @@ const CardThree = ({
               key={i}
               onMouseEnter={() => onMouseEnter(item)}
               onMouseLeave={onMouseLeave}
-              style={{ position: "relative" }}
+              style={{ position: "relative", cursor: "pointer" }}
+              onClick={() => handleItemClick(item)}
             >
               {showIcon && (
                 <EnvironmentOutlined
@@ -82,7 +139,10 @@ const CardThree = ({
                         ? "grey"
                         : "#0cb4f0",
                   }}
-                  onClick={onIconClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onIconClick?.();
+                  }}
                 />
               )}
               <img src={threeIcon} alt="" />
@@ -96,13 +156,49 @@ const CardThree = ({
                     duration={1000}
                   />
                 </span>
-                {/* <span className={styles.value}>人</span> */}
+                <span className={styles.value}>人</span>
               </Flex>
               <span className={styles.value}>{item.title}</span>
             </div>
           );
         })}
       </div>
+
+      <WorkListModal
+        title={selectedSmqt}
+        open={workListOpen}
+        onCancel={handleCloseWorkList}
+        columns={columns}
+        showAiSummary={false}
+        fetchDataApi={apiGetTicketList}
+        fetchParams={modalParams}
+        pagination={{
+          defaultCurrent: 1,
+          defaultPageSize: 10,
+        }}
+        onDataLoaded={(data) => {
+          setTotal(data?.total || 0);
+        }}
+        tableProps={{
+          scroll: { y: 320 },
+        }}
+      >
+        <DividerTitle title="工单数量" />
+
+        <Tag color="blue">
+          {selectedSmqt} : {total}
+        </Tag>
+
+        {showSmqtList && (
+          <div style={{ marginTop: "10px" }}>
+            {smqtList?.map((item) => (
+              <Tag color="blue" key={item.key}>
+                {item.key} : {item.count}
+              </Tag>
+            ))}
+          </div>
+        )}
+      </WorkListModal>
     </div>
   );
 };

@@ -18,7 +18,7 @@ const PeopleProfilePanel: React.FC<{
       title="人群画像"
       render={
         <Flex justify="center" align="center" className={styles.peopleDraw}>
-          <CardThree list={data.list} />
+          <CardThree list={data.list} timeRange={data.time_range} />
         </Flex>
       }
     />

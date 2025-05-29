@@ -3,12 +3,9 @@
  * 统一处理所有工单列表弹窗场景：分类统计、热力图、词云等
  */
 import React from "react";
-import { WorkListModal } from "../WorkMoal";
-import DetailModal from "../DetailModal";
 import columns from "../CategoryModal/columns"; // 复用现有的列配置
 import { apiGetTicketList, TimeRange } from "../../api";
-import { useDetailModal } from "../../hooks/useDetailModal";
-import { TicketRecord } from "../../types";
+import WorkListModal from "../WorkMoal";
 
 export interface WorkListWithDetailProps {
   /** 弹窗标题 */
@@ -50,9 +47,6 @@ const WorkListWithDetail: React.FC<WorkListWithDetailProps> = ({
     defaultPageSize: 10,
   },
 }) => {
-  // 使用详情弹窗Hook
-  const detailModal = useDetailModal();
-
   return (
     <>
       <WorkListModal
@@ -60,30 +54,12 @@ const WorkListWithDetail: React.FC<WorkListWithDetailProps> = ({
         open={open}
         onCancel={onCancel}
         columns={columns}
-        fetchDataApi={apiGetTicketList}
+        fetchDataApi={apiGetTicketList as any}
         fetchParams={{
           ...fetchParams,
           time_range: timeRange,
         }}
         pagination={pagination}
-        onRow={(record: TicketRecord) => {
-          return {
-            onClick: () => {
-              detailModal.openModal(record);
-            },
-            style: {
-              cursor: "pointer",
-            },
-          };
-        }}
-      />
-
-      <DetailModal
-        title="工单详情"
-        open={detailModal.open}
-        onCancel={detailModal.closeModal}
-        formData={detailModal.formData}
-        showCloseIcon={true}
       />
     </>
   );
