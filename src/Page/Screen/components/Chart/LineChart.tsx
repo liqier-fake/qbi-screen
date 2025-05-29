@@ -5,7 +5,7 @@ import type { EChartsOption, SetOptionOpts, ECharts } from "echarts";
 // 折线数据类型定义
 interface LineData {
   name: string;
-  data: number[];
+  data: Array<number | string | { value: number; isPrediction: boolean }>;
   color?: string;
   type?: string;
   barWidth?: string;
@@ -18,6 +18,7 @@ interface LineData {
 interface LineChartProps {
   lineData: LineData[];
   xData: string[] | number[];
+  predictionData?: boolean[]; // 添加预测数据标识
   chartSeries?: EChartsOption;
   className?: string;
   style?: React.CSSProperties;
@@ -27,6 +28,7 @@ interface LineChartProps {
   slideInterval?: number;
   // 可视区域宽度（显示多少个数据点）
   visibleDataPoints?: number;
+  xAxis?: EChartsOption["xAxis"];
   yAxis?: EChartsOption["yAxis"];
   tooltip?: EChartsOption["tooltip"];
   chartType?: "line" | "thb";
@@ -37,12 +39,14 @@ interface TooltipParam {
   axisValue: string;
   marker: string;
   seriesName: string;
-  value: number;
+  value: number | string;
+  data?: { value: number; isPrediction: boolean };
 }
 
 const LineChart: React.FC<LineChartProps> = ({
   lineData = [],
   xData = [],
+  predictionData = [],
   className,
   style,
   enableSlide = false,
@@ -50,6 +54,7 @@ const LineChart: React.FC<LineChartProps> = ({
   visibleDataPoints = 10,
   yAxis = {},
   tooltip = {},
+  xAxis = {},
   chartType = "line",
 }) => {
   // 图表实例引用
@@ -68,6 +73,10 @@ const LineChart: React.FC<LineChartProps> = ({
       xData.length
     );
     const visibleXData = xData.slice(startIndexRef.current, endIndex);
+    const visiblePredictionData = predictionData.slice(
+      startIndexRef.current,
+      endIndex
+    );
 
     // 对每个线条做同样的截取处理
     const visibleLineData = lineData.map((line) => ({
@@ -105,7 +114,16 @@ const LineChart: React.FC<LineChartProps> = ({
         },
         formatter: function (params: TooltipParam[]) {
           let result = params[0].axisValue + "<br/>";
-          params.forEach((item) => {
+          // 过滤掉值为"-"的数据
+          const validParams = params.filter((item) => item.value !== "-");
+
+          // 过滤重复值
+          const uniqueParams = validParams.filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.seriesName === item.seriesName)
+          );
+
+          uniqueParams.forEach((item) => {
             const value =
               chartType === "thb" && item.seriesName.includes("比")
                 ? `${item.value}%`
@@ -116,6 +134,7 @@ const LineChart: React.FC<LineChartProps> = ({
         },
         ...tooltip,
       },
+
       xAxis: {
         type: "category",
         data: visibleXData,
@@ -136,6 +155,9 @@ const LineChart: React.FC<LineChartProps> = ({
           lineHeight: 12, // 行高
           align: "left", // 文字左对齐
           padding: [0, 0, 0, -30], // 向左偏移标签
+          formatter: (value: string, index: number) => {
+            return visiblePredictionData[index] ? `${value}\n(预测)` : value;
+          },
         },
         splitLine: {
           show: true,
@@ -144,28 +166,16 @@ const LineChart: React.FC<LineChartProps> = ({
             type: "dashed",
           },
         },
+        ...xAxis,
       },
       yAxis: Array.isArray(yAxis) ? yAxis : [yAxis], // 确保yAxis始终是数组
       series: visibleLineData.map((item, index) => ({
-        name: item.name,
-        type: item.type || "line",
-        data: item.data,
-        smooth: item.type === "line",
-        symbol: item.type === "line" ? "none" : undefined,
-        lineStyle:
-          item.type === "line"
-            ? {
-                width: 2,
-                type: "solid",
-              }
-            : undefined,
         itemStyle: {
           color: item.color || colorList[index],
         },
-        barWidth: item.barWidth,
-        barGap: item.barGap,
-        barCategoryGap: item.barCategoryGap,
-        yAxisIndex: item.yAxisIndex || 0, // 使用传入的yAxisIndex
+        ...item,
+        smooth: item.type === "line",
+        symbol: item.type === "line" ? "none" : undefined,
         areaStyle:
           item.type === "line"
             ? {
@@ -181,7 +191,16 @@ const LineChart: React.FC<LineChartProps> = ({
         },
       ],
     } as EChartsOption;
-  }, [visibleDataPoints, xData, lineData, tooltip, chartType, yAxis]);
+  }, [
+    visibleDataPoints,
+    xData,
+    predictionData,
+    lineData,
+    tooltip,
+    chartType,
+    xAxis,
+    yAxis,
+  ]);
 
   // 处理图表平移效果
   useEffect(() => {
@@ -206,6 +225,10 @@ const LineChart: React.FC<LineChartProps> = ({
           xData.length
         );
         const visibleXData = xData.slice(startIndexRef.current, endIndex);
+        const visiblePredictionData = predictionData.slice(
+          startIndexRef.current,
+          endIndex
+        );
 
         // 对每个线条做同样的截取处理
         const visibleLineData = lineData.map((line) => ({
@@ -218,6 +241,13 @@ const LineChart: React.FC<LineChartProps> = ({
           {
             xAxis: {
               data: visibleXData,
+              axisLabel: {
+                formatter: (value: string, index: number) => {
+                  return visiblePredictionData[index]
+                    ? `${value}\n(预测)`
+                    : value;
+                },
+              },
             },
             series: visibleLineData.map((item) => ({
               data: item.data,
@@ -240,7 +270,14 @@ const LineChart: React.FC<LineChartProps> = ({
         timerRef.current = null;
       }
     };
-  }, [enableSlide, slideInterval, lineData, xData, visibleDataPoints]);
+  }, [
+    enableSlide,
+    slideInterval,
+    lineData,
+    xData,
+    predictionData,
+    visibleDataPoints,
+  ]);
 
   // 获取图表实例的回调函数
   const handleChartReady = (instance: ECharts) => {

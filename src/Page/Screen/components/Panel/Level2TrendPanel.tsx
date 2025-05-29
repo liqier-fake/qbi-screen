@@ -11,6 +11,25 @@ import { areaOption, ScreenDataType } from "../../mock";
 import { transformByField } from "./util";
 import { Flex, Tag } from "antd";
 
+// 数据项类型定义
+interface DataItem {
+  c2: string;
+  count: string | number;
+  is_prediction?: boolean;
+}
+
+// 区间类型定义
+interface DataRange {
+  start: number;
+  end: number;
+  isPrediction: boolean;
+}
+
+// 数据结构类型定义
+interface Level2TrendData {
+  [key: string]: DataItem[];
+}
+
 const Level2TrendPanel: React.FC<{
   timeRange: TimeRange;
   defautValue?: string;
@@ -24,6 +43,7 @@ const Level2TrendPanel: React.FC<{
     xData: [],
     lineData: [],
   });
+  const [predictionData, setPredictionData] = useState<boolean[]>([]);
 
   // 比较类型配置
   const comparisonConfig = [
@@ -49,23 +69,112 @@ const Level2TrendPanel: React.FC<{
 
       const sortedMonths = Object.keys(level2TrendData).sort();
 
+      // 数组，月是否预测数据
+      const predictionData = Object.entries(level2TrendData).map(
+        ([, values]) => {
+          const isPrediction =
+            (values as { is_prediction: boolean }[])?.[0]?.is_prediction ||
+            false;
+          return isPrediction;
+        }
+      );
+
+      // 分割数据
+
+      console.log(predictionData, "predictionData");
+
       if (!comparisonType) {
-        // 没有选择同比环比时，使用原来的数据处理方式
+        // 获取连续区间，预测线从最后一个实际数据点开始
+        const getRanges = (predictionData: boolean[]): DataRange[] => {
+          // 找到第一个预测点的位置
+          const firstPredictionIndex = predictionData.findIndex(
+            (isPred) => isPred
+          );
+
+          if (firstPredictionIndex === -1) {
+            // 没有预测数据，返回单个实线区间
+            return [
+              {
+                start: 0,
+                end: predictionData.length - 1,
+                isPrediction: false,
+              },
+            ];
+          }
+
+          // 返回两个区间：实线区间和虚线区间（从实线最后一个点开始）
+          return [
+            {
+              start: 0,
+              end: firstPredictionIndex - 1,
+              isPrediction: false,
+            },
+            {
+              start: firstPredictionIndex - 1, // 从最后一个实际数据点开始
+              end: predictionData.length - 1,
+              isPrediction: true,
+            },
+          ];
+        };
+
         const transformedData = transformByField(
-          level2TrendData,
+          level2TrendData as Level2TrendData,
           "c2",
           "count"
         );
+
         const lineData = {
           xData: sortedMonths,
-          lineData: Object.entries(transformedData).map(([key, values]) => ({
-            name: key,
-            type: "line",
-            yAxisIndex: 0,
-            data: sortedMonths.map((month) => values[month] || 0),
-          })),
+          lineData: Object.entries(transformedData).flatMap(
+            ([key, values], index) => {
+              // 使用统一的颜色列表
+              const colorList = [
+                "#00FFC3",
+                "#7D00FF",
+                "#00AEFF",
+                "#FF3B3B",
+                "#5FFF00",
+              ];
+              const color = colorList[index % colorList.length];
+
+              // 获取数据值数组
+              const dataValues = sortedMonths.map((month) =>
+                Number(values[month] || 0)
+              );
+
+              // 获取区间
+              const ranges = getRanges(predictionData);
+
+              // 为每个区间创建一个系列
+              return ranges.map((range) => {
+                // 创建数据数组
+                const seriesData = dataValues.map((value, idx) => {
+                  if (idx >= range.start && idx <= range.end) {
+                    return value;
+                  }
+                  return "-";
+                });
+
+                return {
+                  name: key,
+                  type: "line",
+                  yAxisIndex: 0,
+                  data: seriesData,
+                  smooth: true,
+                  showSymbol: false,
+                  itemStyle: { color },
+                  lineStyle: {
+                    width: 2,
+                    type: range.isPrediction ? "dashed" : "solid",
+                  },
+                };
+              });
+            }
+          ),
         };
-        setLineData(lineData);
+
+        setLineData(lineData as any);
+        setPredictionData(predictionData);
       } else {
         // 选择了同比或环比时，使用柱状图+折线图的组合
         const baseData = transformByField(level2TrendData, "c2", "count");
@@ -126,6 +235,7 @@ const Level2TrendPanel: React.FC<{
         }
 
         setLineData(chartData);
+        setPredictionData(predictionData);
       }
     };
     getLevel2TrendData();
@@ -175,6 +285,7 @@ const Level2TrendPanel: React.FC<{
             slideInterval={2000}
             visibleDataPoints={4}
             chartType={comparisonType ? "thb" : "line"}
+            predictionData={predictionData}
             yAxis={[
               {
                 type: "value",
@@ -199,9 +310,7 @@ const Level2TrendPanel: React.FC<{
               comparisonType
                 ? {
                     type: "value",
-                    // name: comparisonType === "tb" ? "同比" : "环比",
                     position: "right",
-
                     axisLabel: {
                       color: "#fff",
                       formatter: "{value}%",
