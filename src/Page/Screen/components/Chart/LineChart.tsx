@@ -8,6 +8,10 @@ interface LineData {
   data: number[];
   color?: string;
   type?: string;
+  barWidth?: string;
+  barGap?: number;
+  barCategoryGap?: number;
+  yAxisIndex?: number;
 }
 
 // 组件 Props 类型定义
@@ -23,9 +27,9 @@ interface LineChartProps {
   slideInterval?: number;
   // 可视区域宽度（显示多少个数据点）
   visibleDataPoints?: number;
-  isPercentage?: boolean;
   yAxis?: EChartsOption["yAxis"];
   tooltip?: EChartsOption["tooltip"];
+  chartType?: "line" | "thb";
 }
 
 // 定义 tooltip 参数类型
@@ -46,7 +50,7 @@ const LineChart: React.FC<LineChartProps> = ({
   visibleDataPoints = 10,
   yAxis = {},
   tooltip = {},
-  isPercentage = false,
+  chartType = "line",
 }) => {
   // 图表实例引用
   const chartInstanceRef = useRef<ECharts | null>(null);
@@ -72,7 +76,6 @@ const LineChart: React.FC<LineChartProps> = ({
     }));
 
     return {
-      // backgroundColor: "#001529",
       grid: {
         left: "3%",
         right: "4%",
@@ -103,7 +106,10 @@ const LineChart: React.FC<LineChartProps> = ({
         formatter: function (params: TooltipParam[]) {
           let result = params[0].axisValue + "<br/>";
           params.forEach((item) => {
-            const value = isPercentage ? `${item.value}%` : item.value;
+            const value =
+              chartType === "thb" && item.seriesName.includes("比")
+                ? `${item.value}%`
+                : item.value;
             result += `${item.marker} ${item.seriesName}: ${value}<br/>`;
           });
           return result;
@@ -111,9 +117,9 @@ const LineChart: React.FC<LineChartProps> = ({
         ...tooltip,
       },
       xAxis: {
-        type: "category" as const,
+        type: "category",
         data: visibleXData,
-        boundaryGap: false,
+        boundaryGap: chartType === "thb", // 为柱状图设置为true
         axisLine: {
           lineStyle: {
             color: "#304766",
@@ -139,43 +145,34 @@ const LineChart: React.FC<LineChartProps> = ({
           },
         },
       },
-      yAxis: {
-        type: "value",
-        axisLabel: {
-          color: "#fff",
-          formatter: isPercentage ? "{value}%" : "{value}",
-        },
-        axisLine: {
-          lineStyle: {
-            color: "#304766",
-          },
-        },
-        splitLine: {
-          lineStyle: {
-            color: "#304766",
-            type: "dashed",
-          },
-        },
-        ...yAxis,
-      },
+      yAxis: Array.isArray(yAxis) ? yAxis : [yAxis], // 确保yAxis始终是数组
       series: visibleLineData.map((item, index) => ({
         name: item.name,
-        type: "line",
+        type: item.type || "line",
         data: item.data,
-        smooth: true,
-        symbol: "none",
-        lineStyle: {
-          width: 2,
-          type: item.type || "solid",
-        },
+        smooth: item.type === "line",
+        symbol: item.type === "line" ? "none" : undefined,
+        lineStyle:
+          item.type === "line"
+            ? {
+                width: 2,
+                type: "solid",
+              }
+            : undefined,
         itemStyle: {
           color: item.color || colorList[index],
         },
-        areaStyle: {
-          opacity: 0.1,
-        },
+        barWidth: item.barWidth,
+        barGap: item.barGap,
+        barCategoryGap: item.barCategoryGap,
+        yAxisIndex: item.yAxisIndex || 0, // 使用传入的yAxisIndex
+        areaStyle:
+          item.type === "line"
+            ? {
+                opacity: 0.1,
+              }
+            : undefined,
       })),
-      // 添加 dataZoom 组件以支持区间滑动
       dataZoom: [
         {
           type: "inside",
@@ -184,7 +181,7 @@ const LineChart: React.FC<LineChartProps> = ({
         },
       ],
     } as EChartsOption;
-  }, [lineData, xData, visibleDataPoints, startIndexRef.current]);
+  }, [visibleDataPoints, xData, lineData, tooltip, chartType, yAxis]);
 
   // 处理图表平移效果
   useEffect(() => {

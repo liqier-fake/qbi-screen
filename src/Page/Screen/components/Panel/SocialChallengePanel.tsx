@@ -7,7 +7,7 @@ import PanelItem from "../PanelItem";
 import styles from "../../index.module.less";
 import DetailModal, { DetailModalProps } from "../DetailModal";
 import { columns4 } from "../../columns";
-import { dataSource4 } from "../../mock";
+
 import {
   apiGetSocialChallenge,
   apiGetSocialChallengeDetail,
@@ -31,8 +31,7 @@ const SocialChallengePanel: React.FC<{
 }> = ({ timeRange }) => {
   const [open, setOpen] = useState(false);
   const [record, setRecord] = useState<SocialChallengeItem>({});
-  const [dataSource, setDataSource] =
-    useState<SocialChallengeItem[]>(dataSource4);
+  const [dataSource, setDataSource] = useState<SocialChallengeItem[]>([]);
   const [topCategory, setTopCategory] = useState<{
     data?: { category: string; count: number }[];
     year?: number;
@@ -49,11 +48,11 @@ const SocialChallengePanel: React.FC<{
         page: 1,
         page_size: 20,
       });
-      setDataSource(socialChallengeData || dataSource4);
+      setDataSource(socialChallengeData || []);
     } catch (error) {
       console.error("获取社区攻坚项目数据失败:", error);
       // 失败时使用默认数据
-      setDataSource(dataSource4);
+      setDataSource([]);
     }
   };
 
@@ -91,12 +90,12 @@ const SocialChallengePanel: React.FC<{
       },
       {
         key: "llm_hot_items",
-        label: "热点事项(大模型)",
+        label: "下阶段立项参考（智能推荐）",
         value: llm_hot_items || "",
       },
       {
         key: "llm_intro",
-        label: "项目简介(大模型)",
+        label: "下阶段立项简介（智能推荐）",
         value: llm_intro || "",
         // type: "comcontent" as const,
       },

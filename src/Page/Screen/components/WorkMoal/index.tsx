@@ -165,6 +165,8 @@ const WorkListModal = ({
   });
   // AI总结
   const [aiSummary, setAiSummary] = useState<string>("");
+  // AI总结加载状态
+  const [aiLoading, setAiLoading] = useState(false);
   // 中断控制器
   const ctrlRef = useRef<AbortController | null>(null);
 
@@ -206,6 +208,9 @@ const WorkListModal = ({
       return;
     }
 
+    // 设置加载状态为true
+    setAiLoading(true);
+
     // 取消之前的请求
     if (ctrlRef.current) {
       ctrlRef.current.abort();
@@ -228,7 +233,6 @@ const WorkListModal = ({
 
     // 重置AI总结
     setAiSummary("");
-
     // 使用fetchEventSource请求AI总结
     fetchEventSource(`${import.meta.env.VITE_BASE_API_URL}/process-data`, {
       method: "POST",
@@ -245,16 +249,23 @@ const WorkListModal = ({
         try {
           const res = JSON.parse(msg.data);
           setAiSummary((prev) => prev + (res.content || ""));
+          // 如果收到消息，说明已经开始生成内容，可以关闭loading
+          if (res.content) {
+            setAiLoading(false);
+          }
         } catch (error) {
           console.error("解析AI总结数据失败:", error);
+          setAiLoading(false);
         }
       },
       onclose() {
         console.log("AI总结请求关闭");
+        setAiLoading(false);
       },
       onerror(err) {
         console.error("AI总结请求出错:", err);
         setAiSummary("AI总结生成失败，请稍后再试");
+        setAiLoading(false);
         // 阻止自动重试
         throw new Error("请求失败，终止 fetchEventSource");
       },
@@ -278,6 +289,7 @@ const WorkListModal = ({
       // 弹窗关闭时，清空数据和总结
       setDataSource([]);
       setAiSummary("");
+      setAiLoading(false);
       // 取消请求
       if (ctrlRef.current) {
         ctrlRef.current.abort();
@@ -312,7 +324,10 @@ const WorkListModal = ({
     >
       <div className={styles.workModalContent}>
         <div className={styles.divider}>AI总结</div>
-        <ComContent content={aiSummary || ""} markdown={true} />
+        <ComContent
+          content={aiLoading ? "加载中..." : aiSummary || ""}
+          markdown={true}
+        />
         <div className={styles.divider}>工单详情</div>
         <Table
           dataSource={dataSource}

@@ -107,59 +107,61 @@ const Heatmap: React.FC<HeatmapProps> = ({
 
       setHeatmapData(heatmapDataArray);
       previousDataRef.current = heatmapDataArray;
-    } else {
-      // 如果没有API数据，使用默认数据
-      const defaultYData = [
-        "新市民劳动者",
-        "新就业群体",
-        "困境群体",
-        "退役军人",
-        "重点关注人群",
-      ];
-
-      const defaultXData = [
-        "公共服务",
-        "行政执法",
-        "创业服务",
-        "出租房管理",
-        "矛盾纠纷",
-        "职业培训",
-        "残疾人服务",
-        "团购小服务",
-        "特殊困难家庭服务",
-        "基层治理",
-        "社会保障",
-        "劳动权益",
-        "文化服务",
-        "医疗保健",
-        "教育辅导",
-        "环境治理",
-        "住房问题",
-        "交通出行",
-        "政策咨询",
-        "民族宗教",
-      ];
-
-      setYData(defaultYData);
-      setXData(defaultXData);
-
-      // 生成模拟数据
-      const mockData = defaultYData
-        .map((_, yi) => {
-          return defaultXData.map((_, xi) => {
-            // 生成更有区分度的数据
-            const baseValue = Math.floor(Math.random() * 3000);
-            const bonus = Math.floor(Math.random() * 2000);
-            // 为相邻的单元格创建明显的数值差异，使平移效果更明显
-            const value = xi % 2 === 0 ? baseValue + bonus : baseValue;
-            return [xi, yi, value];
-          });
-        })
-        .flat();
-
-      setHeatmapData(mockData);
-      previousDataRef.current = mockData;
     }
+
+    // else {
+    //   // 如果没有API数据，使用默认数据
+    //   const defaultYData = [
+    //     "新市民劳动者",
+    //     "新就业群体",
+    //     "困境群体",
+    //     "退役军人",
+    //     "重点关注人群",
+    //   ];
+
+    //   const defaultXData = [
+    //     "公共服务",
+    //     "行政执法",
+    //     "创业服务",
+    //     "出租房管理",
+    //     "矛盾纠纷",
+    //     "职业培训",
+    //     "残疾人服务",
+    //     "团购小服务",
+    //     "特殊困难家庭服务",
+    //     "基层治理",
+    //     "社会保障",
+    //     "劳动权益",
+    //     "文化服务",
+    //     "医疗保健",
+    //     "教育辅导",
+    //     "环境治理",
+    //     "住房问题",
+    //     "交通出行",
+    //     "政策咨询",
+    //     "民族宗教",
+    //   ];
+
+    //   setYData(defaultYData);
+    //   setXData(defaultXData);
+
+    //   // 生成模拟数据
+    //   const mockData = defaultYData
+    //     .map((_, yi) => {
+    //       return defaultXData.map((_, xi) => {
+    //         // 生成更有区分度的数据
+    //         const baseValue = Math.floor(Math.random() * 3000);
+    //         const bonus = Math.floor(Math.random() * 2000);
+    //         // 为相邻的单元格创建明显的数值差异，使平移效果更明显
+    //         const value = xi % 2 === 0 ? baseValue + bonus : baseValue;
+    //         return [xi, yi, value];
+    //       });
+    //     })
+    //     .flat();
+
+    //   setHeatmapData(mockData);
+    //   previousDataRef.current = mockData;
+    // }
   }, [data]);
 
   // 获取当前视图对应的数据和x轴标签

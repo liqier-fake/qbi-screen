@@ -129,7 +129,11 @@ export function apiGetGovProfile1(params: ApiParams) {
   });
 }
 // 治理画像-折线图
-export function apiGetGovProfile2(params: ApiParams) {
+export function apiGetGovProfile2(
+  params: ApiParams & {
+    comparison_type: "tb" | "hb" | null;
+  }
+) {
   return axios({
     url: "/stats/gov_profile2",
     method: "GET",

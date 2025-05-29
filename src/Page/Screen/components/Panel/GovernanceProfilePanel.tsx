@@ -18,9 +18,7 @@ const GovernanceProfilePanel: React.FC<{
   const [heatmapData, setHeatmapData] = useState<ScreenDataType["heatmapData"]>(
     []
   );
-  const [lineData, setLineData] = useState<
-    ScreenDataType["govProfile2LineData"]
-  >({
+  const [lineData, setLineData] = useState<ScreenDataType["lineData"]>({
     xData: [],
     lineData: [],
   });
@@ -56,46 +54,93 @@ const GovernanceProfilePanel: React.FC<{
   // 获取折线图数据
   useEffect(() => {
     const getGovProfile2Data = async () => {
-      interface ApiParams {
-        time_range: TimeRange;
-        comparison_type?: "tb" | "hb";
-      }
-
       const {
-        data: { data: govProfile2Data, comparison_ratios },
+        data: { data: govProfile2Data, comparison_ratios, comparison_data },
       } = await apiGetGovProfile2({
         time_range: timeRange,
-        ...(comparisonType ? { comparison_type: comparisonType } : {}),
-      } as ApiParams);
-
-      const transformedData = transformByField(
-        govProfile2Data,
-        "smqt",
-        "count"
-      );
-
-      console.log(comparison_ratios, "comparison_ratios");
-
-      const transformedComparisonData = comparisonType
-        ? transformByField(comparison_ratios, "smqt", "change_ratio", "ratios")
-        : transformedData;
-
-      console.log(transformedComparisonData, "transformedComparisonData");
+        comparison_type: comparisonType,
+      });
 
       const sortedMonths = Object.keys(govProfile2Data).sort();
 
-      // 构建折线图数据
-      const lineData = {
-        xData: sortedMonths,
-        lineData: Object.entries(transformedComparisonData).map(
-          ([key, values]) => ({
-            name: key, // 使用 smqt 字段值作为线条名称
-            data: sortedMonths.map((month) => values[month] || 0), // 确保每个月都有对应的值，如果没有则为0
-          })
-        ),
-      };
+      if (!comparisonType) {
+        // 没有选择同比环比时，使用原来的数据处理方式
+        const transformedData = transformByField(
+          govProfile2Data,
+          "smqt",
+          "count"
+        );
+        const lineData = {
+          xData: sortedMonths,
+          lineData: Object.entries(transformedData).map(([key, values]) => ({
+            name: key,
+            type: "line",
+            yAxisIndex: 0,
+            data: sortedMonths.map((month) => values[month] || 0),
+          })),
+        };
+        setLineData(lineData);
+      } else {
+        // 选择了同比或环比时，使用柱状图+折线图的组合
+        const baseData = transformByField(govProfile2Data, "smqt", "count");
+        const compareData = transformByField(comparison_data, "smqt", "count");
 
-      setLineData(lineData);
+        // 基础数据
+        const chartData = {
+          xData: sortedMonths,
+          lineData: [
+            {
+              name: "本期",
+              type: "bar",
+              yAxisIndex: 0,
+              data: sortedMonths.map(
+                (month) => baseData[Object.keys(baseData)[0]][month] || 0
+              ),
+              color: "#00AEFF",
+              barGap: "5%",
+              barWidth: "12%",
+              barCategoryGap: "30%",
+            },
+            {
+              name: "对比",
+              type: "bar",
+              yAxisIndex: 0,
+              data: sortedMonths.map(
+                (month) => compareData[Object.keys(compareData)[0]][month] || 0
+              ),
+              color: "#00FFC3",
+              barGap: "5%",
+              barWidth: "12%",
+              barCategoryGap: "30%",
+            },
+          ],
+        };
+
+        // 只有在有环比/同比数据时才添加折线图
+        if (comparison_ratios && Object.keys(comparison_ratios).length > 0) {
+          const ratioData = transformByField(
+            comparison_ratios,
+            "smqt",
+            "change_ratio",
+            "ratios"
+          );
+
+          // 确保转换后的数据不为空
+          if (Object.keys(ratioData).length > 0) {
+            chartData.lineData.push({
+              name: comparisonType === "tb" ? "同比" : "环比",
+              type: "line",
+              yAxisIndex: 1,
+              data: sortedMonths.map(
+                (month) => ratioData[Object.keys(ratioData)[0]][month] || 0
+              ),
+              color: comparisonType === "tb" ? "#FF3B3B" : "#5FFF00",
+            } as any);
+          }
+        }
+
+        setLineData(chartData);
+      }
     };
 
     getGovProfile2Data();
@@ -179,13 +224,60 @@ const GovernanceProfilePanel: React.FC<{
               onItemClick={handleHeatmapClick}
             />
             <LineChart
-              xData={lineData?.xData || []}
-              lineData={lineData?.lineData || []}
+              {...lineData}
               enableSlide={true}
               slideInterval={2000}
               visibleDataPoints={4}
-              isPercentage={!!comparisonType}
+              chartType={comparisonType ? "thb" : "line"}
               className={styles.manageChartItem}
+              yAxis={[
+                {
+                  type: "value",
+                  name: "",
+                  position: "left",
+                  axisLabel: {
+                    color: "#fff",
+                    formatter: "{value}",
+                  },
+                  axisLine: {
+                    lineStyle: {
+                      color: "#304766",
+                    },
+                  },
+                  splitLine: {
+                    lineStyle: {
+                      color: "#304766",
+                      type: "dashed",
+                    },
+                  },
+                },
+                comparisonType
+                  ? {
+                      type: "value",
+                      position: "right",
+                      axisLabel: {
+                        color: "#fff",
+                        formatter: "{value}%",
+                        margin: 4,
+                      },
+                      axisLine: {
+                        lineStyle: {
+                          color: "#304766",
+                        },
+                      },
+                      splitLine: {
+                        show: false,
+                        lineStyle: {
+                          color: "#304766",
+                          type: "dashed",
+                        },
+                      },
+                    }
+                  : {
+                      show: false,
+                      type: "value",
+                    },
+              ]}
             />
           </div>
           <WorkListWithDetail
