@@ -55,7 +55,7 @@ const GovernanceProfilePanel: React.FC<{
   useEffect(() => {
     const getGovProfile2Data = async () => {
       const {
-        data: { data: govProfile2Data, comparison_ratios, comparison_data },
+        data: { data: govProfile2Data, comparison_ratios },
       } = await apiGetGovProfile2({
         time_range: timeRange,
         comparison_type: comparisonType,
@@ -82,8 +82,19 @@ const GovernanceProfilePanel: React.FC<{
         setLineData(lineData);
       } else {
         // 选择了同比或环比时，使用柱状图+折线图的组合
-        const baseData = transformByField(govProfile2Data, "smqt", "count");
-        const compareData = transformByField(comparison_data, "smqt", "count");
+        const baseData = transformByField(
+          comparison_ratios,
+          "c2",
+          "current_count",
+          "ratios"
+        );
+
+        const compareData = transformByField(
+          comparison_ratios,
+          "c2",
+          "compare_count",
+          "ratios"
+        );
 
         // 基础数据
         const chartData = {
@@ -93,9 +104,11 @@ const GovernanceProfilePanel: React.FC<{
               name: "本期",
               type: "bar",
               yAxisIndex: 0,
-              data: sortedMonths.map(
-                (month) => baseData[Object.keys(baseData)[0]][month] || 0
-              ),
+              data: Object.keys(baseData)?.[0]
+                ? sortedMonths.map(
+                    (month) => baseData[Object.keys(baseData)[0]]?.[month] || 0
+                  )
+                : [],
               color: "#00AEFF",
               barGap: "5%",
               barWidth: "12%",
@@ -105,9 +118,12 @@ const GovernanceProfilePanel: React.FC<{
               name: "对比",
               type: "bar",
               yAxisIndex: 0,
-              data: sortedMonths.map(
-                (month) => compareData[Object.keys(compareData)[0]][month] || 0
-              ),
+              data: Object.keys(compareData)?.[0]
+                ? sortedMonths.map(
+                    (month) =>
+                      compareData[Object.keys(compareData)[0]]?.[month] || 0
+                  )
+                : [],
               color: "#00FFC3",
               barGap: "5%",
               barWidth: "12%",

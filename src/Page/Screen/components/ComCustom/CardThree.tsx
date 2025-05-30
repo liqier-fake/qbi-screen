@@ -180,24 +180,23 @@ const CardThree = ({
           setTotal(data?.total || 0);
         }}
         tableProps={{
-          scroll: { y: 320 },
+          scroll: { y: 300 },
         }}
       >
-        <DividerTitle title="工单数量" />
-
-        <Tag color="blue">
-          {selectedSmqt} : {total}
-        </Tag>
-
         {showSmqtList && (
-          <div style={{ marginTop: "10px" }}>
+          <div>
+            <DividerTitle title="构成群体" />
             {smqtList?.map((item) => (
               <Tag color="blue" key={item.key}>
-                {item.key} : {item.count}
+                {item.key} : {item.count} 人
               </Tag>
             ))}
           </div>
         )}
+        <DividerTitle title="工单数量" />
+        <Tag color="blue">
+          {selectedSmqt} : {total}
+        </Tag>
       </WorkListModal>
     </div>
   );

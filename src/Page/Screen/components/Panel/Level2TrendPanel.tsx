@@ -60,7 +60,7 @@ const Level2TrendPanel: React.FC<{
     // 二级趋势预测
     const getLevel2TrendData = async () => {
       const {
-        data: { data: level2TrendData, comparison_ratios, comparison_data },
+        data: { data: level2TrendData, comparison_ratios },
       } = await apiGetLevel2Trend({
         time_range: timeRange,
         street: value,
@@ -177,8 +177,19 @@ const Level2TrendPanel: React.FC<{
         setPredictionData(predictionData);
       } else {
         // 选择了同比或环比时，使用柱状图+折线图的组合
-        const baseData = transformByField(level2TrendData, "c2", "count");
-        const compareData = transformByField(comparison_data, "c2", "count");
+        const baseData = transformByField(
+          comparison_ratios,
+          "c2",
+          "current_count",
+          "ratios"
+        );
+
+        const compareData = transformByField(
+          comparison_ratios,
+          "c2",
+          "compare_count",
+          "ratios"
+        );
 
         // 基础数据
         const chartData = {
@@ -188,9 +199,12 @@ const Level2TrendPanel: React.FC<{
               name: "本期",
               type: "bar",
               yAxisIndex: 0,
-              data: sortedMonths.map(
-                (month) => baseData[Object.keys(baseData)[0]][month] || 0
-              ),
+              data: Object.keys(baseData)?.[0]
+                ? sortedMonths.map(
+                    (month) =>
+                      baseData[Object.keys(baseData)?.[0]]?.[month] || 0
+                  )
+                : [],
               color: "#00AEFF",
               barGap: "5%",
               barWidth: "12%",
@@ -200,9 +214,12 @@ const Level2TrendPanel: React.FC<{
               name: "对比",
               type: "bar",
               yAxisIndex: 0,
-              data: sortedMonths.map(
-                (month) => compareData[Object.keys(compareData)[0]][month] || 0
-              ),
+              data: Object.keys(compareData)?.[0]
+                ? sortedMonths.map(
+                    (month) =>
+                      compareData[Object.keys(compareData)?.[0]]?.[month] || 0
+                  )
+                : [],
               color: "#00FFC3",
               barGap: "5%",
               barWidth: "12%",
