@@ -775,6 +775,19 @@ const Map: React.FC<MapProps> = ({
             },
           },
         ],
+        // visualMap: {
+        //   min: 0,
+        //   max: 10,
+        //   calculable: false,
+        //   inRange: {
+        //     color: [
+        //       "rgba(0,102,204,0.5)", // 非常低
+        //       "rgba(0,153,255,0.6)", // 低
+        //       "rgba(0,204,255,0.7)", // 中
+        //       "rgba(0,255,255,0.8)", // 高
+        //     ],
+        //   },
+        // },
         series: [
           {
             name: "区域数据",
@@ -813,6 +826,7 @@ const Map: React.FC<MapProps> = ({
             layoutSize: "80%",
             data: seriesData,
           },
+
           currentMapType === MapTypeEnum.area &&
             selectKey === MapSelectTypeEnum.number && {
               geoIndex: 0,

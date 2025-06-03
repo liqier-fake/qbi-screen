@@ -7,36 +7,21 @@
   justify-content: flex-end;
   color: #fff;
 
-  .tipContent {
-    position: absolute;
-    top: 0;
-    right: 60%;
-    width: 379px;
-    height: 199px;
-  }
-
-  .AIChatIframe {
-    width: 100%;
-    // height: 1049px;
-    // margin-bottom: 94px;
-    display: none;
-  }
   .imgContainer {
-    // width: 30%;
     cursor: pointer;
+    position: relative;
+    .tipContent {
+      position: absolute;
+      top: 0;
+      right: calc(32vh * (165 / 366));
+    }
+    .imgIcon {
+      height: 11.5vh;
+    }
+    .imgDigital {
+      height: 32vh;
+    }
   }
-  .imgIcon {
-    width: 25%;
-  }
-  .imgDigital {
-    width: 60%;
-  }
-  // .img {
-  //   width: var(--AIChat-img-width);
-  //   // height: var(--AIChat-img-height);
-  //   aspect-ratio: 555.16 / 788;
-  //   cursor: pointer;
-  // }
 }
 .aiChatModal {
   :global {

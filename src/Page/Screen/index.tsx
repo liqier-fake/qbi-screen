@@ -3,7 +3,7 @@ import styles from "./index.module.less";
 import classNames from "classnames";
 import AIChat from "./components/AIChat";
 import { CardOne, CardTwo, CardThree } from "./components/ComCustom";
-import { createMockData, ScreenDataType } from "./mock";
+import { ScreenDataType } from "./mock";
 import { Flex, Button, Select, message } from "antd";
 import {
   apiGetStaticBasic,
@@ -52,9 +52,7 @@ const Screen = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [timeRange, setTimeRange] = useState<TimeRange>(TimeRange.this_year);
 
-  const [screenData, setScreenData] = useState<ScreenDataType>(
-    createMockData()
-  );
+  const [screenData, setScreenData] = useState<ScreenDataType>({} as any);
 
   const timer = useRef<NodeJS.Timeout | null>(null);
 
@@ -365,8 +363,8 @@ const Screen = () => {
               title="数据来源"
               render={
                 <CardOne
-                  list={screenData.oneData.list}
-                  total={screenData.oneData.total}
+                  list={screenData?.oneData?.list || []}
+                  total={screenData?.oneData?.total || ""}
                 />
               }
             />
@@ -376,7 +374,7 @@ const Screen = () => {
               title="民有所呼 我有所为"
               render={
                 <CardTwo
-                  list={screenData.twoData.list}
+                  list={screenData?.twoData?.list || []}
                   timeRange={timeRange}
                   onHoverItem={onHoverCardTwo}
                 />
@@ -423,7 +421,7 @@ const Screen = () => {
                   className={styles.peopleDraw}
                 >
                   <CardThree
-                    list={screenData.threeData.list}
+                    list={screenData?.threeData?.list || []}
                     onHoverItem={onHoverCardTwo}
                     onIconClick={handleCardThreeIconClick}
                     currentSelectType={currentMapSelectType}

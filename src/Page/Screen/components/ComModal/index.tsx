@@ -11,9 +11,9 @@ const ComModal = (props: ComModalProps) => {
     title,
     children,
     onCancel,
-    width = "60%",
+    width = "50%",
     showCloseIcon = false,
-    height = "60vh",
+    height = "65vh",
     ...rest
   } = props;
 

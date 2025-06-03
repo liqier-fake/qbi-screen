@@ -1,3 +1,4 @@
+/** * AI聊天组件 * 提供一个可点击的数字人图标，并在点击后弹出聊天窗口 */
 import styles from "./index.module.less";
 import digitalman from "./digitalman.png";
 import { Flex, Modal } from "antd";
@@ -8,10 +9,7 @@ import close from "./close.png";
 import icon from "./icon.png";
 import TipContent from "../TipContent";
 
-// import { Chat } from "../../../qbiChat/index.ts";
-// import { Chat } from "../../../qbiChat";
-
-/** * AI聊天组件 * 提供一个可点击的数字人图标，并在点击后弹出聊天窗口 */ interface AIChatProps {
+interface AIChatProps {
   bubuleContent: string;
   onRef?: (ref: { openChatWithQuestion: (question: string) => void }) => void;
 }
@@ -94,43 +92,40 @@ const AIChat = ({ bubuleContent, onRef }: AIChatProps) => {
 
   return (
     <div className={styles.AIChat}>
-      <div className={styles.AIChatIframe}>
-        {/* <Chat
-          apiUrl={import.meta.env.VITE_BASE_URL}
-          apiKey={import.meta.env.VITE_CHAT_TOKEN}
-        /> */}
-      </div>
-
-      {showTipContent && bubuleContent && (
-        <div
-          className={styles.tipContent}
-          ref={tipContentRef}
-          key={bubuleContent}
-        >
-          <TipContent content={displayContent} />
-        </div>
-      )}
-
       {!isModalOpen && (
         <Flex
           justify="flex-end"
           align="flex-start"
           className={styles.imgContainer}
-          onClick={showModal}
         >
+          {showTipContent && bubuleContent && (
+            <div
+              className={styles.tipContent}
+              ref={tipContentRef}
+              key={bubuleContent}
+            >
+              <TipContent content={displayContent} />
+            </div>
+          )}
           {!showTipContent && (
-            <img src={icon} alt="icon" className={styles.imgIcon} />
+            <img
+              src={icon}
+              alt="icon"
+              className={styles.imgIcon}
+              onClick={showModal}
+            />
           )}
           <img
             src={digitalman}
             alt="数字人助手"
             className={styles.imgDigital}
+            onClick={showModal}
           />
         </Flex>
       )}
       <Modal
         className={styles.aiChatModal}
-        width={"60%"}
+        width={"50%"}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={() => setIsModalOpen(false)}

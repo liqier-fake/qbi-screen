@@ -197,3 +197,27 @@ export function apiGetTopCategory(params: {
     params,
   });
 }
+
+export enum DataType {
+  "新就业群体数量",
+  "画像",
+  "分布",
+}
+export enum DistributionType {
+  "日间休息点分布",
+  "夜间休息点分布",
+  "工作点分布",
+  "居住点分布",
+}
+
+// 新就业人群统计信息-地图热力图
+export function apiGetNewGroupCount(params: {
+  data_type: string;
+  distribution_type?: string;
+}) {
+  return axios({
+    url: "/new_group/count",
+    method: "GET",
+    params,
+  });
+}

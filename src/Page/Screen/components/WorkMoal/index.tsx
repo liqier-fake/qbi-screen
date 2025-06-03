@@ -73,7 +73,7 @@ const WorkListModal = <T extends Record<string, unknown>>({
       title={title}
       open={open}
       onCancel={onCancel}
-      width={"60%"}
+      width={"50%"}
       centered
       footer={null}
       className={styles.workModal}
