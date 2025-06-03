@@ -240,7 +240,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
           rotate: 45,
           fontSize: 10,
           margin: 8,
-          fontWeight: "bold",
+          // fontWeight: "bold",
         },
         axisLine: {
           lineStyle: {
@@ -265,7 +265,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
         axisLabel: {
           color: "#fff",
           fontSize: 10,
-          fontWeight: "bold",
+          // fontWeight: "bold",
         },
         axisLine: {
           lineStyle: {
@@ -319,7 +319,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
               const typedParams = params as { data: number[] };
               return typedParams.data[2].toString();
             },
-            fontWeight: "bold",
+            // fontWeight: "bold",
           },
           emphasis: {
             itemStyle: {
@@ -328,7 +328,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
             },
             label: {
               color: "#ffcc00",
-              fontWeight: "bold",
+              // fontWeight: "bold",
               fontSize: 14,
             },
           },

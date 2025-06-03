@@ -10,7 +10,7 @@ export const columns1: Column<TableData>[] = [
     title: "时间",
     dataIndex: "date",
     align: "left",
-    width: 15,
+    width: 20,
     render: (text: string) => {
       return text?.split(" ")[0] || "";
     },
@@ -18,7 +18,7 @@ export const columns1: Column<TableData>[] = [
   {
     title: "诉求内容",
     dataIndex: "content",
-    width: 45,
+    width: 40,
     align: "left",
   },
   {
@@ -58,7 +58,7 @@ export const columns4: Column<TableData>[] = [
     align: "left",
   },
   {
-    title: "热点事项",
+    title: "智能推荐",
     dataIndex: "llm_hot_items",
     width: 30,
     align: "left",
