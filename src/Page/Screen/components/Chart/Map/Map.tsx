@@ -1,8 +1,7 @@
-// @ts-nocheck
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
-import BaseChart, { BaseChartRef } from "./BaseChart";
+import BaseChart, { BaseChartRef } from "../BaseChart";
 import { geojsonMap } from "./geojson";
 import station from "./geojson/station";
 import { flatten } from "lodash";
@@ -10,6 +9,7 @@ import icon from "./icon.svg";
 import styles from "./map.module.less";
 import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
+import { convertCoordinates } from "./utils/coordinateConverter";
 
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
@@ -22,8 +22,14 @@ export enum MapTypeEnum {
 }
 
 export enum MapSelectTypeEnum {
-  "site" = "site",
-  "number" = "number",
+  "dayDistribution" = "日间休息点分布",
+  "nightDistribution" = "夜间休息点分布",
+  "workDistribution" = "工作点分布",
+  "liveDistribution" = "居住点分布",
+  "newGroupCount" = "新就业群体数量",
+  "image" = "画像",
+  "site" = "驿站",
+  "number" = "工单数量",
 }
 // 定义地图层级路径
 interface MapBreadcrumb {
@@ -81,6 +87,7 @@ interface MapProps {
   onDrillDown?: (nextMapType: MapTypeEnum) => void; // 添加下钻回调函数
   selectKey?: MapSelectTypeEnum;
   onAskQuestion?: (question: string) => void; // 添加提问回调函数
+  currentMapSelectType: MapSelectTypeEnum; // 当前地图选择类型
 }
 
 /**
@@ -286,6 +293,7 @@ const Map: React.FC<MapProps> = ({
   onDrillDown,
   selectKey,
   onAskQuestion,
+  currentMapSelectType,
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -443,10 +451,25 @@ const Map: React.FC<MapProps> = ({
       1
     ); // 至少为1，防止除0错误
 
+    // 转换坐标
     const seriesData = currentTicketData?.map((item) => {
-      return {
+      // 根据当前地图类型获取对应的街道名
+      const street = MapTypeNames[currentMapType];
+
+      // 转换坐标
+      const convertedPoint = convertCoordinates({
         name: item.name,
-        value: item.count,
+        street,
+        x: item.x,
+        y: item.y,
+        count: item.count,
+      });
+
+      return {
+        name: convertedPoint.name,
+        value: convertedPoint.count,
+        // 使用转换后的坐标
+        coord: [convertedPoint.x, convertedPoint.y],
         // 非园区视图时，为不同区域设置不同的自定义样式
         itemStyle:
           currentMapType !== MapTypeEnum.area
@@ -665,9 +688,6 @@ const Map: React.FC<MapProps> = ({
             animation: false, // 禁用动画以提高性能
             label: {
               show: false,
-              emphasis: {
-                show: false,
-              },
             },
             itemStyle: {
               borderColor: "#c0f3fb",
@@ -828,7 +848,7 @@ const Map: React.FC<MapProps> = ({
           },
 
           currentMapType === MapTypeEnum.area &&
-            selectKey === MapSelectTypeEnum.number && {
+            currentMapSelectType === MapSelectTypeEnum.number && {
               geoIndex: 0,
               type: "effectScatter",
               coordinateSystem: "geo",
@@ -865,7 +885,7 @@ const Map: React.FC<MapProps> = ({
               data: scatterData,
             },
           // 普通驿站点
-          selectKey === MapSelectTypeEnum.site && {
+          currentMapSelectType === MapSelectTypeEnum.site && {
             name: "驿站",
             type: "scatter",
             coordinateSystem: "geo",
@@ -921,7 +941,7 @@ const Map: React.FC<MapProps> = ({
               })),
           },
           // 聚合驿站点
-          selectKey === MapSelectTypeEnum.site && {
+          currentMapSelectType === MapSelectTypeEnum.site && {
             name: "驿站聚合",
             type: "scatter",
             coordinateSystem: "geo",
@@ -986,7 +1006,7 @@ const Map: React.FC<MapProps> = ({
     ticketData,
     transformedStationList,
     clusteredStations,
-    selectKey,
+    currentMapSelectType,
   ]);
 
   // 地图点击事件处理函数
@@ -1187,6 +1207,8 @@ const Map: React.FC<MapProps> = ({
       document.body // 将弹窗渲染到body中，确保最高层级
     );
   };
+
+  console.log(currentMapSelectType, "currentMapSelectType");
 
   return (
     <div className={styles.mapChart}>

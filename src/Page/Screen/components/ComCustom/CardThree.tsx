@@ -1,17 +1,16 @@
 import { memo, useEffect, useState, useCallback, useMemo } from "react";
 import styles from "./index.module.less";
 import threeIcon from "./img/three_icon.png";
-import { Flex, Tag } from "antd";
+import { Flex, Select, Tag } from "antd";
 import { ComCustomItemType } from "./types";
 import { useHoverSummary } from "./useHoverSummary";
 import { getPeopleGroupDescription } from "./categoryDescriptions";
 import Odometer from "react-odometerjs";
 import "odometer/themes/odometer-theme-default.css";
 import { useNumberAnimation } from "./useNumberAnimation";
-import { EnvironmentOutlined } from "@ant-design/icons";
 
 // 导入地图选择类型枚举
-import { MapSelectTypeEnum } from "../../components/Chart/Map";
+import { MapSelectTypeEnum } from "../Chart/Map/Map";
 import {
   apiGetTicketList,
   TimeRange,
@@ -114,8 +113,29 @@ const CardThree = ({
     return selectedSmqt === "新就业群体" && smqtList.length > 0;
   }, [selectedSmqt, smqtList]);
 
+  const mapOptions = useMemo(() => {
+    return Object.values(MapSelectTypeEnum).map((item) => ({
+      label: item,
+      value: item,
+    }));
+  }, []);
+
   return (
     <div className={styles.comCustom}>
+      {
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <Select
+            defaultValue={currentSelectType}
+            options={mapOptions}
+            onChange={onIconClick}
+            style={{ width: 120 }}
+          />
+        </div>
+      }
       <div className={styles.cardThree}>
         {list.map((item, i) => {
           const showIcon = item.title === "新就业群体";
@@ -129,7 +149,7 @@ const CardThree = ({
               style={{ position: "relative", cursor: "pointer" }}
               onClick={() => handleItemClick(item)}
             >
-              {showIcon && (
+              {/* {showIcon && (
                 <EnvironmentOutlined
                   className={styles.clickableIcon}
                   style={{
@@ -144,7 +164,23 @@ const CardThree = ({
                     onIconClick?.();
                   }}
                 />
-              )}
+              )} */}
+
+              {/* {showIcon && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <Select
+                    defaultValue={currentSelectType}
+                    options={mapOptions}
+                    onChange={onIconClick}
+                    style={{ width: 120 }}
+                  />
+                </div>
+              )} */}
+
               <img src={threeIcon} alt="" />
               <Flex justify="center" align="center">
                 <span className={styles.title}>

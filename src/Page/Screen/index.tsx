@@ -19,7 +19,7 @@ import Map, {
   MapTypeNames,
   TicketCountData,
   // streetNameToEnum,
-} from "./components/Chart/Map.tsx";
+} from "./components/Chart/Map/Map.tsx";
 
 // 定义AIChat组件的ref类型
 interface AIChatRef {
@@ -210,18 +210,12 @@ const Screen = () => {
   };
 
   // 处理CardThree图标点击，切换地图选择类型
-  const handleCardThreeIconClick = () => {
+  const handleCardThreeIconClick = (value: MapSelectTypeEnum) => {
     if (currentMapType !== MapTypeEnum.area) {
       messageApi.info("请先选择地图类型为苏州工业园区");
       return;
     }
-
-    const newSelectType =
-      currentMapSelectType === MapSelectTypeEnum.number
-        ? MapSelectTypeEnum.site
-        : MapSelectTypeEnum.number;
-
-    setCurrentMapSelectType(newSelectType);
+    setCurrentMapSelectType(value);
   };
 
   useEffect(() => {
@@ -346,8 +340,8 @@ const Screen = () => {
       <div className={styles.contentWrap}>
         {/* 地图 - 传递地图类型和工单数据 */}
         <Map
+          currentMapSelectType={currentMapSelectType}
           currentMapType={currentMapType}
-          selectKey={currentMapSelectType}
           ticketData={ticketData}
           onDrillDown={(nextMapType) => {
             setCurrentMapType(nextMapType);
