@@ -15,39 +15,16 @@ const renderText = (text: string) => {
 /**
  * 来源信息表格列配置
  */
-export const sourceTableColumns = [
-  {
-    title: "来源",
-    dataIndex: "ds1",
-    render: (text: string) => renderText(text),
-    align: "center" as const,
-  },
-  {
-    title: "诉求人数",
-    dataIndex: "impact_scope",
-    render: (text: string) => renderText(text),
-    align: "center" as const,
-  },
-  {
-    title: "影响范围",
-    dataIndex: "impact_scope",
-    render: (text: string) => renderText(text),
-    align: "center" as const,
-  },
-  {
-    title: "情感分值",
-    dataIndex: "sentiment",
-    render: (text: string) => renderText(text),
-    align: "center" as const,
-  },
-  {
-    title: "扬言分值",
-    dataIndex: "threaten",
-    render: (text: string) => renderText(text),
-    align: "center" as const,
-  },
-];
-
+export const sourceTableColumns = (list: { name: string }[]) => {
+  return list?.map(({ name }, index) => {
+    return {
+      title: name,
+      dataIndex: index,
+      render: (text: string) => renderText(text),
+      align: "center" as const,
+    };
+  });
+};
 /**
  * 生成详情弹窗的表单数据
  * @param record 工单记录数据
@@ -66,7 +43,15 @@ export const generateFormData = (
     content,
     address_detail,
     smqt,
+    challenge_score_details = [],
   } = record;
+
+  const dataList: { [key: string]: any } = {};
+
+  challenge_score_details.forEach(({ score, weight }, index) => {
+    const key = String(index);
+    dataList[key] = `${score}\n(${weight})`;
+  });
 
   return [
     {
@@ -93,16 +78,9 @@ export const generateFormData = (
       render: () => {
         return (
           <Table
-            dataSource={[
-              {
-                ds1: record.ds1,
-                impact_scope: `${record.impact_scope}\n(10.3)`,
-                sentiment: `${record.sentiment}\n(29.95)`,
-                threaten: `${record.threaten}\n(23.74)`,
-              },
-            ]}
-            columns={sourceTableColumns}
-            pagination={false}
+            dataSource={[dataList]}
+            columns={sourceTableColumns(challenge_score_details || [])}
+            pagination={false} // 不显示分页
           />
         );
       },
