@@ -16,7 +16,8 @@ export interface TicketRecord {
   sentiment?: string;
   threaten?: string;
   word?: string; // 新增词云相关字段
-  [key: string]: string | number | boolean | undefined; // 允许其他字段但限制类型
+  challenge_score_details?: { name: string; score: number; weight: number }[];
+  [key: string]: any;
 }
 
 /**
