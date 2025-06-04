@@ -1,7 +1,7 @@
 import { MapSelectTypeEnum, MapTypeEnum } from "./Map";
 import { useState } from "react";
 import sip_comm from "./geojson/sip_comm.json";
-import { getMapDataXY, getPointByCommunity } from "./utils";
+import { getPointByCommunity, getMapDataXY } from "./utils";
 import { dayDistribution } from "./geojson/dayDistribution";
 import { newGroupCount } from "./geojson/newGroupCount";
 import { nightDistribution } from "./geojson/nightDistribution";
@@ -30,83 +30,47 @@ interface DistributionItem {
 interface NewGroupItem {
   region_name: string;
   people_count: number;
-  [key: string]: any;
+  data_type: string;
+  date: string;
+  distribution_type: null;
+  group_type: string;
+  id: number;
+  lat: null;
+  lng: null;
+  percentage: null;
+  profile_category: null;
+  profile_subcategory: null;
+  region_id: number;
 }
 
-// 定义画像数据项的类型
-interface ImageItem {
-  [key: string]: any;
+// 定义社区数据项类型
+interface CommunityItem {
+  Community: string;
+  street: string;
+  x: number;
+  y: number;
 }
 
 interface MapDataItem {
   value: [number, number, number];
-  region_name?: string;
-  people_count?: number;
+  region_name: string;
+  people_count: number;
   count?: number;
 }
-
-// 经纬度转换为自定义坐标系函数
-const convertLngLatToCoordinates = (
-  lng: number,
-  lat: number
-): [number, number] => {
-  // 已知的三个参考点 - 经纬度和对应的坐标系坐标
-  const referencePoints = [
-    {
-      lng: 120.754171,
-      lat: 31.328124, // 海悦社区经纬度
-      x: 66170.3954,
-      y: 46101.189, // 海悦社区坐标系坐标
-    },
-    {
-      lng: 120.716164,
-      lat: 31.335602, // 新未来社区经纬度
-      x: 62108.0323,
-      y: 47115.5392, // 新未来社区坐标系坐标
-    },
-    {
-      lng: 120.85971,
-      lat: 31.464399, // 阳澄湖社区经纬度
-      x: 69255.0191,
-      y: 54557.6382, // 阳澄湖社区坐标系坐标
-    },
-  ];
-
-  // 使用第一个点作为参考原点
-  const origin = referencePoints[0];
-
-  // 计算经纬度变化和坐标系变化的比例
-  const xFactor1 =
-    (referencePoints[1].x - origin.x) / (referencePoints[1].lng - origin.lng);
-  const xFactor2 =
-    (referencePoints[2].x - origin.x) / (referencePoints[2].lng - origin.lng);
-  const yFactor1 =
-    (referencePoints[1].y - origin.y) / (referencePoints[1].lat - origin.lat);
-  const yFactor2 =
-    (referencePoints[2].y - origin.y) / (referencePoints[2].lat - origin.lat);
-
-  // 取平均值减少误差
-  const xFactor = (xFactor1 + xFactor2) / 2;
-  const yFactor = (yFactor1 + yFactor2) / 2;
-
-  // 应用线性变换
-  const x = origin.x + (lng - origin.lng) * xFactor;
-  const y = origin.y + (lat - origin.lat) * yFactor;
-
-  return [x, y];
-};
 
 const useMap = () => {
   const [mapTypeData, setMapTypeData] = useState<MapDataItem[]>([]);
 
   // 地图数据映射
-  const MapListEnum = {
+  const MapListEnum: Record<MapSelectTypeEnum, unknown[]> = {
     [MapSelectTypeEnum.dayDistribution]: dayDistribution,
     [MapSelectTypeEnum.newGroupCount]: newGroupCount,
     [MapSelectTypeEnum.nightDistribution]: nightDistribution,
     [MapSelectTypeEnum.workDistribution]: workDistribution,
     [MapSelectTypeEnum.liveDistribution]: liveDistribution,
     [MapSelectTypeEnum.image]: images,
+    [MapSelectTypeEnum.site]: [],
+    [MapSelectTypeEnum.number]: [],
   };
 
   // 获取地图类型数据
@@ -114,7 +78,12 @@ const useMap = () => {
     currentMapSelectType: MapSelectTypeEnum,
     currentMapType: MapTypeEnum
   ) => {
-    console.log("getMapTypeData", currentMapSelectType);
+    console.log(
+      "getMapTypeData",
+      currentMapSelectType,
+      "地图类型:",
+      currentMapType
+    );
 
     // 判断是否为分布类型（这些类型的数据包含经纬度）
     const isDistribution = [
@@ -127,79 +96,175 @@ const useMap = () => {
     try {
       const dataList = MapListEnum[currentMapSelectType] || [];
 
-      // 处理分布类型数据（包含经纬度）
+      // 处理分布类型数据（包含经纬度）- 优化版本
       if (isDistribution) {
-        console.log("处理分布数据", dataList.length);
+        console.log(
+          `开始处理分布数据，数据量: ${
+            (dataList as DistributionItem[]).length
+          }, 地图类型: ${currentMapType}`
+        );
 
-        const processedData =
-          (dataList as DistributionItem[])?.map((item) => {
+        // 街道名称映射（用于过滤）
+        const streetNameMap = {
+          [MapTypeEnum.jjhstreet]: "金鸡湖街道",
+          [MapTypeEnum.wtstreet]: "唯亭街道",
+          [MapTypeEnum.lfstreet]: "娄葑街道",
+          [MapTypeEnum.spstreet]: "胜浦街道",
+          [MapTypeEnum.xtstreet]: "斜塘街道",
+        };
+
+        const currentStreet =
+          streetNameMap[currentMapType as keyof typeof streetNameMap];
+        console.log(`当前地图对应街道: ${currentStreet}`);
+
+        const processedData = (dataList as DistributionItem[])
+          .filter((item) => {
+            // 街道过滤：如果是街道地图，只显示当前街道的数据
+            if (currentStreet && currentMapType !== MapTypeEnum.area) {
+              // 通过社区名查找所属街道
+              const communityInfo = getPointByCommunity(
+                sip_comm as CommunityItem[],
+                `${item.region_name}社区`
+              );
+
+              if (communityInfo && communityInfo.street !== currentStreet) {
+                console.log(
+                  `过滤非当前街道数据: ${item.region_name} (${communityInfo.street} != ${currentStreet})`
+                );
+                return false;
+              }
+            }
+            return true;
+          })
+          .map((item) => {
+            // **优化：获取社区准确坐标信息**
             const communityInfo = getPointByCommunity(
-              sip_comm as any,
+              sip_comm as CommunityItem[],
               `${item.region_name}社区`
             );
 
-            console.log(communityInfo, "communityInfocommunityInfo");
+            // 构建包含完整坐标信息的点对象
+            const pointWithCoords = {
+              name: item.region_name,
+              street: communityInfo?.street || "", // 传入正确的街道信息
+              // **重要：优先使用社区数据中的准确坐标**
+              x: communityInfo?.x || 0, // 社区坐标（更准确）
+              y: communityInfo?.y || 0, // 社区坐标（更准确）
+              lat: item.lat, // 经纬度作为备用
+              lng: item.lng, // 经纬度作为备用
+            };
 
-            // 直接使用经纬度转换坐标
-            const [x, y] = convertLngLatToCoordinates(item.lng, item.lat);
+            // 使用统一的坐标转换函数
+            const [x, y] = getMapDataXY(pointWithCoords, currentMapType);
 
             console.log(
-              `${item.region_name}: lat=${item.lat}, lng=${item.lng} -> x=${x}, y=${y}`
+              `分布数据坐标转换: ${item.region_name} (${communityInfo?.street})`,
+              `社区坐标: (${communityInfo?.x}, ${communityInfo?.y})`,
+              `经纬度: (${item.lng}, ${item.lat})`,
+              `最终坐标: (${x}, ${y})`
             );
 
             return {
               ...item,
               value: [x, y, item.people_count || 1] as [number, number, number],
             };
-          }) || [];
+          });
 
-        console.log("处理后的分布数据", processedData.length);
+        console.log(`分布数据处理完成，有效数据量: ${processedData.length}`);
         setMapTypeData(processedData);
         return;
       }
 
-      // 处理新就业群体数量（需要通过社区名查找坐标）
+      // 处理新就业群体数量（需要通过社区名查找坐标）- 优化版本
       if (currentMapSelectType === MapSelectTypeEnum.newGroupCount) {
-        console.log("处理新就业群体数据");
+        console.log("处理新就业群体数量", dataList);
 
-        const processedData =
-          (dataList as NewGroupItem[])
-            ?.map((item) => {
-              // 通过社区名查找坐标信息
-              const communityInfo = getPointByCommunity(
-                sip_comm as any,
-                `${item.region_name}社区`
+        // 按社区聚合数据（同一社区有多种群体类型）
+        const aggregatedData = new Map<string, number>();
+        (dataList as NewGroupItem[]).forEach((item) => {
+          const currentCount = aggregatedData.get(item.region_name) || 0;
+          aggregatedData.set(
+            item.region_name,
+            currentCount + item.people_count
+          );
+        });
+
+        console.log("聚合数据:", Array.from(aggregatedData.entries()));
+
+        // 街道名称映射（用于过滤）
+        const streetNameMap = {
+          [MapTypeEnum.jjhstreet]: "金鸡湖街道",
+          [MapTypeEnum.wtstreet]: "唯亭街道",
+          [MapTypeEnum.lfstreet]: "娄葑街道",
+          [MapTypeEnum.spstreet]: "胜浦街道",
+          [MapTypeEnum.xtstreet]: "斜塘街道",
+        };
+
+        const data = Array.from(aggregatedData.entries())
+          .map(([regionName, totalCount]) => {
+            console.log(`处理社区: ${regionName}, 人数: ${totalCount}`);
+
+            // 查找社区坐标 - 先尝试带"社区"后缀，再尝试不带后缀
+            let community = (sip_comm as CommunityItem[]).find(
+              (item) => item.Community === `${regionName}社区`
+            );
+
+            if (!community) {
+              community = (sip_comm as CommunityItem[]).find(
+                (item) => item.Community === regionName
               );
+            }
 
-              console.log(`查找社区: ${item.region_name}社区`, communityInfo);
+            if (!community) {
+              console.warn(`未找到社区: ${regionName}`);
+              return null;
+            }
 
-              if (!communityInfo) return null;
+            console.log(
+              `找到社区: ${community.Community}, 街道: ${community.street}`
+            );
 
-              // 构造Point对象
-              const point = {
-                name: communityInfo.Community,
-                street: communityInfo.street,
-                x: communityInfo.x,
-                y: communityInfo.y,
-              };
+            // 街道过滤：如果是街道地图，只显示当前街道的社区
+            const currentStreet =
+              streetNameMap[currentMapType as keyof typeof streetNameMap];
 
-              const [x, y] = getMapDataXY(point, currentMapType);
+            console.log(
+              `当前地图类型: ${currentMapType}, 对应街道: ${currentStreet}`
+            );
 
-              console.log(`${item.region_name}: x=${x}, y=${y}`);
+            if (currentStreet && community.street !== currentStreet) {
+              console.log(
+                `跳过非当前街道社区: ${regionName} (${community.street} != ${currentStreet})`
+              );
+              return null;
+            }
 
-              return {
-                ...item,
-                value: [x, y, item.people_count || 0] as [
-                  number,
-                  number,
-                  number
-                ],
-              };
-            })
-            .filter(Boolean) || []; // 过滤掉null值
+            // 使用统一的坐标转换函数
+            const [x, y] = getMapDataXY(
+              {
+                name: community.Community,
+                street: community.street,
+                x: community.x,
+                y: community.y,
+              },
+              currentMapType
+            );
 
-        console.log("处理后的新就业群体数据", processedData.length);
-        setMapTypeData(processedData);
+            console.log(`社区坐标转换: ${regionName} -> (${x}, ${y})`);
+
+            const result = {
+              region_name: regionName,
+              people_count: totalCount,
+              value: [x, y, totalCount] as [number, number, number],
+            };
+
+            console.log(`成功处理社区: ${regionName}`, result);
+            return result;
+          })
+          .filter((item): item is MapDataItem => item !== null);
+
+        console.log("最终处理的数据:", data);
+        setMapTypeData(data);
         return;
       }
 

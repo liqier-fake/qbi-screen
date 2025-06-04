@@ -15,67 +15,7 @@ interface Point {
 }
 
 /**
- * 将社区坐标转换为对应街道地图的坐标
- * @param point 需要转换的点
- * @returns 转换后的点
- */
-export function convertCoordinates(point: Point): Point {
-  const { street, x, y } = point;
-
-  switch (street) {
-    case "唯亭街道":
-      return {
-        ...point,
-        x: x * 5 + 280000,
-        y: y * 13 + 620000,
-      };
-
-    case "胜浦街道":
-      return {
-        ...point,
-        x: x * 4.7 + 280000,
-        y: y * 15.7 + 622000,
-      };
-
-    case "金鸡湖街道":
-      return {
-        ...point,
-        x: x * 4.8 + 280000,
-        y: y * 14.5 + 621000,
-      };
-
-    case "斜塘街道":
-      return {
-        ...point,
-        x: x * 4.9 + 280000,
-        y: y * 14.8 + 621500,
-      };
-
-    case "娄葑街道":
-      return {
-        ...point,
-        x: x * 4.85 + 280000,
-        y: y * 14.2 + 621200,
-      };
-
-    default:
-      return point;
-  }
-}
-
-// 根据社区获取坐标
-export function getPointByCommunity(
-  list: {
-    Community: string;
-    street: string;
-  }[],
-  community: string
-) {
-  return list.find((l) => l?.Community === community);
-}
-
-/**
- * 经纬度转换为自定义坐标系函数
+ * 经纬度转换为园区坐标系函数 (统一的基础转换)
  * 基于三个已知点的对应关系计算转换参数
  * @param {number} lng - 经度
  * @param {number} lat - 纬度
@@ -133,7 +73,190 @@ export const convertLngLatToCoordinates = (
 };
 
 /**
- * 获取地图数据点坐标
+ * 基于投影坐标系统进行经纬度到投影坐标的精确转换
+ * 使用2000SZ投影坐标系参数
+ * @param lng 经度
+ * @param lat 纬度
+ * @returns 投影坐标 [x, y]
+ */
+export const convertLngLatToProjection = (
+  lng: number,
+  lat: number
+): [number, number] => {
+  // 投影参数 (基于2000SZ坐标系)
+  const centralMeridian = 120.7833333333333; // 中央子午线
+  const falseEasting = 350000.0; // 东偏移
+  const falseNorthing = -2800000.0; // 北偏移
+  const scaleFactor = 1.0; // 比例因子
+
+  // 椭球参数 (CGCS2000)
+  const a = 6378137.0; // 长半轴
+  const f = 1 / 298.257222101; // 扁率
+  const e2 = 2 * f - f * f; // 第一偏心率的平方
+
+  // 度转弧度
+  const toRad = Math.PI / 180;
+  const latRad = lat * toRad;
+  const lngRad = lng * toRad;
+  const cmRad = centralMeridian * toRad;
+
+  // 经度差
+  const deltaLng = lngRad - cmRad;
+
+  // 高斯-克吕格投影计算
+  const sinLat = Math.sin(latRad);
+  const cosLat = Math.cos(latRad);
+  const tanLat = Math.tan(latRad);
+
+  const nu = a / Math.sqrt(1 - e2 * sinLat * sinLat);
+  const rho = (a * (1 - e2)) / Math.pow(1 - e2 * sinLat * sinLat, 1.5);
+  const eta2 = nu / rho - 1;
+
+  const l = deltaLng;
+  const l2 = l * l;
+  const l3 = l2 * l;
+  const l4 = l3 * l;
+
+  // X坐标 (北向)
+  const M =
+    a *
+    ((1 - e2 / 4 - (3 * e2 * e2) / 64) * latRad -
+      ((3 * e2) / 8 + (3 * e2 * e2) / 32) * Math.sin(2 * latRad) +
+      ((15 * e2 * e2) / 256) * Math.sin(4 * latRad));
+
+  const x =
+    scaleFactor *
+      (M +
+        nu *
+          sinLat *
+          cosLat *
+          (l2 / 2 +
+            ((5 - tanLat * tanLat + 9 * eta2 + 4 * eta2 * eta2) * l4) / 24)) +
+    falseNorthing;
+
+  // Y坐标 (东向)
+  const y =
+    scaleFactor *
+      (nu * cosLat * (l + ((1 - tanLat * tanLat + eta2) * l3) / 6)) +
+    falseEasting;
+
+  return [y, x]; // 注意：返回[东向, 北向]对应[x, y]
+};
+
+/**
+ * 将社区坐标转换为对应街道地图的坐标
+ * @param point 需要转换的点
+ * @returns 转换后的点
+ */
+export function convertCoordinates(point: Point): Point {
+  const { street, x, y } = point;
+
+  switch (street) {
+    case "唯亭街道":
+      return {
+        ...point,
+        x: x * 5 + 280000,
+        y: y * 13 + 620000,
+      };
+
+    case "胜浦街道":
+      return {
+        ...point,
+        x: x * 4.7 + 280000,
+        y: y * 15.7 + 622000,
+      };
+
+    case "金鸡湖街道":
+      // 恢复原始转换参数，保持稳定显示效果
+      return {
+        ...point,
+        x: x * 5.3 + 15000, // 恢复原始参数
+        y: y * 9.8 + 620000, // 恢复原始参数
+      };
+
+    case "斜塘街道":
+      return {
+        ...point,
+        x: x * 4.9 + 280000,
+        y: y * 14.8 + 621500,
+      };
+
+    case "娄葑街道":
+      return {
+        ...point,
+        x: x * 4.85 + 280000,
+        y: y * 14.2 + 621200,
+      };
+
+    default:
+      return point;
+  }
+}
+
+// 根据社区获取坐标 (改进版本，支持更灵活的匹配)
+export function getPointByCommunity(
+  list: {
+    Community: string;
+    street: string;
+    x: number;
+    y: number;
+  }[],
+  community: string
+) {
+  // 首先尝试精确匹配
+  let result = list.find((l) => l?.Community === community);
+
+  if (result) {
+    return result;
+  }
+
+  // 如果精确匹配失败，尝试其他匹配策略
+  const normalizedCommunity = community.trim();
+
+  // 尝试去掉"社区"后缀再匹配
+  if (normalizedCommunity.endsWith("社区")) {
+    const withoutSuffix = normalizedCommunity.slice(0, -2);
+    result = list.find((l) => l?.Community === withoutSuffix);
+    if (result) {
+      console.log(
+        `社区匹配成功（去除后缀）: ${community} -> ${result.Community}`
+      );
+      return result;
+    }
+  }
+
+  // 尝试添加"社区"后缀再匹配
+  if (!normalizedCommunity.endsWith("社区")) {
+    const withSuffix = normalizedCommunity + "社区";
+    result = list.find((l) => l?.Community === withSuffix);
+    if (result) {
+      console.log(
+        `社区匹配成功（添加后缀）: ${community} -> ${result.Community}`
+      );
+      return result;
+    }
+  }
+
+  // 尝试部分匹配（包含关系）
+  result = list.find(
+    (l) =>
+      l?.Community.includes(normalizedCommunity) ||
+      normalizedCommunity.includes(l?.Community)
+  );
+
+  if (result) {
+    console.log(
+      `社区匹配成功（部分匹配）: ${community} -> ${result.Community}`
+    );
+    return result;
+  }
+
+  console.warn(`未找到匹配的社区: ${community}`);
+  return undefined;
+}
+
+/**
+ * 获取地图数据点坐标 (统一坐标转换方法)
  * @param point 包含坐标信息的点
  * @param mapType 地图类型
  * @returns 返回转换后的坐标 [x, y]
@@ -142,33 +265,66 @@ export const getMapDataXY = (
   point: Point,
   mapType: MapTypeEnum
 ): [number, number] => {
-  const { lat, lng, x, y } = point;
+  const { lat, lng, x, y, street, name } = point;
 
-  console.log(point, "point555555555555555");
+  console.log(
+    `处理坐标转换: ${name || "未知"}, 地图类型: ${mapType}, 街道: ${street}`,
+    point
+  );
 
-  // 如果有经纬度信息
-  if (lat && lng) {
-    if (mapType === MapTypeEnum.area) {
-      // area类型直接使用经纬度转换
-      return convertLngLatToCoordinates(lng, lat);
-    } else {
-      // 非area类型，先经纬度转换，再进行区域转换
-      const [convertedX, convertedY] = convertLngLatToCoordinates(lng, lat);
+  // **优化：根据地图类型选择不同的坐标优先级**
+  if (mapType === MapTypeEnum.area) {
+    // area地图：优先使用经纬度转换（保持原有效果）
+    if (lat && lng) {
+      console.log(`area地图使用经纬度转换: lng=${lng}, lat=${lat}`);
+      const [areaX, areaY] = convertLngLatToCoordinates(lng, lat);
+      console.log(`area地图最终坐标: x=${areaX}, y=${areaY}`);
+      return [areaX, areaY];
+    }
+
+    // 备用：使用社区坐标
+    if (x !== undefined && y !== undefined && x > 0 && y > 0) {
+      console.log(`area地图备用社区坐标: x=${x}, y=${y}`);
+      return [x, y];
+    }
+  } else {
+    // 街道地图：优先使用社区数据中的准确坐标
+    if (x !== undefined && y !== undefined && x > 0 && y > 0) {
+      console.log(`街道地图使用社区坐标: x=${x}, y=${y}`);
+
+      // 街道地图需要坐标转换
       const convertedPoint = convertCoordinates({
         ...point,
-        x: convertedX,
-        y: convertedY,
+        x: x,
+        y: y,
+        street: street, // 使用传入的街道信息
       });
+      console.log(
+        `街道坐标转换: 社区坐标(${x}, ${y}) -> 街道坐标(${convertedPoint.x}, ${convertedPoint.y})`
+      );
+      return [convertedPoint.x, convertedPoint.y];
+    }
+
+    // 备用：使用经纬度转换
+    if (lat && lng) {
+      console.log(`街道地图备用经纬度转换: lng=${lng}, lat=${lat}`);
+      const [areaX, areaY] = convertLngLatToCoordinates(lng, lat);
+
+      // 街道地图：基于园区坐标进行转换
+      const convertedPoint = convertCoordinates({
+        ...point,
+        x: areaX,
+        y: areaY,
+        street: street,
+      });
+      console.log(
+        `街道地图坐标转换: 园区坐标(${areaX}, ${areaY}) -> 街道坐标(${convertedPoint.x}, ${convertedPoint.y})`
+      );
       return [convertedPoint.x, convertedPoint.y];
     }
   }
 
-  // 如果只有x,y坐标且是区域地图
-  if (mapType === MapTypeEnum.area && x !== undefined && y !== undefined) {
-    const convertedPoint = convertCoordinates(point);
-    return [convertedPoint.x, convertedPoint.y];
-  }
-
-  // 默认返回原始x,y坐标
-  return [x, y];
+  // 默认返回原始坐标
+  console.warn(`坐标转换失败，使用默认值:`, point);
+  return [x || 0, y || 0];
 };

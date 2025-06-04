@@ -306,7 +306,6 @@ const Map: React.FC<MapProps> = ({
 
   useEffect(() => {
     getMapTypeData(currentMapSelectType, currentMapType);
-
     console.log(currentMapSelectType, "currentMapSelectType改变");
   }, [currentMapSelectType, currentMapType]);
 
