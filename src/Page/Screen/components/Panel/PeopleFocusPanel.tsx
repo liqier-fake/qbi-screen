@@ -6,7 +6,7 @@ import ComSelect from "../ComSelect";
 import ComTable from "../ComTable";
 import PanelItem from "../PanelItem";
 import styles from "../../index.module.less";
-import { columns1 } from "../../columns";
+import { columnsImportant } from "../../columns";
 import DetailModal from "../DetailModal";
 import { peopleOption } from "../../mock";
 import { apiGetSocialRisk, TimeRange } from "../../api";
@@ -63,7 +63,7 @@ const PeopleFocusPanel: React.FC<{
           />
           <ComTable
             className={styles.table}
-            columns={columns1}
+            columns={columnsImportant}
             dataSource={dataSource}
             onRowClick={(record) => {
               detailModal.openModal(record as unknown as TicketRecord);
