@@ -9,7 +9,7 @@ import icon from "./icon.svg";
 import styles from "./map.module.less";
 import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
-import { convertCoordinates } from "./utils";
+import { convertCoordinates, getMapDataXY } from "./utils";
 import useMap from "./useMap";
 import { images } from "./geojson/image";
 
@@ -446,8 +446,24 @@ const Map: React.FC<MapProps> = ({
         // 过滤掉没有经纬度数据的驿站
         if (!item.x || !item.y) return null;
 
-        // 转换经纬度到坐标系
-        const [x, y] = convertLngLatToCoordinates(item.x, item.y);
+        // 如果是街道地图，检查驿站是否属于当前街道
+        if (currentMapType !== MapTypeEnum.area) {
+          const currentStreetName = MapTypeNames[currentMapType];
+          // 检查驿站的district是否匹配当前街道
+         if (!currentStreetName.startsWith(item.district.slice(0, -2))) {
+            return null;
+          }
+        }
+
+        // 使用统一的坐标转换方法
+        const [x, y] = getMapDataXY({
+          name: item.siteName || '',
+          street: item.district || '',
+          x: 0, // 这里设为0，因为我们会使用经纬度转换
+          y: 0,
+          lat: item.y, // 注意：驿站数据中的 y 是纬度
+          lng: item.x  // 驿站数据中的 x 是经度
+        }, currentMapType);
 
         return {
           ...item,
@@ -455,8 +471,8 @@ const Map: React.FC<MapProps> = ({
           name: truncateCommunityName(item.siteName),
         };
       })
-      .filter((item): item is NonNullable<typeof item> => item !== null); // 修复类型过滤问题
-  }, []);
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [currentMapType]); // 添加 currentMapType 作为依赖
 
   // 根据当前地图类型和转换后的驿站数据计算聚合点
   const clusteredStations = useMemo(() => {
