@@ -335,7 +335,7 @@ const Screen = () => {
           onAskQuestion={handleAskQuestion} // 添加问题回调
         />
         {/* 左侧 */}
-        {/* <div className={styles.left}>
+        <div className={styles.left}>
           <div className={styles.leftItem}>
             <PanelItem
               title="数据来源"
@@ -377,16 +377,16 @@ const Screen = () => {
           <div className={styles.leftItem}>
             <SocialChallengePanel timeRange={timeRange} />
           </div>
-        </div> */}
+        </div>
         {/* 中间 */}
-        {/* <div className={styles.center}>
+        <div className={styles.center}>
           <div className={styles.centerItem}>
             <AIChat
               bubuleContent={bubuleContent}
               onRef={(ref) => (aiChatRef.current = ref)} // 设置ref
             />
           </div>
-        </div> */}
+        </div>
         {/* 右侧 */}
         <div className={styles.right}>
           <div className={classNames(styles.rightItem, styles.one)}>
@@ -409,7 +409,7 @@ const Screen = () => {
               }
             />
           </div>
-          {/* <div className={styles.rightItem}>
+          <div className={styles.rightItem}>
             <GovernanceProfilePanel timeRange={timeRange} />
           </div>
           <div
@@ -422,7 +422,7 @@ const Screen = () => {
             <div className={styles.rightItemRight}>
               <WordCloudPanel timeRange={timeRange}></WordCloudPanel>
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

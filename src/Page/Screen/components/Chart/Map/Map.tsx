@@ -607,6 +607,7 @@ const Map: React.FC<MapProps> = ({
     try {
       const option: EChartsOption = {
         // backgroundColor: "#030528",
+        // backgroundColor: "rgba(3,27,78,0.75)", // 改为和工单数量模式一致的背景色
         backgroundColor: "transparent",
         graphic: {
           type: "group",
