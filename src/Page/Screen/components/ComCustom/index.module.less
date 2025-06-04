@@ -280,6 +280,48 @@
         position: absolute;
         bottom: 0;
         right: 0;
+
+        :global {
+          .ant-select {
+            .ant-select-selector {
+              // background: linear-gradient(
+              //   180deg,
+              //   #092450 0%,
+              //   #071b41 100%
+              // ) !important;
+              background-color: transparent !important;
+              border: none !important;
+              // border-radius: 4px !important;
+              // transform: skewX(-20deg);
+
+              .ant-select-selection-item {
+                text-align: center;
+                color: #77a4ed;
+                // transform: skewX(20deg);
+                // font-size: var(--select-font-size);
+                font-size: 12px;
+              }
+            }
+
+            .ant-select-arrow {
+              color: #77a4ed !important;
+              font-size: 10px;
+            }
+
+            &.ant-select-focused .ant-select-selector {
+              // background: linear-gradient(
+              //   180deg,
+              //   #0c4bb1 0%,
+              //   #0a378d 100%
+              // ) !important;
+              box-shadow: none !important;
+
+              .ant-select-selection-item {
+                // color: #fff;
+              }
+            }
+          }
+        }
       }
     }
   }

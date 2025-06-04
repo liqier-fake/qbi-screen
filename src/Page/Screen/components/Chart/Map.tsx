@@ -1157,7 +1157,6 @@ const Map: React.FC<MapProps> = ({
             style={{
               left: `${popupPosition.x}px`,
               top: `${popupPosition.y}px`,
-              maxWidth: "300px",
               maxHeight: "400px",
               overflow: "auto",
             }}

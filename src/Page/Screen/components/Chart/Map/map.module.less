@@ -26,11 +26,11 @@
 .stationPopup {
   box-sizing: border-box;
   position: fixed;
-  min-width: 250px;
-  max-width: 320px;
+  min-width: 350px;
+  max-width: 400px;
   color: #ffffff;
   transform: translate(-50%, -110%); /* 将弹窗定位到鼠标点击位置上方 */
-  animation: popupFadeIn 0.3s ease-in-out;
+  animation: popupFadeIn 0.1s ease-in-out;
   z-index: 9999;
   background: url("./popBg.png") no-repeat center center;
   background-size: 100% 100%;
@@ -38,6 +38,23 @@
   backdrop-filter: blur(10px);
   pointer-events: auto;
   font-size: 12px;
+
+  .detailImage {
+    padding-right: 10px;
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #44a6fb;
+      border-radius: 2px;
+    }
+  }
+
   .closeBtn {
     cursor: pointer;
     font-size: 12px;
@@ -104,16 +121,17 @@
   li {
     cursor: pointer;
   }
-}
 
-/* 弹窗动画 */
-@keyframes popupFadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -105%);
+  &::-webkit-scrollbar {
+    width: 4px;
   }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -110%);
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #44a6fb;
+    border-radius: 2px;
   }
 }

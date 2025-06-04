@@ -8,11 +8,7 @@ import { getPeopleGroupDescription } from "./categoryDescriptions";
 import Odometer from "react-odometerjs";
 import "odometer/themes/odometer-theme-default.css";
 import { useNumberAnimation } from "./useNumberAnimation";
-import {
-  EnvironmentOutlined,
-  LeftOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 // 导入地图选择类型枚举
 import { MapSelectTypeEnum } from "../Chart/Map/Map";
@@ -236,7 +232,7 @@ const CardThree = ({
                         defaultValue={currentSelectType}
                         options={mapOptions}
                         onChange={onIconClick}
-                        style={{ width: 120 }}
+                        style={{ width: 100 }}
                       />
                     </div>
                   )}

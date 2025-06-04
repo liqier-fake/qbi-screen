@@ -1612,6 +1612,7 @@ const Map: React.FC<MapProps> = ({
                   <div style={{ marginTop: "10px" }}>
                     <strong>详细画像：</strong>
                     <div
+                      className={styles.detailImage}
                       style={{
                         maxHeight: "200px",
                         overflow: "auto",
