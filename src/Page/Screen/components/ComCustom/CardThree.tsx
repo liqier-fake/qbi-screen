@@ -177,36 +177,36 @@ const CardThree = ({
             {list.map((item, i) => {
               const showIcon = item.title === "新就业群体";
 
-          return (
-            <div
-              className={styles.listItem}
-              key={i}
-              onMouseEnter={(e) => {
-                return;
-                // 检查事件源是否来自选择框区域
-                const target = e.target as HTMLElement;
-                if (!target.closest(`.${styles.clickableIcon}`)) {
-                  onMouseEnter(item);
-                }
-              }}
-              onMouseLeave={(e) => {
-                return;
-                // 检查事件源是否来自选择框区域
-                const target = e.target as HTMLElement;
-                if (!target.closest(`.${styles.clickableIcon}`)) {
-                  onMouseLeave();
-                }
-              }}
-              style={{ position: "relative", cursor: "pointer" }}
-              onClick={(e) => {
-                // 检查事件源是否来自选择框区域
-                const target = e.target as HTMLElement;
-                if (!target.closest(`.${styles.clickableIcon}`)) {
-                  handleItemClick(item);
-                }
-              }}
-            >
-              {/* {showIcon && (
+              return (
+                <div
+                  className={styles.listItem}
+                  key={i}
+                  onMouseEnter={(e) => {
+                    return;
+                    // 检查事件源是否来自选择框区域
+                    const target = e.target as HTMLElement;
+                    if (!target.closest(`.${styles.clickableIcon}`)) {
+                      onMouseEnter(item);
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    return;
+                    // 检查事件源是否来自选择框区域
+                    const target = e.target as HTMLElement;
+                    if (!target.closest(`.${styles.clickableIcon}`)) {
+                      onMouseLeave();
+                    }
+                  }}
+                  style={{ position: "relative", cursor: "pointer" }}
+                  onClick={(e) => {
+                    // 检查事件源是否来自选择框区域
+                    const target = e.target as HTMLElement;
+                    if (!target.closest(`.${styles.clickableIcon}`)) {
+                      handleItemClick(item);
+                    }
+                  }}
+                >
+                  {/* {showIcon && (
                 <EnvironmentOutlined
                   className={styles.clickableIcon}
                   style={{
@@ -223,77 +223,81 @@ const CardThree = ({
                 />
               )} */}
 
-              {showIcon && (
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onMouseEnter={(e) => e.stopPropagation()}
-                  onMouseLeave={(e) => e.stopPropagation()}
-                  className={styles.clickableIcon}
-                >
-                  <Select
-                    defaultValue={currentSelectType}
-                    options={mapOptions}
-                    onChange={onIconClick}
-                    style={{ width: 120 }}
-                  />
+                  {showIcon && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onMouseEnter={(e) => e.stopPropagation()}
+                      onMouseLeave={(e) => e.stopPropagation()}
+                      className={styles.clickableIcon}
+                    >
+                      <Select
+                        defaultValue={currentSelectType}
+                        options={mapOptions}
+                        onChange={onIconClick}
+                        style={{ width: 120 }}
+                      />
+                    </div>
+                  )}
+
+                  <img src={threeIcon} alt="" />
+                  <Flex justify="center" align="center">
+                    <span className={styles.title}>
+                      <Odometer
+                        value={
+                          Array.isArray(animatedValues)
+                            ? animatedValues[i] || 0
+                            : 0
+                        }
+                        format="(d)"
+                        duration={1000}
+                      />
+                    </span>
+                    <span className={styles.value}>人</span>
+                  </Flex>
+                  <span className={styles.value}>{item.title}</span>
                 </div>
-              )}
-
-              <img src={threeIcon} alt="" />
-              <Flex justify="center" align="center">
-                <span className={styles.title}>
-                  <Odometer
-                    value={
-                      Array.isArray(animatedValues) ? animatedValues[i] || 0 : 0
-                    }
-                    format="(d)"
-                    duration={1000}
-                  />
-                </span>
-                <span className={styles.value}>人</span>
-              </Flex>
-              <span className={styles.value}>{item.title}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <WorkListModal
-        title={selectedSmqt}
-        open={workListOpen}
-        onCancel={handleCloseWorkList}
-        columns={columns}
-        showAiSummary={false}
-        fetchDataApi={apiGetTicketList}
-        fetchParams={modalParams}
-        pagination={{
-          defaultCurrent: 1,
-          defaultPageSize: 10,
-        }}
-        onDataLoaded={(data) => {
-          setTotal(data?.total || 0);
-        }}
-        tableProps={{
-          scroll: { y: 300 },
-        }}
-      >
-        {showSmqtList && (
-          <div>
-            <DividerTitle title="构成群体" />
-            {smqtList?.map((item) => (
-              <Tag color="blue" key={item.key}>
-                {item.key} : {item.count} 人
-              </Tag>
-            ))}
+              );
+            })}
           </div>
-        )}
-        <DividerTitle title="工单数量" />
-        <Tag color="blue">
-          {selectedSmqt} : {total}
-        </Tag>
-      </WorkListModal>
+
+          <WorkListModal
+            title={selectedSmqt}
+            open={workListOpen}
+            onCancel={handleCloseWorkList}
+            columns={columns}
+            showAiSummary={false}
+            fetchDataApi={apiGetTicketList}
+            fetchParams={modalParams}
+            pagination={{
+              defaultCurrent: 1,
+              defaultPageSize: 10,
+            }}
+            onDataLoaded={(data) => {
+              setTotal(data?.total || 0);
+            }}
+            tableProps={{
+              scroll: { y: 300 },
+            }}
+          >
+            {showSmqtList && (
+              <div>
+                <DividerTitle title="构成群体" />
+                {smqtList?.map((item) => (
+                  <Tag color="blue" key={item.key}>
+                    {item.key} : {item.count} 人
+                  </Tag>
+                ))}
+              </div>
+            )}
+            <DividerTitle title="工单数量" />
+            <Tag color="blue">
+              {selectedSmqt} : {total}
+            </Tag>
+          </WorkListModal>
+        </div>
+      </div>
     </div>
   );
 };
