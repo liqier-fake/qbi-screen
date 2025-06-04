@@ -423,7 +423,7 @@ const Map: React.FC<MapProps> = ({
         },
         {
           offset: 1,
-          color: "rgba(58,149,253,0.75)", // 90% 处的颜色
+          color: "rgba(58,149,253,0.75)", // 92% 处的颜色
         },
       ],
       global: true, // 全局坐标系
@@ -660,7 +660,7 @@ const Map: React.FC<MapProps> = ({
             zoom: 1.0,
             roam: true, // 启用地图缩放和平移
             layoutCenter: ["50%", "50%"],
-            layoutSize: "90%",
+            layoutSize: "92%",
             show: true,
             animation: false, // 禁用动画以提高性能
             label: {
@@ -702,7 +702,7 @@ const Map: React.FC<MapProps> = ({
             zoom: 1.0,
             roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "51%"],
-            layoutSize: "90%",
+            layoutSize: "92%",
             silent: true,
             animation: false, // 禁用动画
             itemStyle: {
@@ -722,7 +722,7 @@ const Map: React.FC<MapProps> = ({
             zoom: 1.0,
             roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "52%"],
-            layoutSize: "90%",
+            layoutSize: "92%",
             silent: true,
             animation: false, // 禁用动画
             itemStyle: {
@@ -742,7 +742,7 @@ const Map: React.FC<MapProps> = ({
             zoom: 1.0,
             roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "53%"],
-            layoutSize: "90%",
+            layoutSize: "92%",
             silent: true,
             animation: false, // 禁用动画
             itemStyle: {
@@ -762,7 +762,7 @@ const Map: React.FC<MapProps> = ({
             zoom: 1.0,
             roam: false, // 禁用独立缩放和平移
             layoutCenter: ["50%", "53%"],
-            layoutSize: "90%",
+            layoutSize: "92%",
             silent: true,
             animation: false, // 禁用动画
             itemStyle: {
@@ -823,7 +823,7 @@ const Map: React.FC<MapProps> = ({
               disabled: true,
             },
             layoutCenter: ["50%", "50%"],
-            layoutSize: "90%",
+            layoutSize: "92%",
             data: seriesData,
           },
 
