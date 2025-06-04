@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import styles from "./index.module.less";
 
 // 定义词云项的数据结构
@@ -37,22 +37,99 @@ const getColorByValue = (value: number, min: number, max: number): string => {
 };
 
 /**
- * 获取随机位置，确保气泡完全在容器内
+ * 获取随机位置（百分比），确保气泡完全在容器内，更均匀分布
  */
 const getRandomPosition = (
-  containerWidth: number,
-  containerHeight: number,
-  itemSize: number
+  itemSizePercent: number,
+  sizeRatio: number,
+  usedPositions: Array<{ x: number; y: number; size: number }>,
+  attempts: number
 ): { x: number; y: number } => {
-  // 考虑气泡尺寸，计算有效区域
-  const effectiveWidth = containerWidth - itemSize;
-  const effectiveHeight = containerHeight - itemSize;
+  // 减小边距，使用气泡尺寸的70%作为边距
+  const safeMargin = itemSizePercent * 0.7;
+  const minPos = safeMargin;
+  const maxPos = 100 - safeMargin;
+  const centerX = 50;
+  const centerY = 50;
 
-  // 确保位置在有效区域内
-  const x = itemSize / 2 + Math.random() * effectiveWidth;
-  const y = itemSize / 2 + Math.random() * effectiveHeight;
+  // 初始化最佳位置
+  let bestPosition: { x: number; y: number } | null = null;
+  let maxMinDistance = -1;
 
-  return { x, y };
+  // 尝试多个位置，选择最优的（离其他气泡最远的位置）
+  for (let i = 0; i < 8; i++) {
+    let candidateX = 0;
+    let candidateY = 0;
+
+    if (sizeRatio > 0.7 && attempts < 20) {
+      // 最大气泡优先尝试中心位置，减小中心区域范围
+      const range = Math.min(15, maxPos - minPos);
+      candidateX = centerX + (Math.random() - 0.5) * range;
+      candidateY = centerY + (Math.random() - 0.5) * range;
+    } else {
+      // 其他气泡在整个区域尝试，包括边缘
+      // 使用象限划分，确保均匀分布
+      const quadrant = Math.floor(Math.random() * 4); // 0-3表示四个象限
+      const rangeX = maxPos - minPos;
+      const rangeY = maxPos - minPos;
+
+      // 增加边缘位置的权重
+      const edgeWeight = Math.random() < 0.6; // 60%的概率选择靠近边缘的位置
+
+      switch (quadrant) {
+        case 0: // 左上
+          candidateX =
+            minPos + (edgeWeight ? rangeX * 0.3 : rangeX * 0.5) * Math.random();
+          candidateY =
+            minPos + (edgeWeight ? rangeY * 0.3 : rangeY * 0.5) * Math.random();
+          break;
+        case 1: // 右上
+          candidateX =
+            centerX +
+            (edgeWeight ? rangeX * 0.7 : rangeX * 0.5) * Math.random();
+          candidateY =
+            minPos + (edgeWeight ? rangeY * 0.3 : rangeY * 0.5) * Math.random();
+          break;
+        case 2: // 左下
+          candidateX =
+            minPos + (edgeWeight ? rangeX * 0.3 : rangeX * 0.5) * Math.random();
+          candidateY =
+            centerY +
+            (edgeWeight ? rangeY * 0.7 : rangeY * 0.5) * Math.random();
+          break;
+        default: // 右下
+          candidateX =
+            centerX +
+            (edgeWeight ? rangeX * 0.7 : rangeX * 0.5) * Math.random();
+          candidateY =
+            centerY +
+            (edgeWeight ? rangeY * 0.7 : rangeY * 0.5) * Math.random();
+          break;
+      }
+    }
+
+    // 确保在安全范围内
+    candidateX = Math.max(minPos, Math.min(maxPos, candidateX));
+    candidateY = Math.max(minPos, Math.min(maxPos, candidateY));
+
+    // 计算与其他气泡的最小距离
+    let minDistance = Number.MAX_VALUE;
+    for (const pos of usedPositions) {
+      const dx = candidateX - pos.x;
+      const dy = candidateY - pos.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      minDistance = Math.min(minDistance, distance);
+    }
+
+    // 如果这是最好的位置（离其他气泡最远），就保存下来
+    if (minDistance > maxMinDistance) {
+      maxMinDistance = minDistance;
+      bestPosition = { x: candidateX, y: candidateY };
+    }
+  }
+
+  // 如果找到了合适的位置，使用它；否则使用安全的默认位置
+  return bestPosition || { x: centerX, y: centerY };
 };
 
 // 组件Props类型定义
@@ -73,58 +150,32 @@ interface CloudProps {
  */
 const Cloud: React.FC<CloudProps> = ({
   data,
-  maxSize = 100,
-  minSize = 60,
+  maxSize = 90,
+  minSize = 50,
   moveRange = 10,
-  padding = 15,
+  padding = 0,
   fontSizeRatio = 0.16,
   onItemClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerDimensions, setContainerDimensions] = useState({
-    width: 400,
-    height: 400,
-  });
-
-  // 监听容器尺寸变化
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
-        if (width > 0 && height > 0) {
-          setContainerDimensions({ width, height });
-        }
-      }
-    };
-
-    updateDimensions();
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
 
   const bubbleStyles = useMemo(() => {
     if (!data?.length) return [];
-
-    const effectiveWidth = Math.max(containerDimensions.width, 100);
-    const effectiveHeight = Math.max(containerDimensions.height, 100);
 
     // 按值排序，确保大的在中间
     const sortedData = [...data].sort((a, b) => b.value - a.value);
     const maxValue = Math.max(...data.map((item) => item.value));
 
-    // 创建一个Set来存储已使用的位置
+    // 创建一个数组来存储已使用的位置（百分比）
     const usedPositions: Array<{ x: number; y: number; size: number }> = [];
 
     return sortedData.map((item, index) => {
-      // 直接使用相对值计算大小
+      // 直接使用相对值计算大小（像素值）
       const sizeRatio = item.value / maxValue;
       const size = Math.max(minSize, sizeRatio * maxSize);
+
+      // 计算气泡相对于容器的百分比大小
+      const sizePercent = (size / 400) * 100; // 假设容器大概400px作为基准
 
       let position: { x: number; y: number };
       let attempts = 0;
@@ -132,19 +183,26 @@ const Cloud: React.FC<CloudProps> = ({
 
       // 尝试找到不重叠的位置
       do {
-        position = getRandomPosition(effectiveWidth, effectiveHeight, size);
+        position = getRandomPosition(
+          sizePercent,
+          sizeRatio,
+          usedPositions,
+          attempts
+        );
         attempts++;
 
         // 检查是否与已有气泡重叠
         const hasOverlap = usedPositions.some((usedPos) => {
           const dx = position.x - usedPos.x;
           const dy = position.y - usedPos.y;
-          const minDistance = (size + usedPos.size) * 0.35;
-          return Math.sqrt(dx * dx + dy * dy) < minDistance;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          // 减小间距，让气泡可以更靠近
+          const minDistance = (sizePercent + usedPos.size) * 0.35;
+          return distance < minDistance;
         });
 
         if (!hasOverlap || attempts >= maxAttempts) {
-          usedPositions.push({ ...position, size });
+          usedPositions.push({ ...position, size: sizePercent });
           break;
         }
       } while (attempts < maxAttempts);
@@ -153,15 +211,15 @@ const Cloud: React.FC<CloudProps> = ({
       const backgroundColor = getColorByValue(item.value, 0, maxValue);
 
       return {
-        width: `${size}px`,
-        height: `${size}px`,
-        left: `${position.x}px`,
-        top: `${position.y}px`,
+        width: `${size}px`, // 改回像素值
+        height: `${size}px`, // 改回像素值
+        left: `${position.x}%`,
+        top: `${position.y}%`,
         padding: `${padding}px`,
-        fontSize: `${size * fontSizeRatio}px`,
+        fontSize: `${size * fontSizeRatio}px`, // 改回像素值
         backgroundColor,
         color: "#ffffff",
-        "--move-range": `${Math.min(moveRange, size * 0.1)}px`,
+        "--move-range": `${Math.min(moveRange, size * 0.1)}px`, // 改回像素值
         "--animation-delay": `${-(Math.random() * 15)}s`,
         zIndex: sortedData.length - index,
         opacity: 0.9,
@@ -178,15 +236,7 @@ const Cloud: React.FC<CloudProps> = ({
         userSelect: "none" as const,
       } as React.CSSProperties;
     });
-  }, [
-    data,
-    maxSize,
-    minSize,
-    moveRange,
-    padding,
-    fontSizeRatio,
-    containerDimensions,
-  ]);
+  }, [data, maxSize, minSize, moveRange, padding, fontSizeRatio]);
 
   if (!data?.length) return null;
 
