@@ -11,6 +11,7 @@ import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { convertCoordinates } from "./utils";
 import useMap from "./useMap";
+import { images } from "./geojson/image";
 
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
@@ -69,9 +70,14 @@ interface StationInfo {
   // 可以添加更多驿站相关信息字段
   address?: string;
   contact?: string;
-  services?: string[];
+  services?: string; // 修改为string类型，与实际数据匹配
   siteName?: string; // 添加siteName字段
   district?: string; // 添加区域字段
+  id?: number;
+  type?: string;
+  remarks?: string;
+  x?: number;
+  y?: number;
 }
 
 // 定义聚合点接口
@@ -79,6 +85,50 @@ interface ClusterInfo {
   position: [number, number];
   count: number;
   stations: StationInfo[];
+}
+
+// 定义ECharts参数类型
+interface EChartsParams {
+  componentType: string;
+  seriesType: string;
+  seriesId?: string;
+  seriesName?: string;
+  name: string;
+  dataIndex: number;
+  data: {
+    name: string;
+    value: number | number[];
+    stationInfo?: StationInfo;
+    isCluster?: boolean;
+    count?: number;
+    stations?: StationInfo[];
+  };
+  value: number | number[];
+  color: string;
+  event?: {
+    stop: () => void;
+    event?: MouseEvent;
+  };
+}
+
+// 定义地图配置类型
+interface MapViewConfig {
+  center?: [number, number];
+  zoom?: number;
+  roam?: boolean;
+}
+
+// 定义地图图层类型
+interface MapGeoLayer {
+  map: string;
+  aspectScale: number;
+  zoom: number;
+  roam: boolean;
+  layoutCenter: [string, string];
+  layoutSize: string;
+  silent?: boolean;
+  center?: [number, number];
+  [key: string]: unknown;
 }
 
 // 定义Map组件的props接口
@@ -315,7 +365,13 @@ const Map: React.FC<MapProps> = ({
     if (!chart) return;
 
     // 获取当前视图状态
-    const view = chart.getOption();
+    const view = chart.getOption() as {
+      geo?: MapGeoLayer[];
+      series?: Array<{
+        type?: string;
+        [key: string]: unknown;
+      }>;
+    };
     if (!view.geo?.[0]) return;
 
     // 获取主地图层的视图状态
@@ -324,7 +380,7 @@ const Map: React.FC<MapProps> = ({
     const zoom = mainGeo.zoom;
 
     // 构建统一的视图配置
-    const viewConfig = {
+    const viewConfig: MapViewConfig = {
       center,
       zoom,
       roam: false, // 禁用其他层的独立缩放
@@ -333,13 +389,13 @@ const Map: React.FC<MapProps> = ({
     // 批量更新所有图层，避免单独触发渲染
     chart.setOption(
       {
-        geo: view.geo.map((geo, index) => ({
+        geo: view.geo.map((geo: MapGeoLayer, index: number) => ({
           ...geo,
           ...viewConfig,
           silent: index > 0, // 只有第一层响应鼠标事件
           roam: index === 0, // 只有第一层可以缩放和平移
         })),
-        series: view.series.map((series) => {
+        series: view.series?.map((series) => {
           if (series?.type === "map") {
             return {
               ...series,
@@ -369,6 +425,20 @@ const Map: React.FC<MapProps> = ({
   const [showClusterPopup, setShowClusterPopup] = useState<boolean>(false);
   const [clusterStations, setClusterStations] = useState<StationInfo[]>([]);
 
+  // 添加画像弹窗相关状态
+  const [showImagePopup, setShowImagePopup] = useState<boolean>(false);
+  const [selectedCommunity, setSelectedCommunity] = useState<{
+    name: string;
+    data?: Array<{
+      data_type: string;
+      group_type: string;
+      percentage: number;
+      profile_category: string;
+      profile_subcategory: string;
+      region_name: string;
+    }> | null;
+  } | null>(null);
+
   // 将驿站数据的经纬度转换为坐标系坐标
   const transformedStationList = useMemo(() => {
     return station
@@ -385,7 +455,7 @@ const Map: React.FC<MapProps> = ({
           name: truncateCommunityName(item.siteName),
         };
       })
-      .filter(Boolean); // 过滤掉null值
+      .filter((item): item is NonNullable<typeof item> => item !== null); // 修复类型过滤问题
   }, []);
 
   // 根据当前地图类型和转换后的驿站数据计算聚合点
@@ -414,6 +484,7 @@ const Map: React.FC<MapProps> = ({
   const handleClosePopup = () => {
     setShowStationPopup(false);
     setShowClusterPopup(false);
+    setShowImagePopup(false);
   };
 
   // 处理选择聚合点中的某个驿站
@@ -426,7 +497,7 @@ const Map: React.FC<MapProps> = ({
   // 更新图表配置
   useEffect(() => {
     const seriesItemAreaColor = {
-      type: "linear",
+      type: "linear" as const,
       x: 0,
       y: 0,
       x2: 1,
@@ -460,23 +531,25 @@ const Map: React.FC<MapProps> = ({
 
     // 转换坐标
     const seriesData = currentTicketData?.map((item) => {
-      // 根据当前地图类型获取对应的街道名
-      const street = MapTypeNames[currentMapType];
+      // 确保item包含x和y属性，如果没有则使用默认值
+      const itemWithCoords = {
+        ...item,
+        x: (item as TicketCountData & { x?: number; y?: number }).x || 0,
+        y: (item as TicketCountData & { x?: number; y?: number }).y || 0,
+      };
 
-      // 转换坐标
+      // 使用utils中的坐标转换方法
       const convertedPoint = convertCoordinates({
-        name: item.name,
-        street,
-        x: item.x,
-        y: item.y,
-        count: item.count,
+        ...itemWithCoords,
+        street: MapTypeNames[currentMapType],
       });
+      const [x, y] = [convertedPoint.x, convertedPoint.y];
 
       return {
         name: convertedPoint.name,
         value: convertedPoint.count,
         // 使用转换后的坐标
-        coord: [convertedPoint.x, convertedPoint.y],
+        coord: [x, y],
         // 非园区视图时，为不同区域设置不同的自定义样式
         itemStyle:
           currentMapType !== MapTypeEnum.area
@@ -510,6 +583,25 @@ const Map: React.FC<MapProps> = ({
               };
             })
             .filter(Boolean) // 过滤掉无效数据
+        : [];
+
+    // 为街道地图生成散点数据 - 使用mapTypeData来确保坐标正确
+    const streetScatterData =
+      currentMapType !== MapTypeEnum.area &&
+      currentMapSelectType === MapSelectTypeEnum.number
+        ? mapTypeData
+            ?.map((item) => {
+              // 对于工单数量，应该使用value[2]作为数值
+              const count = item.value[2] || 0;
+              return {
+                name: item.region_name,
+                value: [item.value[0], item.value[1], count],
+                itemStyle: {
+                  color: getScatterColorByValue(count, maxValue),
+                },
+              };
+            })
+            .filter(Boolean) || []
         : [];
 
     try {
@@ -647,31 +739,59 @@ const Map: React.FC<MapProps> = ({
         },
         tooltip: {
           trigger: "item",
-          formatter: function (params: {
-            name: string;
-            value: number | Array<number>;
-            componentSubType?: string;
-            data?: any;
-          }) {
+          formatter: function (params: any) {
+            const param = Array.isArray(params) ? params[0] : params;
+
             // 对于聚合点，显示特殊的提示
             if (
-              params.componentSubType === "scatter" &&
-              params.data?.isCluster
+              param.componentType === "series" &&
+              (param.data as any)?.isCluster
             ) {
-              return `<div style="font-size: 12px;color: #fff;">该区域有${params.data.count}个驿站</div><div style="font-size: 12px;color: #fff;">点击查看详情</div>`;
+              return `<div style="font-size: 12px;color: #fff;">该区域有${
+                (param.data as any).count
+              }个驿站</div><div style="font-size: 12px;color: #fff;">点击查看详情</div>`;
             }
 
-            // 对于散点图，value是数组，对于地图，value是数字
-            let value = params.value;
-            if (Array.isArray(value)) {
-              value = value[2]; // 从坐标数组中提取值 [lng, lat, value]
+            // 根据当前选择类型显示不同的tooltip内容
+            if (currentMapSelectType === MapSelectTypeEnum.number) {
+              // 工单数量模式：显示工单数量
+              let value = param.value;
+              if (Array.isArray(value)) {
+                value = value[2]; // 从坐标数组中提取值 [lng, lat, value]
+              }
+              const displayValue = isNaN(Number(value)) ? 0 : value;
+              return `${param.name}: ${displayValue}条工单`;
+            } else if (
+              currentMapSelectType === MapSelectTypeEnum.newGroupCount
+            ) {
+              // 新市民群体数量模式：显示人数
+              let value = param.value;
+              if (Array.isArray(value)) {
+                value = value[2];
+              }
+              const displayValue = isNaN(Number(value)) ? 0 : value;
+              return `${param.name}: ${displayValue}人`;
+            } else if (currentMapSelectType === MapSelectTypeEnum.site) {
+              // 驿站模式：显示驿站信息
+              return `${param.name}：驿站`;
+            } else if (
+              currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
+              currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
+              currentMapSelectType === MapSelectTypeEnum.workDistribution ||
+              currentMapSelectType === MapSelectTypeEnum.liveDistribution
+            ) {
+              // 分布类型模式：显示分布密度
+              let value = param.value;
+              if (Array.isArray(value)) {
+                value = value[2];
+              }
+              const displayValue = isNaN(Number(value)) ? 0 : value;
+              return `${param.name}: 密度 ${displayValue}`;
+            } else {
+              // 其他模式：显示基本信息
+              return `${param.name}`;
             }
-
-            // 确保显示数字而不是NaN
-            const displayValue = isNaN(Number(value)) ? 0 : value;
-            return `${params.name}: ${displayValue}条工单`;
           },
-          fontSize: 12,
           backgroundColor: "rgba(0,30,60,0.85)",
           borderColor: "#0095ff",
           borderWidth: 1,
@@ -702,7 +822,7 @@ const Map: React.FC<MapProps> = ({
               shadowColor: "#8cd3ef",
               shadowOffsetY: 10,
               shadowBlur: 120,
-              areaColor: "transparent",
+              areaColor: seriesItemAreaColor,
             },
             emphasis: {
               label: {
@@ -802,236 +922,399 @@ const Map: React.FC<MapProps> = ({
             },
           },
         ],
-        // visualMap: {
-        //   min: 0,
-        //   max: 10,
-        //   calculable: false,
-        //   inRange: {
-        //     color: [
-        //       "rgba(0,102,204,0.5)", // 非常低
-        //       "rgba(0,153,255,0.6)", // 低
-        //       "rgba(0,204,255,0.7)", // 中
-        //       "rgba(0,255,255,0.8)", // 高
-        //     ],
-        //   },
-        // },
         series: [
-          {
-            name: "区域数据",
-            type: "map",
-            map: currentMapType,
-            aspectScale: 1,
-            zoom: 1.0,
-            roam: true, // 启用地图缩放和平移
-            showLegendSymbol: true,
-            label: {
-              show: false,
-              textStyle: { color: "#fff", fontSize: "120%" },
-              emphasis: {
-                show: false,
-              },
-            },
-            itemStyle: {
-              areaColor: seriesItemAreaColor,
-              borderColor: "#fff",
-              borderWidth: 0.2,
-            },
-            emphasis: {
-              label: {
-                show: false,
-              },
-              itemStyle: {
-                show: false,
-                borderColor: "#fff",
-                areaColor: "rgba(0,254,233,0.6)",
-              },
-            },
-            select: {
-              disabled: true,
-            },
-            layoutCenter: ["50%", "50%"],
-            layoutSize: "90%",
-            data: seriesData,
-          },
+          // 区域数据 - 只在工单数量模式下显示
+          ...(currentMapSelectType === MapSelectTypeEnum.number
+            ? [
+                {
+                  name: "区域数据",
+                  type: "map" as const,
+                  map: currentMapType,
+                  aspectScale: 1,
+                  zoom: 1.0,
+                  roam: true, // 启用地图缩放和平移
+                  showLegendSymbol: true,
+                  label: {
+                    show: false,
+                    textStyle: { color: "#fff", fontSize: "120%" },
+                    emphasis: {
+                      show: false,
+                    },
+                  },
+                  itemStyle: {
+                    areaColor: seriesItemAreaColor,
+                    borderColor: "#fff",
+                    borderWidth: 0.2,
+                  },
+                  emphasis: {
+                    label: {
+                      show: false,
+                    },
+                    itemStyle: {
+                      show: false,
+                      borderColor: "#fff",
+                      areaColor: "rgba(0,254,233,0.6)",
+                    },
+                  },
+                  select: {
+                    disabled: true,
+                  },
+                  layoutCenter: ["50%", "50%"],
+                  layoutSize: "90%",
+                  data: seriesData,
+                },
+              ]
+            : []),
 
-          currentMapType === MapTypeEnum.area &&
-            currentMapSelectType === MapSelectTypeEnum.number && {
-              geoIndex: 0,
-              type: "effectScatter",
-              coordinateSystem: "geo",
-              zlevel: 1,
-              rippleEffect: {
-                //涟漪特效
-                period: 4, //动画时间，值越小速度越快
-                brushType: "fill", //波纹绘制方式 stroke, fill
-                scale: 5, //波纹圆环最大限制，值越大波纹越大
-              },
-              symbol: "circle",
-              // symbolSize: function (val) {
-              //   return (5 + val[2] * 5) / 150; //圆环大小
-              // },
+          // 工单数量散点图效果 - 支持所有地图类型
+          ...(currentMapSelectType === MapSelectTypeEnum.number
+            ? [
+                {
+                  geoIndex: 0,
+                  type: "effectScatter" as const,
+                  coordinateSystem: "geo" as const,
+                  zlevel: 1,
+                  rippleEffect: {
+                    //涟漪特效
+                    period: 4, //动画时间，值越小速度越快
+                    brushType: "fill" as const, //波纹绘制方式 stroke, fill
+                    scale: 5, //波纹圆环最大限制，值越大波纹越大
+                  },
+                  symbol: "circle",
+                  symbolSize: (val: number[]) => Math.sqrt(val[2]) * 2,
+                  tooltip: {
+                    show: true,
+                    formatter: (
+                      params: echarts.ECElementEvent | echarts.ECElementEvent[]
+                    ) => {
+                      const param = Array.isArray(params) ? params[0] : params;
+                      const value = Array.isArray(param.value)
+                        ? param.value[2]
+                        : param.value;
+                      return `${param.name}: ${value || 0}条`;
+                    },
+                  },
+                  data:
+                    currentMapType === MapTypeEnum.area
+                      ? scatterData
+                      : streetScatterData,
+                },
+              ]
+            : []),
 
-              symbolSize: (val) => Math.sqrt(val[2]) * 2,
-              // label: {
-              //   show: true,
-              //   formatter: (params) => `${params.name}\n${params.value[2]}`,
-              // },
+          // 新市民群体数量散点图 - 支持所有地图类型
+          ...(currentMapSelectType === MapSelectTypeEnum.newGroupCount
+            ? [
+                {
+                  name: "新市民群体数量",
+                  type: "scatter" as const,
+                  coordinateSystem: "geo" as const,
+                  geoIndex: 0,
+                  zlevel: 1,
+                  symbol: "circle",
+                  symbolSize: (val: number[]) =>
+                    Math.max(6, Math.sqrt(val[2]) * 0.8), // 大幅缩小散点图大小
+                  itemStyle: {
+                    color: "rgba(255, 165, 0, 0.8)", // 橙色主题
+                    borderColor: "#fff",
+                    borderWidth: 1,
+                    shadowColor: "rgba(255, 165, 0, 0.5)",
+                    shadowBlur: 10,
+                  },
+                  emphasis: {
+                    scale: 1.2,
+                    itemStyle: {
+                      color: "rgba(255, 140, 0, 0.9)",
+                    },
+                  },
+                  tooltip: {
+                    show: true,
+                    formatter: (
+                      params: echarts.ECElementEvent | echarts.ECElementEvent[]
+                    ) => {
+                      const param = Array.isArray(params) ? params[0] : params;
+                      const value = Array.isArray(param.value)
+                        ? param.value[2]
+                        : param.value;
+                      return `${param.name}: ${value || 0}人`;
+                    },
+                  },
+                  data:
+                    mapTypeData?.map((item) => ({
+                      name: item.region_name,
+                      value: [item.value[0], item.value[1], item.people_count],
+                    })) || [],
+                },
+              ]
+            : []),
 
-              // itemStyle: {
-              //   normal: {
-              //     show: true,
-              //     color: "#F41C19",
-              //   },
-              // },
-              tooltip: {
-                show: true,
-                formatter: (params) => {
-                  return `${params.name}: ${params.value[2]}条`;
+          // 普通驿站点 - 只在驿站模式下显示
+          ...(currentMapSelectType === MapSelectTypeEnum.site
+            ? [
+                {
+                  name: "驿站",
+                  type: "scatter" as const,
+                  coordinateSystem: "geo" as const,
+                  geoIndex: 0,
+                  zlevel: 2,
+                  symbol: `image://${icon}`,
+                  symbolSize: [87, 20], // 使用固定数组值而不是函数
+                  animation: false, // 禁用动画，防止闪烁
+                  // 为驿站添加特殊的点击事件类型标记
+                  seriesId: "station", // 添加唯一标识符，用于区分点击事件
+                  // 添加emphasis配置，修改hover效果
+                  emphasis: {
+                    disabled: false,
+                    scale: 1, // 不放大
+                    itemStyle: {
+                      opacity: 1, // 保持原有透明度
+                    },
+                  },
+                  label: {
+                    show: true,
+                    formatter: (params: EChartsParams) => {
+                      return params.name;
+                    },
+                    position: "inside", // 确保文字在图标内部
+                    color: "#fff",
+                    backgroundColor: "rgba(0,0,0,0)", // 透明背景
+                    fontSize: 9, // 减小字体，确保能放在图标内
+                    // align: "center",
+                    padding: [0, 0, 0, 5],
+                    verticalAlign: "middle", // 确保垂直居中
+                    textShadowColor: "#000", // 保留文字阴影增强可读性
+                    textShadowBlur: 2,
+                    textShadowOffsetX: 0,
+                    textShadowOffsetY: 0,
+                  },
+                  tooltip: {
+                    show: false,
+                    trigger: "item",
+                    formatter: (params: EChartsParams) => {
+                      return `${params.name}：驿站`;
+                    },
+                  },
+
+                  // 处理单个驿站点数据
+                  data: clusteredStations
+                    .filter(
+                      (item): item is StationInfo => !("count" in item) // 过滤出单个驿站点
+                    )
+                    .map((station) => ({
+                      name: station.name,
+                      value: [...station.position, 1],
+                      stationInfo: station,
+                    })),
+                },
+              ]
+            : []),
+
+          // 聚合驿站点 - 只在驿站模式下显示
+          ...(currentMapSelectType === MapSelectTypeEnum.site
+            ? [
+                {
+                  name: "驿站聚合",
+                  type: "scatter" as const,
+                  coordinateSystem: "geo" as const,
+                  geoIndex: 0,
+                  zlevel: 3,
+                  symbol: "circle",
+                  symbolSize: (val: number[], params: EChartsParams) => {
+                    // 根据聚合的驿站数量动态调整大小
+                    // 优化聚合点尺寸计算，适应更多聚合的驿站
+                    const count = params.data?.count || 0;
+                    // 采用更平缓的增长曲线，防止大小增长过快
+                    return Math.max(40, Math.min(70, 40 + count * 1.8));
+                  },
+                  animation: false,
+                  seriesId: "stationCluster",
+                  itemStyle: {
+                    color: "rgba(0,202,255,0.8)",
+                    borderColor: "#fff",
+                    borderWidth: 1,
+                    shadowColor: "rgba(0,202,255,0.5)",
+                    shadowBlur: 10,
+                  },
+                  emphasis: {
+                    scale: 1.1,
+                    itemStyle: {
+                      color: "rgba(0,255,204,0.9)",
+                    },
+                  },
+                  label: {
+                    show: true,
+                    position: "inside",
+                    formatter: (params: EChartsParams) =>
+                      `${params.data?.count || 0}`,
+                    fontSize: 12,
+                    fontWeight: "bold",
+                    color: "#fff",
+                    textShadowColor: "#000",
+                    textShadowBlur: 2,
+                  },
+                  // 处理聚合点数据
+                  data: clusteredStations
+                    .filter(
+                      (item): item is ClusterInfo =>
+                        "count" in item && item.count > 1 // 过滤出聚合点
+                    )
+                    .map((cluster) => ({
+                      name: `${cluster.count}个驿站`,
+                      value: [...cluster.position, cluster.count],
+                      isCluster: true,
+                      count: cluster.count,
+                      stations: cluster.stations,
+                    })),
+                },
+              ]
+            : []),
+
+          // 添加热力图配置 - 改进视觉效果，类似图片
+          ...(currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
+          currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
+          currentMapSelectType === MapSelectTypeEnum.workDistribution ||
+          currentMapSelectType === MapSelectTypeEnum.liveDistribution
+            ? [
+                {
+                  type: "heatmap" as const,
+                  coordinateSystem: "geo" as const,
+                  name: "分布热力图",
+                  data: mapTypeData,
+                  pointSize: 20, // 增大点的基础大小
+                  blurSize: 25, // 增大模糊半径，创造更柔和的渐变效果
+                  minOpacity: 0.1, // 降低最小透明度
+                  maxOpacity: 0.9, // 提高最大透明度
+                  zlevel: 1,
+                  emphasis: {
+                    itemStyle: {
+                      shadowBlur: 15,
+                      shadowColor: "rgba(0, 0, 0, 0.3)",
+                    },
+                  },
+                  itemStyle: {
+                    opacity: 0.8,
+                    shadowBlur: 5, // 添加阴影效果增强立体感
+                    shadowColor: "rgba(0, 0, 0, 0.2)",
+                  },
+                  progressive: 1000,
+                  animation: false,
+                },
+              ]
+            : []),
+
+          // 画像模式标记点 - 引导用户点击
+          ...(currentMapSelectType === MapSelectTypeEnum.image
+            ? [
+                {
+                  name: "画像标记",
+                  type: "scatter" as const,
+                  coordinateSystem: "geo" as const,
+                  geoIndex: 0,
+                  zlevel: 1,
+                  symbol: "diamond", // 使用菱形标记
+                  symbolSize: 12,
+                  itemStyle: {
+                    color: "rgba(0, 255, 255, 0.9)", // 青色标记
+                    borderColor: "#fff",
+                    borderWidth: 2,
+                    shadowColor: "rgba(0, 255, 255, 0.6)",
+                    shadowBlur: 15,
+                  },
+                  emphasis: {
+                    scale: 1.3,
+                    itemStyle: {
+                      color: "rgba(0, 255, 255, 1)",
+                    },
+                  },
+                  tooltip: {
+                    show: true,
+                    formatter: (params: any) => {
+                      const param = Array.isArray(params) ? params[0] : params;
+                      return `${param.name}: 点击查看画像详情`;
+                    },
+                  },
+                  data:
+                    mapTypeData?.map((item) => ({
+                      name: item.region_name,
+                      value: [item.value[0], item.value[1], 1], // 固定值用于标记
+                    })) || [],
+                },
+              ]
+            : []),
+        ].filter(Boolean), // 过滤掉false值
+        // 添加热力图的visualMap配置到主配置层级
+        ...(currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
+        currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
+        currentMapSelectType === MapSelectTypeEnum.workDistribution ||
+        currentMapSelectType === MapSelectTypeEnum.liveDistribution
+          ? {
+              visualMap: {
+                show: false, // 隐藏图例
+                min: 0,
+                max: Math.max(
+                  ...(mapTypeData || []).map(
+                    (item: { value: number[] }) => item.value[2] || 0
+                  ),
+                  1
+                ),
+                calculable: false,
+                // 根据不同分布类型设置不同的颜色渐变
+                inRange: {
+                  // color:
+                  //   currentMapSelectType === MapSelectTypeEnum.dayDistribution
+                  //     ? [
+                  //         "rgba(255, 223, 0, 0)", // 透明黄色
+                  //         "rgba(255, 223, 0, 0.3)",
+                  //         "rgba(255, 191, 0, 0.5)",
+                  //         "rgba(255, 159, 0, 0.7)",
+                  //         "rgba(255, 127, 0, 0.8)",
+                  //         "rgba(255, 95, 0, 0.9)",
+                  //         "rgba(255, 63, 0, 1)",
+                  //       ] // 日间分布 - 黄到橙红渐变
+                  //     : currentMapSelectType ===
+                  //       MapSelectTypeEnum.nightDistribution
+                  //     ? [
+                  //         "rgba(0, 32, 128, 0)", // 透明深蓝
+                  //         "rgba(0, 64, 192, 0.3)",
+                  //         "rgba(0, 96, 255, 0.5)",
+                  //         "rgba(32, 128, 255, 0.7)",
+                  //         "rgba(64, 160, 255, 0.8)",
+                  //         "rgba(96, 192, 255, 0.9)",
+                  //         "rgba(128, 224, 255, 1)",
+                  //       ] // 夜间分布 - 深蓝到浅蓝渐变
+                  //     : currentMapSelectType ===
+                  //       MapSelectTypeEnum.workDistribution
+                  //     ? [
+                  //         "rgba(0, 128, 0, 0)", // 透明绿色
+                  //         "rgba(32, 160, 32, 0.3)",
+                  //         "rgba(64, 192, 64, 0.5)",
+                  //         "rgba(96, 224, 96, 0.7)",
+                  //         "rgba(128, 255, 128, 0.8)",
+                  //         "rgba(160, 255, 160, 0.9)",
+                  //         "rgba(192, 255, 192, 1)",
+                  //       ] // 工作点分布 - 绿色渐变
+                  //     : [
+                  //         "rgba(128, 0, 128, 0)", // 透明紫色
+                  //         "rgba(160, 32, 160, 0.3)",
+                  //         "rgba(192, 64, 192, 0.5)",
+                  //         "rgba(224, 96, 224, 0.7)",
+                  //         "rgba(255, 128, 255, 0.8)",
+                  //         "rgba(255, 160, 255, 0.9)",
+                  //         "rgba(255, 192, 255, 1)",
+                  //       ], // 居住点分布 - 紫色渐变
+                  color: [
+                    "rgba(255, 223, 0, 0)", // 透明黄色
+                    "rgba(255, 223, 0, 0.3)",
+                    "rgba(255, 191, 0, 0.5)",
+                    "rgba(255, 159, 0, 0.7)",
+                    "rgba(255, 127, 0, 0.8)",
+                    "rgba(255, 95, 0, 0.9)",
+                    "rgba(255, 63, 0, 1)",
+                  ],
                 },
               },
-              data: scatterData,
-            },
-          // 普通驿站点
-          currentMapSelectType === MapSelectTypeEnum.site && {
-            name: "驿站",
-            type: "scatter",
-            coordinateSystem: "geo",
-            geoIndex: 0,
-            zlevel: 2,
-            symbol: `image://${icon}`,
-            symbolSize: [87, 20], // 使用固定数组值而不是函数
-            animation: false, // 禁用动画，防止闪烁
-            // 为驿站添加特殊的点击事件类型标记
-            seriesId: "station", // 添加唯一标识符，用于区分点击事件
-            // 添加emphasis配置，修改hover效果
-            emphasis: {
-              disabled: false,
-              scale: 1, // 不放大
-              itemStyle: {
-                opacity: 1, // 保持原有透明度
-              },
-            },
-            label: {
-              show: true,
-              formatter: (params) => {
-                return params.name;
-              },
-              position: "inside", // 确保文字在图标内部
-              color: "#fff",
-              backgroundColor: "rgba(0,0,0,0)", // 透明背景
-              fontSize: 9, // 减小字体，确保能放在图标内
-              // align: "center",
-              padding: [0, 0, 0, 5],
-              verticalAlign: "middle", // 确保垂直居中
-              textShadowColor: "#000", // 保留文字阴影增强可读性
-              textShadowBlur: 2,
-              textShadowOffsetX: 0,
-              textShadowOffsetY: 0,
-            },
-            tooltip: {
-              show: false,
-              trigger: "item",
-              formatter: (params) => {
-                return `${params.name}：驿站`;
-              },
-            },
-
-            // 处理单个驿站点数据
-            data: clusteredStations
-              .filter(
-                (item): item is StationInfo => !("count" in item) // 过滤出单个驿站点
-              )
-              .map((station) => ({
-                name: station.name,
-                value: [...station.position, 1],
-                stationInfo: station,
-              })),
-          },
-          // 聚合驿站点
-          currentMapSelectType === MapSelectTypeEnum.site && {
-            name: "驿站聚合",
-            type: "scatter",
-            coordinateSystem: "geo",
-            geoIndex: 0,
-            zlevel: 3,
-            symbol: "circle",
-            symbolSize: (val, params) => {
-              // 根据聚合的驿站数量动态调整大小
-              // 优化聚合点尺寸计算，适应更多聚合的驿站
-              const count = params.data.count || 0;
-              // 采用更平缓的增长曲线，防止大小增长过快
-              return Math.max(40, Math.min(70, 40 + count * 1.8));
-            },
-            animation: false,
-            seriesId: "stationCluster",
-            itemStyle: {
-              color: "rgba(0,202,255,0.8)",
-              borderColor: "#fff",
-              borderWidth: 1,
-              shadowColor: "rgba(0,202,255,0.5)",
-              shadowBlur: 10,
-            },
-            emphasis: {
-              scale: 1.1,
-              itemStyle: {
-                color: "rgba(0,255,204,0.9)",
-              },
-            },
-            label: {
-              show: true,
-              position: "inside",
-              formatter: (params) => `${params.data.count}`,
-              fontSize: 12,
-              fontWeight: "bold",
-              color: "#fff",
-              textShadowColor: "#000",
-              textShadowBlur: 2,
-            },
-            // 处理聚合点数据
-            data: clusteredStations
-              .filter(
-                (item): item is ClusterInfo => "count" in item && item.count > 1 // 过滤出聚合点
-              )
-              .map((cluster) => ({
-                name: `${cluster.count}个驿站`,
-                value: [...cluster.position, cluster.count],
-                isCluster: true,
-                count: cluster.count,
-                stations: cluster.stations,
-              })),
-          },
-
-          {
-            geoIndex: 0,
-            type: "effectScatter",
-            coordinateSystem: "geo",
-            zlevel: 1,
-            rippleEffect: {
-              //涟漪特效
-              period: 4, //动画时间，值越小速度越快
-              brushType: "fill", //波纹绘制方式 stroke, fill
-              scale: 5, //波纹圆环最大限制，值越大波纹越大
-            },
-            symbol: "circle",
-            // symbolSize: function (val) {
-            //   return (5 + val[2] * 5) / 150; //圆环大小
-            // },
-
-            symbolSize: 2,
-            // label: {
-            //   show: true,
-            //   formatter: (params) => `${params.name}\n${params.value[2]}`,
-            // },
-
-            // itemStyle: {
-            //   normal: {
-            //     show: true,
-            //     color: "#F41C19",
-            //   },
-            // },
-            data: mapTypeData,
-          },
-        ],
+            }
+          : {}),
       };
 
       setChartOption(option);
@@ -1056,7 +1339,8 @@ const Map: React.FC<MapProps> = ({
     // 判断点击的是否为驿站
     if (params.seriesId === "station" || params.seriesName === "驿站") {
       // 获取驿站信息
-      const stationInfo = params.data.stationInfo;
+      const stationInfo = (params.data as { stationInfo?: StationInfo })
+        ?.stationInfo;
 
       if (stationInfo) {
         // 设置选中的驿站
@@ -1064,8 +1348,8 @@ const Map: React.FC<MapProps> = ({
 
         // 计算弹窗位置 - 使用clientX/clientY替代offsetX/offsetY
         setPopupPosition({
-          x: params.event.event.clientX,
-          y: params.event.event.clientY,
+          x: (params.event?.event as MouseEvent)?.clientX || 0,
+          y: (params.event?.event as MouseEvent)?.clientY || 0,
         });
 
         // 显示弹窗
@@ -1073,7 +1357,7 @@ const Map: React.FC<MapProps> = ({
         setShowClusterPopup(false);
 
         // 阻止事件冒泡，不触发区域下钻
-        params.event.stop();
+        params.event?.stop();
         return;
       }
     }
@@ -1083,14 +1367,18 @@ const Map: React.FC<MapProps> = ({
       params.seriesId === "stationCluster" ||
       params.seriesName === "驿站聚合"
     ) {
-      if (params.data.isCluster && params.data.stations) {
+      const data = params.data as {
+        isCluster?: boolean;
+        stations?: StationInfo[];
+      };
+      if (data?.isCluster && data?.stations) {
         // 设置聚合点中的驿站列表
-        setClusterStations(params.data.stations);
+        setClusterStations(data.stations);
 
         // 计算弹窗位置 - 使用clientX/clientY替代offsetX/offsetY
         setPopupPosition({
-          x: params.event.event.clientX,
-          y: params.event.event.clientY,
+          x: (params.event?.event as MouseEvent)?.clientX || 0,
+          y: (params.event?.event as MouseEvent)?.clientY || 0,
         });
 
         // 显示聚合点弹窗
@@ -1098,12 +1386,61 @@ const Map: React.FC<MapProps> = ({
         setShowStationPopup(false);
 
         // 阻止事件冒泡
-        params.event.stop();
+        params.event?.stop();
         return;
       }
     }
 
-    // 如果不是点击驿站，则处理区域下钻逻辑
+    // 处理画像模式下的社区点击
+    if (currentMapSelectType === MapSelectTypeEnum.image && params.name) {
+      // 检查是否点击的是画像标记点
+      if (params.seriesName === "画像标记") {
+        // 从images数据中查找对应社区的画像数据
+        const imageData = images.filter(
+          (item) =>
+            item.region_name === params.name ||
+            item.region_name === `${params.name}社区` ||
+            `${item.region_name}社区` === params.name
+        );
+
+        // 设置选中的社区信息
+        setSelectedCommunity({
+          name: params.name,
+          data: imageData.length > 0 ? imageData : null,
+        });
+
+        // 计算弹窗位置
+        setPopupPosition({
+          x: (params.event?.event as MouseEvent)?.clientX || 0,
+          y: (params.event?.event as MouseEvent)?.clientY || 0,
+        });
+
+        // 显示画像弹窗
+        setShowImagePopup(true);
+        setShowStationPopup(false);
+        setShowClusterPopup(false);
+
+        // 阻止事件冒泡
+        params.event?.stop();
+        return;
+      } else {
+        // 点击的是区域，允许正常的地图下钻
+        if (
+          currentMapType === MapTypeEnum.area &&
+          streetNameToEnum[params.name]
+        ) {
+          const nextMapType = streetNameToEnum[params.name];
+          setBreadcrumbs((prev) => [
+            ...prev,
+            { type: nextMapType, name: MapTypeNames[nextMapType] },
+          ]);
+          onDrillDown?.(nextMapType);
+          return;
+        }
+      }
+    }
+
+    // 通用地图下钻逻辑（非画像模式或画像模式下的非标记点击）
     if (currentMapType === MapTypeEnum.area && streetNameToEnum[params.name]) {
       const nextMapType = streetNameToEnum[params.name];
 
@@ -1143,7 +1480,7 @@ const Map: React.FC<MapProps> = ({
   // 创建Portal容器，确保弹窗渲染在body层级
   const renderPortal = () => {
     // 只有在需要显示弹窗时才创建Portal
-    if (!showStationPopup && !showClusterPopup) return null;
+    if (!showStationPopup && !showClusterPopup && !showImagePopup) return null;
 
     // 创建弹窗Portal
     return ReactDOM.createPortal(
@@ -1162,7 +1499,7 @@ const Map: React.FC<MapProps> = ({
             </span>
 
             <div className={styles.stationPopupContent}>
-              {selectedStation.address && (
+              {selectedStation.siteName && (
                 <p>
                   <strong>名称：</strong>
                   {selectedStation.siteName}
@@ -1174,15 +1511,14 @@ const Map: React.FC<MapProps> = ({
                   {selectedStation.address}
                 </p>
               )}
-              {selectedStation.services &&
-                selectedStation.services.length > 0 && (
-                  <div>
-                    <p>
-                      <strong>服务内容：</strong>
-                      {selectedStation.services}
-                    </p>
-                  </div>
-                )}
+              {selectedStation.services && (
+                <div>
+                  <p>
+                    <strong>服务内容：</strong>
+                    {selectedStation.services}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -1239,6 +1575,99 @@ const Map: React.FC<MapProps> = ({
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+        )}
+
+        {/* 画像弹窗 */}
+        {showImagePopup && selectedCommunity && (
+          <div
+            className={styles.stationPopup}
+            style={{
+              left: `${Math.min(popupPosition.x, window.innerWidth - 420)}px`, // 防止超出右边界
+              top: `${Math.min(popupPosition.y, window.innerHeight - 400)}px`, // 防止超出下边界
+              maxWidth: "400px",
+              maxHeight: "350px", // 减小最大高度
+              overflow: "auto",
+              position: "fixed", // 使用fixed定位，相对于视口
+              zIndex: 9999, // 确保在最上层
+            }}
+          >
+            <span className={styles.closeBtn} onClick={handleClosePopup}>
+              ×
+            </span>
+
+            <div className={styles.stationPopupContent}>
+              <p>
+                <strong>社区名称：</strong>
+                {selectedCommunity.name}
+              </p>
+              {selectedCommunity.data && selectedCommunity.data.length > 0 ? (
+                <>
+                  <p>
+                    <strong>画像概况：</strong>
+                    包含 {selectedCommunity.data.length} 项画像数据
+                  </p>
+                  <div style={{ marginTop: "10px" }}>
+                    <strong>详细画像：</strong>
+                    <div
+                      style={{
+                        maxHeight: "200px",
+                        overflow: "auto",
+                        marginTop: "5px",
+                      }}
+                    >
+                      {/* 按群体类型分组显示 */}
+                      {Array.from(
+                        new Set(
+                          selectedCommunity.data.map((item) => item.group_type)
+                        )
+                      ).map((groupType) => (
+                        <div
+                          key={groupType as string}
+                          style={{
+                            marginBottom: "10px",
+                            padding: "5px",
+                            border: "1px solid #ddd",
+                            borderRadius: "3px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              color: "#00ABFF",
+                              marginBottom: "5px",
+                            }}
+                          >
+                            {groupType as string}
+                          </div>
+                          {selectedCommunity
+                            .data!.filter(
+                              (item) => item.group_type === groupType
+                            )
+                            .map((item, index) => (
+                              <div
+                                key={index}
+                                style={{
+                                  fontSize: "12px",
+                                  marginBottom: "3px",
+                                }}
+                              >
+                                {item.profile_category} -{" "}
+                                {item.profile_subcategory}: {item.percentage}%
+                              </div>
+                            ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p>
+                  <strong>画像信息：</strong>
+                  该社区暂无画像数据
+                </p>
+              )}
             </div>
           </div>
         )}
