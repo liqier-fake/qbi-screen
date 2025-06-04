@@ -122,20 +122,6 @@ const CardThree = ({
 
   return (
     <div className={styles.comCustom}>
-      {
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <Select
-            defaultValue={currentSelectType}
-            options={mapOptions}
-            onChange={onIconClick}
-            style={{ width: 120 }}
-          />
-        </div>
-      }
       <div className={styles.cardThree}>
         {list.map((item, i) => {
           const showIcon = item.title === "新就业群体";
@@ -144,10 +130,30 @@ const CardThree = ({
             <div
               className={styles.listItem}
               key={i}
-              onMouseEnter={() => onMouseEnter(item)}
-              onMouseLeave={onMouseLeave}
+              onMouseEnter={(e) => {
+                return;
+                // 检查事件源是否来自选择框区域
+                const target = e.target as HTMLElement;
+                if (!target.closest(`.${styles.clickableIcon}`)) {
+                  onMouseEnter(item);
+                }
+              }}
+              onMouseLeave={(e) => {
+                return;
+                // 检查事件源是否来自选择框区域
+                const target = e.target as HTMLElement;
+                if (!target.closest(`.${styles.clickableIcon}`)) {
+                  onMouseLeave();
+                }
+              }}
               style={{ position: "relative", cursor: "pointer" }}
-              onClick={() => handleItemClick(item)}
+              onClick={(e) => {
+                // 检查事件源是否来自选择框区域
+                const target = e.target as HTMLElement;
+                if (!target.closest(`.${styles.clickableIcon}`)) {
+                  handleItemClick(item);
+                }
+              }}
             >
               {/* {showIcon && (
                 <EnvironmentOutlined
@@ -166,11 +172,14 @@ const CardThree = ({
                 />
               )} */}
 
-              {/* {showIcon && (
+              {showIcon && (
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
+                  onMouseEnter={(e) => e.stopPropagation()}
+                  onMouseLeave={(e) => e.stopPropagation()}
+                  className={styles.clickableIcon}
                 >
                   <Select
                     defaultValue={currentSelectType}
@@ -179,7 +188,7 @@ const CardThree = ({
                     style={{ width: 120 }}
                   />
                 </div>
-              )} */}
+              )}
 
               <img src={threeIcon} alt="" />
               <Flex justify="center" align="center">

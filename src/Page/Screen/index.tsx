@@ -204,17 +204,13 @@ const Screen = () => {
     }
   };
 
-  // 处理地图类型选择变化
+  // 地图类型变化处理
   const handleMapTypeChange = (value: MapTypeEnum) => {
     setCurrentMapType(value);
   };
 
-  // 处理CardThree图标点击，切换地图选择类型
+  // 地图选择类型变化处理
   const handleCardThreeIconClick = (value: MapSelectTypeEnum) => {
-    if (currentMapType !== MapTypeEnum.area) {
-      messageApi.info("请先选择地图类型为苏州工业园区");
-      return;
-    }
     setCurrentMapSelectType(value);
   };
 
@@ -280,18 +276,6 @@ const Screen = () => {
     aiChatRef.current?.openChatWithQuestion(question);
   };
 
-  // return (
-  //   <Map
-  //     currentMapType={currentMapType}
-  //     ticketData={ticketData}
-  //     onDrillDown={(nextMapType) => {
-  //       setCurrentMapType(nextMapType);
-  //       // 获取新地图类型的工单数据
-  //       getTicketCountData();
-  //     }}
-  //   />
-  // );
-
   return (
     <div className={styles.screen}>
       {contextHolder}
@@ -351,7 +335,7 @@ const Screen = () => {
           onAskQuestion={handleAskQuestion} // 添加问题回调
         />
         {/* 左侧 */}
-        <div className={styles.left}>
+        {/* <div className={styles.left}>
           <div className={styles.leftItem}>
             <PanelItem
               title="数据来源"
@@ -393,16 +377,16 @@ const Screen = () => {
           <div className={styles.leftItem}>
             <SocialChallengePanel timeRange={timeRange} />
           </div>
-        </div>
+        </div> */}
         {/* 中间 */}
-        <div className={styles.center}>
+        {/* <div className={styles.center}>
           <div className={styles.centerItem}>
             <AIChat
               bubuleContent={bubuleContent}
               onRef={(ref) => (aiChatRef.current = ref)} // 设置ref
             />
           </div>
-        </div>
+        </div> */}
         {/* 右侧 */}
         <div className={styles.right}>
           <div className={classNames(styles.rightItem, styles.one)}>
@@ -425,7 +409,7 @@ const Screen = () => {
               }
             />
           </div>
-          <div className={styles.rightItem}>
+          {/* <div className={styles.rightItem}>
             <GovernanceProfilePanel timeRange={timeRange} />
           </div>
           <div
@@ -438,7 +422,7 @@ const Screen = () => {
             <div className={styles.rightItemRight}>
               <WordCloudPanel timeRange={timeRange}></WordCloudPanel>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

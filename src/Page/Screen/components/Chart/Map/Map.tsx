@@ -9,7 +9,8 @@ import icon from "./icon.svg";
 import styles from "./map.module.less";
 import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
-import { convertCoordinates } from "./utils/coordinateConverter";
+import { convertCoordinates } from "./utils";
+import useMap from "./useMap";
 
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
@@ -291,7 +292,6 @@ const Map: React.FC<MapProps> = ({
   currentMapType,
   ticketData = [],
   onDrillDown,
-  selectKey,
   onAskQuestion,
   currentMapSelectType,
 }) => {
@@ -301,6 +301,14 @@ const Map: React.FC<MapProps> = ({
   const [, setBreadcrumbs] = useState<MapBreadcrumb[]>([
     { type: MapTypeEnum.area, name: MapTypeNames[MapTypeEnum.area] },
   ]);
+
+  const { mapTypeData, getMapTypeData } = useMap();
+
+  useEffect(() => {
+    getMapTypeData(currentMapSelectType, currentMapType);
+
+    console.log(currentMapSelectType, "currentMapSelectType改变");
+  }, [currentMapSelectType, currentMapType]);
 
   // 添加视图状态同步处理函数
   const handleViewChange = () => {
@@ -993,6 +1001,37 @@ const Map: React.FC<MapProps> = ({
                 stations: cluster.stations,
               })),
           },
+
+          {
+            geoIndex: 0,
+            type: "effectScatter",
+            coordinateSystem: "geo",
+            zlevel: 1,
+            rippleEffect: {
+              //涟漪特效
+              period: 4, //动画时间，值越小速度越快
+              brushType: "fill", //波纹绘制方式 stroke, fill
+              scale: 5, //波纹圆环最大限制，值越大波纹越大
+            },
+            symbol: "circle",
+            // symbolSize: function (val) {
+            //   return (5 + val[2] * 5) / 150; //圆环大小
+            // },
+
+            symbolSize: 2,
+            // label: {
+            //   show: true,
+            //   formatter: (params) => `${params.name}\n${params.value[2]}`,
+            // },
+
+            // itemStyle: {
+            //   normal: {
+            //     show: true,
+            //     color: "#F41C19",
+            //   },
+            // },
+            data: mapTypeData,
+          },
         ],
       };
 
@@ -1007,6 +1046,7 @@ const Map: React.FC<MapProps> = ({
     transformedStationList,
     clusteredStations,
     currentMapSelectType,
+    mapTypeData,
   ]);
 
   // 地图点击事件处理函数
