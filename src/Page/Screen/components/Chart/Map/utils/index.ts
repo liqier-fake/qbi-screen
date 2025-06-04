@@ -288,7 +288,15 @@ export const getMapDataXY = (
       return [x, y];
     }
   } else {
-    // 街道地图：优先使用社区数据中的准确坐标
+    // 街道地图：优先使用经纬度进行投影坐标转换
+    if (lat && lng) {
+      console.log(`街道地图使用投影坐标转换: lng=${lng}, lat=${lat}`);
+      const [projX, projY] = convertLngLatToProjection(lng, lat);
+      console.log(`街道地图投影坐标: x=${projX}, y=${projY}`);
+      return [projX, projY];
+    }
+
+    // 备用：使用社区数据中的准确坐标
     if (x !== undefined && y !== undefined && x > 0 && y > 0) {
       console.log(`街道地图使用社区坐标: x=${x}, y=${y}`);
 
@@ -297,28 +305,10 @@ export const getMapDataXY = (
         ...point,
         x: x,
         y: y,
-        street: street, // 使用传入的街道信息
-      });
-      console.log(
-        `街道坐标转换: 社区坐标(${x}, ${y}) -> 街道坐标(${convertedPoint.x}, ${convertedPoint.y})`
-      );
-      return [convertedPoint.x, convertedPoint.y];
-    }
-
-    // 备用：使用经纬度转换
-    if (lat && lng) {
-      console.log(`街道地图备用经纬度转换: lng=${lng}, lat=${lat}`);
-      const [areaX, areaY] = convertLngLatToCoordinates(lng, lat);
-
-      // 街道地图：基于园区坐标进行转换
-      const convertedPoint = convertCoordinates({
-        ...point,
-        x: areaX,
-        y: areaY,
         street: street,
       });
       console.log(
-        `街道地图坐标转换: 园区坐标(${areaX}, ${areaY}) -> 街道坐标(${convertedPoint.x}, ${convertedPoint.y})`
+        `街道坐标转换: 社区坐标(${x}, ${y}) -> 街道坐标(${convertedPoint.x}, ${convertedPoint.y})`
       );
       return [convertedPoint.x, convertedPoint.y];
     }

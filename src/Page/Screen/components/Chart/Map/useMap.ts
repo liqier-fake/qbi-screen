@@ -118,24 +118,24 @@ const useMap = () => {
         console.log(`当前地图对应街道: ${currentStreet}`);
 
         const processedData = (dataList as DistributionItem[])
-          .filter((item) => {
-            // 街道过滤：如果是街道地图，只显示当前街道的数据
-            if (currentStreet && currentMapType !== MapTypeEnum.area) {
-              // 通过社区名查找所属街道
-              const communityInfo = getPointByCommunity(
-                sip_comm as CommunityItem[],
-                `${item.region_name}社区`
-              );
+          // .filter((item) => {
+          //   // 街道过滤：如果是街道地图，只显示当前街道的数据
+          //   if (currentStreet && currentMapType !== MapTypeEnum.area) {
+          //     // 通过社区名查找所属街道
+          //     const communityInfo = getPointByCommunity(
+          //       sip_comm as CommunityItem[],
+          //       `${item.region_name}社区`
+          //     );
 
-              if (communityInfo && communityInfo.street !== currentStreet) {
-                console.log(
-                  `过滤非当前街道数据: ${item.region_name} (${communityInfo.street} != ${currentStreet})`
-                );
-                return false;
-              }
-            }
-            return true;
-          })
+          //     if (communityInfo && communityInfo.street !== currentStreet) {
+          //       console.log(
+          //         `过滤非当前街道数据: ${item.region_name} (${communityInfo.street} != ${currentStreet})`
+          //       );
+          //       return false;
+          //     }
+          //   }
+          //   return true;
+          // })
           .map((item) => {
             // **优化：获取社区准确坐标信息**
             const communityInfo = getPointByCommunity(
