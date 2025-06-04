@@ -65,7 +65,7 @@ const LineChart: React.FC<LineChartProps> = ({
   const startIndexRef = useRef<number>(0);
 
   const option = useMemo(() => {
-    const colorList = ["#00FFC3", "#7D00FF", "#00AEFF", "#FF3B3B", "#5FFF00"];
+    const colorList = ["#00FFC3", "#7D00FF", "#00AEFF", "#FF3B3B", "#FF7B00"];
 
     // 计算当前视图的数据范围
     const endIndex = Math.min(

@@ -133,7 +133,7 @@ const Level2TrendPanel: React.FC<{
                 "#7D00FF",
                 "#00AEFF",
                 "#FF3B3B",
-                "#5FFF00",
+                "#FF7B00",
               ];
               const color = colorList[index % colorList.length];
 
