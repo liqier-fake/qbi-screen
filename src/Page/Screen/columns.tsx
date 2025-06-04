@@ -7,8 +7,8 @@ interface TableData {
 
 export const columns1: Column<TableData>[] = [
   {
-    title: "时间",
-    dataIndex: "date",
+    title: "社区",
+    dataIndex: "name",
     align: "left",
     width: 20,
     render: (text: string) => {
@@ -16,27 +16,23 @@ export const columns1: Column<TableData>[] = [
     },
   },
   {
-    title: "诉求内容",
-    dataIndex: "content",
+    title: "简介",
+    dataIndex: "intro",
     width: 40,
     align: "left",
   },
   {
-    title: "二级分类",
-    dataIndex: "c2",
-    width: 20,
-    align: "left",
-  },
-  {
-    title: "治理挑战指数",
+    title: "挑战指数",
     dataIndex: "challenge_score",
     width: 20,
     align: "left",
     render: (text: number) => (
       <span style={{ color: text > 0.8 ? "red" : "inherit" }}>{text}</span>
     ),
-  },
+  }
 ];
+
+
 
 export const columns4: Column<TableData>[] = [
   {

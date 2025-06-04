@@ -43,6 +43,8 @@ export const generateFormData = (
     content,
     address_detail,
     smqt,
+    intro,
+    name,
     challenge_score_details = [],
   } = record;
 
@@ -53,7 +55,18 @@ export const generateFormData = (
     dataList[key] = `${score}\n(${weight})`;
   });
 
-  return [
+  const formItems: DetailModalProps["formData"] = [
+    {
+      key: "name",
+      label: "社区名称",
+      value: name,
+    },
+    {
+      key: "intro",
+      label: "社区情况介绍",
+      value: intro,
+      type: "comcontent"
+    },
     {
       key: "challenge_score",
       label: "治理挑战指数",
@@ -68,7 +81,7 @@ export const generateFormData = (
       key: "content",
       label: "诉求内容",
       value: content,
-      type: "comcontent" as const,
+      type: "comcontent",
     },
     {
       key: "source",
@@ -80,7 +93,7 @@ export const generateFormData = (
           <Table
             dataSource={[dataList]}
             columns={sourceTableColumns(challenge_score_details || [])}
-            pagination={false} // 不显示分页
+            pagination={false}
           />
         );
       },
@@ -88,7 +101,7 @@ export const generateFormData = (
     {
       key: "c1",
       label: "分类",
-      value: `${c1}/${c2}/${c3}/${category}`,
+      value: c1 && c2 && c3 && category ? `${c1}/${c2}/${c3}/${category}` : undefined,
     },
     {
       key: "smqt",
@@ -101,4 +114,10 @@ export const generateFormData = (
       value: address_detail,
     },
   ];
+
+  // 过滤掉 value 为空的项
+  return formItems.filter(item => {
+    if (item.type === 'render') return true; // 保留渲染类型的项
+    return item.value != null && item.value !== ''; // 过滤掉 null、undefined 和空字符串
+  });
 };
