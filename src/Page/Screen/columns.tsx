@@ -5,7 +5,8 @@ interface TableData {
   [key: string]: any;
 }
 
-export const columns1: Column<TableData>[] = [
+// 关注人群重点诉求
+export const columnsImportant: Column<TableData>[] = [
   {
     title: "时间",
     dataIndex: "date",
@@ -29,6 +30,33 @@ export const columns1: Column<TableData>[] = [
   },
   {
     title: "治理挑战指数",
+    dataIndex: "challenge_score",
+    width: 20,
+    align: "left",
+    render: (text: number) => (
+      <span style={{ color: text > 0.8 ? "red" : "inherit" }}>{text}</span>
+    ),
+  },
+];
+
+export const columns1: Column<TableData>[] = [
+  {
+    title: "社区",
+    dataIndex: "name",
+    align: "left",
+    width: 20,
+    render: (text: string) => {
+      return text?.split(" ")[0] || "";
+    },
+  },
+  {
+    title: "简介",
+    dataIndex: "intro",
+    width: 40,
+    align: "left",
+  },
+  {
+    title: "挑战指数",
     dataIndex: "challenge_score",
     width: 20,
     align: "left",

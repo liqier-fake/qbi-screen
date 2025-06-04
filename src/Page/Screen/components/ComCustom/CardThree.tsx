@@ -8,6 +8,11 @@ import { getPeopleGroupDescription } from "./categoryDescriptions";
 import Odometer from "react-odometerjs";
 import "odometer/themes/odometer-theme-default.css";
 import { useNumberAnimation } from "./useNumberAnimation";
+import {
+  EnvironmentOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 
 // 导入地图选择类型枚举
 import { MapSelectTypeEnum } from "../Chart/Map/Map";
@@ -58,6 +63,31 @@ const CardThree = ({
       count: number;
     }[]
   >([]);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // 计算单个卡片宽度（包含间距）
+  const itemWidth = 100 / 5; // 每个卡片占容器宽度的 1/5
+  const slideWidth = itemWidth; // 每次滑动一个卡片的宽度
+
+  // 计算最大可滚动次数
+  const maxScrolls = Math.max(0, list.length - 5); // 5是一屏显示的数量
+
+  // 处理上一个
+  const handlePrev = useCallback(() => {
+    setCurrentIndex((prev) => {
+      if (prev <= 0) return 0;
+      return prev - 1;
+    });
+  }, []);
+
+  // 处理下一个
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => {
+      if (prev >= maxScrolls) return maxScrolls;
+      return prev + 1;
+    });
+  }, [maxScrolls]);
 
   // 初始化实际数据
   useEffect(() => {
@@ -123,8 +153,29 @@ const CardThree = ({
   return (
     <div className={styles.comCustom}>
       <div className={styles.cardThree}>
-        {list.map((item, i) => {
-          const showIcon = item.title === "新就业群体";
+        <div
+          className={`${styles.switchButton} ${styles.prevButton}`}
+          onClick={handlePrev}
+        >
+          <LeftOutlined />
+        </div>
+
+        <div
+          className={`${styles.switchButton} ${styles.nextButton}`}
+          onClick={handleNext}
+        >
+          <RightOutlined />
+        </div>
+
+        <div className={styles.listWrapper}>
+          <div
+            className={styles.listContainer}
+            style={{
+              transform: `translateX(-${currentIndex * slideWidth}%)`,
+            }}
+          >
+            {list.map((item, i) => {
+              const showIcon = item.title === "新就业群体";
 
           return (
             <div

@@ -47,8 +47,8 @@ const Level2TrendPanel: React.FC<{
 
   // 比较类型配置
   const comparisonConfig = [
-    { type: "tb", label: "同比", color: "rgba(20, 94, 85, 1)" },
-    { type: "hb", label: "环比", color: "rgba(20, 94, 85, 1)" },
+    { type: "tb", label: "同比", color: "rgba(64, 169, 255, 1)" },
+    { type: "hb", label: "环比", color: "rgba(135, 208, 104, 1)" },
   ] as const;
 
   // 处理标签点击
