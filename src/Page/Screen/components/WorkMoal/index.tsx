@@ -94,7 +94,7 @@ const WorkListModal = <T extends Record<string, unknown>>({
         )}
         {children}
         {/* <DividerTitle title="工单详情s" /> */}
-        <div className={styles.titleTwo}>工单详情</div>
+        {showAiSummary && <div className={styles.titleTwo}>工单详情</div>}
         {open && (
           <WorkTable
             key={`${JSON.stringify(fetchParams)}`}

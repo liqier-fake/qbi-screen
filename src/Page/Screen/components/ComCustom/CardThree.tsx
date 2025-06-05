@@ -321,6 +321,7 @@ const CardThree = ({
             <Tag color="blue">
               {selectedSmqt} : {total}
             </Tag>
+            <DividerTitle title="工单详情" />
           </WorkListModal>
         </div>
       </div>
