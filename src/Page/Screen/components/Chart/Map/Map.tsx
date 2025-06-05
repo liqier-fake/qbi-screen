@@ -1,7 +1,8 @@
 // @ts-nocheck
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as echarts from "echarts";
-import type { EChartsOption } from "echarts";
+import type { EChartsOption, CallbackDataParams } from "echarts";
+import type { TooltipComponentFormatterCallback } from "echarts/types/src/component/tooltip/TooltipModel";
 import BaseChart, { BaseChartRef } from "../BaseChart";
 import { geojsonMap } from "./geojson";
 import station from "./geojson/station";
@@ -103,6 +104,7 @@ interface EChartsParams {
     isCluster?: boolean;
     count?: number;
     stations?: StationInfo[];
+    allData?: any[]; // 添加 allData 字段
   };
   value: number | number[];
   color: string;
@@ -141,6 +143,102 @@ interface MapProps {
   onAskQuestion?: (question: string) => void; // 添加提问回调函数
   currentMapSelectType: MapSelectTypeEnum; // 当前地图选择类型
 }
+
+// 更新 EChartsParams 接口
+interface EChartsParams {
+  componentType: string;
+  seriesType: string;
+  seriesId?: string;
+  seriesName?: string;
+  name: string;
+  dataIndex: number;
+  data: {
+    name: string;
+    value: number | number[];
+    stationInfo?: StationInfo;
+    isCluster?: boolean;
+    count?: number;
+    stations?: StationInfo[];
+    allData?: any[]; // 添加 allData 字段
+  };
+  value: number | number[];
+  color: string;
+  event?: {
+    stop: () => void;
+    event?: MouseEvent;
+  };
+}
+
+// 更新 tooltip formatter 类型
+type CustomTooltipFormatter =
+  TooltipComponentFormatterCallback<CallbackDataParams>;
+
+// 更新 MapDataItem 接口
+interface MapDataItem {
+  value: [number, number, number];
+  region_name: string;
+  people_count: number;
+  count?: number;
+  allData?: any[]; // 添加 allData 字段
+}
+
+/**
+ * 经纬度转换为自定义坐标系函数
+ * 基于三个已知点的对应关系计算转换参数
+ * @param {number} lng - 经度
+ * @param {number} lat - 纬度
+ * @returns {[number, number]} - 返回转换后的[x, y]坐标
+ */
+const convertLngLatToCoordinates = (
+  lng: number,
+  lat: number
+): [number, number] => {
+  // 已知的三个参考点 - 经纬度和对应的坐标系坐标
+  const referencePoints = [
+    {
+      lng: 120.754171,
+      lat: 31.328124, // 海悦社区经纬度
+      x: 66170.3954,
+      y: 46101.189, // 海悦社区坐标系坐标
+    },
+    {
+      lng: 120.716164,
+      lat: 31.335602, // 新未来社区经纬度
+      x: 62108.0323,
+      y: 47115.5392, // 新未来社区坐标系坐标
+    },
+    {
+      lng: 120.85971,
+      lat: 31.464399, // 阳澄湖社区经纬度
+      x: 69255.0191,
+      y: 54557.6382, // 阳澄湖社区坐标系坐标
+    },
+  ];
+
+  // 使用第一个点作为参考原点
+  const origin = referencePoints[0];
+
+  // 计算经纬度变化和坐标系变化的比例
+  // 使用两个其他点的平均值来获得更准确的转换系数
+  const xFactor1 =
+    (referencePoints[1].x - origin.x) / (referencePoints[1].lng - origin.lng);
+  const xFactor2 =
+    (referencePoints[2].x - origin.x) / (referencePoints[2].lng - origin.lng);
+  const yFactor1 =
+    (referencePoints[1].y - origin.y) / (referencePoints[1].lat - origin.lat);
+  const yFactor2 =
+    (referencePoints[2].y - origin.y) / (referencePoints[2].lat - origin.lat);
+
+  // 取平均值减少误差
+  const xFactor = (xFactor1 + xFactor2) / 2;
+  const yFactor = (yFactor1 + yFactor2) / 2;
+
+  // 应用线性变换
+  const x = origin.x + (lng - origin.lng) * xFactor;
+  const y = origin.y + (lat - origin.lat) * yFactor;
+
+  return [x, y];
+};
 
 // 超过5个字符的社区名称进行截断
 const truncateCommunityName = (name: string): string => {
@@ -397,7 +495,6 @@ const Map: React.FC<MapProps> = ({
             return null;
           }
         }
-
         // 使用统一的坐标转换方法
         const [x, y] = getMapDataXY(
           {
@@ -725,7 +822,7 @@ const Map: React.FC<MapProps> = ({
               const displayValue = isNaN(Number(value)) ? 0 : value;
               return `${param.name}: ${displayValue}条工单`;
             } else if (
-              currentMapSelectType === MapSelectTypeEnum.newGroupCount
+              currentMapSelectType === MapSelectTypeEnum?.newGroupCount
             ) {
               // 新市民群体数量模式：显示人数
               let value = param.value;
@@ -966,7 +1063,7 @@ const Map: React.FC<MapProps> = ({
             : []),
 
           // 新市民群体数量散点图 - 支持所有地图类型
-          ...(currentMapSelectType === MapSelectTypeEnum.newGroupCount
+          ...(currentMapSelectType === MapSelectTypeEnum?.newGroupCount
             ? [
                 {
                   name: "新市民群体数量",
@@ -1143,7 +1240,12 @@ const Map: React.FC<MapProps> = ({
                   coordinateSystem: "geo" as const,
                   name: "分布热力图",
                   data: mapTypeData,
-                  pointSize: 20, // 增大点的基础大小
+                  pointSize:
+                    currentMapSelectType ===
+                      MapSelectTypeEnum.dayDistribution &&
+                    currentMapType !== MapTypeEnum.area
+                      ? 40
+                      : 20, // 增大点的基础大小
                   blurSize: 25, // 增大模糊半径，创造更柔和的渐变效果
                   minOpacity: 0.1, // 降低最小透明度
                   maxOpacity: 0.9, // 提高最大透明度
@@ -1174,10 +1276,10 @@ const Map: React.FC<MapProps> = ({
                   coordinateSystem: "geo" as const,
                   geoIndex: 0,
                   zlevel: 1,
-                  symbol: "diamond", // 使用菱形标记
+                  symbol: "diamond",
                   symbolSize: 12,
                   itemStyle: {
-                    color: "rgba(0, 255, 255, 0.9)", // 青色标记
+                    color: "rgba(0, 255, 255, 0.9)",
                     borderColor: "#fff",
                     borderWidth: 2,
                     shadowColor: "rgba(0, 255, 255, 0.6)",
@@ -1191,17 +1293,15 @@ const Map: React.FC<MapProps> = ({
                   },
                   tooltip: {
                     show: true,
-                    formatter: (params: any) => {
-                      const param = Array.isArray(params) ? params[0] : params;
-                      return `${param.name}: 点击查看画像详情`;
-                    },
+                    formatter: "{b}: 点击查看画像详情",
                   },
                   data:
                     mapTypeData?.map((item) => ({
                       name: item.region_name,
-                      value: [item.value[0], item.value[1], 1], // 固定值用于标记
+                      value: [item.value[0], item.value[1], 1],
+                      allData: item.allData || [],
                     })) || [],
-                },
+                } as echarts.ScatterSeriesOption,
               ]
             : []),
         ].filter(Boolean), // 过滤掉false值
@@ -1223,48 +1323,6 @@ const Map: React.FC<MapProps> = ({
                 calculable: false,
                 // 根据不同分布类型设置不同的颜色渐变
                 inRange: {
-                  // color:
-                  //   currentMapSelectType === MapSelectTypeEnum.dayDistribution
-                  //     ? [
-                  //         "rgba(255, 223, 0, 0)", // 透明黄色
-                  //         "rgba(255, 223, 0, 0.3)",
-                  //         "rgba(255, 191, 0, 0.5)",
-                  //         "rgba(255, 159, 0, 0.7)",
-                  //         "rgba(255, 127, 0, 0.8)",
-                  //         "rgba(255, 95, 0, 0.9)",
-                  //         "rgba(255, 63, 0, 1)",
-                  //       ] // 日间分布 - 黄到橙红渐变
-                  //     : currentMapSelectType ===
-                  //       MapSelectTypeEnum.nightDistribution
-                  //     ? [
-                  //         "rgba(0, 32, 128, 0)", // 透明深蓝
-                  //         "rgba(0, 64, 192, 0.3)",
-                  //         "rgba(0, 96, 255, 0.5)",
-                  //         "rgba(32, 128, 255, 0.7)",
-                  //         "rgba(64, 160, 255, 0.8)",
-                  //         "rgba(96, 192, 255, 0.9)",
-                  //         "rgba(128, 224, 255, 1)",
-                  //       ] // 夜间分布 - 深蓝到浅蓝渐变
-                  //     : currentMapSelectType ===
-                  //       MapSelectTypeEnum.workDistribution
-                  //     ? [
-                  //         "rgba(0, 128, 0, 0)", // 透明绿色
-                  //         "rgba(32, 160, 32, 0.3)",
-                  //         "rgba(64, 192, 64, 0.5)",
-                  //         "rgba(96, 224, 96, 0.7)",
-                  //         "rgba(128, 255, 128, 0.8)",
-                  //         "rgba(160, 255, 160, 0.9)",
-                  //         "rgba(192, 255, 192, 1)",
-                  //       ] // 工作点分布 - 绿色渐变
-                  //     : [
-                  //         "rgba(128, 0, 128, 0)", // 透明紫色
-                  //         "rgba(160, 32, 160, 0.3)",
-                  //         "rgba(192, 64, 192, 0.5)",
-                  //         "rgba(224, 96, 224, 0.7)",
-                  //         "rgba(255, 128, 255, 0.8)",
-                  //         "rgba(255, 160, 255, 0.9)",
-                  //         "rgba(255, 192, 255, 1)",
-                  //       ], // 居住点分布 - 紫色渐变
                   color: [
                     "rgba(255, 223, 0, 0)", // 透明黄色
                     "rgba(255, 223, 0, 0.3)",
@@ -1358,18 +1416,14 @@ const Map: React.FC<MapProps> = ({
     if (currentMapSelectType === MapSelectTypeEnum.image && params.name) {
       // 检查是否点击的是画像标记点
       if (params.seriesName === "画像标记") {
-        // 从images数据中查找对应社区的画像数据
-        const imageData = images.filter(
-          (item) =>
-            item.region_name === params.name ||
-            item.region_name === `${params.name}社区` ||
-            `${item.region_name}社区` === params.name
-        );
+        // 从点击的数据中直接获取画像数据
+        const clickedPoint = params.data as any;
+        const profileData = clickedPoint.allData || [];
 
         // 设置选中的社区信息
         setSelectedCommunity({
           name: params.name,
-          data: imageData.length > 0 ? imageData : null,
+          data: profileData.length > 0 ? profileData : null,
         });
 
         // 计算弹窗位置
@@ -1387,11 +1441,12 @@ const Map: React.FC<MapProps> = ({
         params.event?.stop();
         return;
       } else {
-        // 点击的是区域，允许正常的地图下钻
+        // 点击的是区域
         if (
           currentMapType === MapTypeEnum.area &&
           streetNameToEnum[params.name]
         ) {
+          // 如果是园区地图，执行下钻
           const nextMapType = streetNameToEnum[params.name];
           setBreadcrumbs((prev) => [
             ...prev,
@@ -1399,6 +1454,39 @@ const Map: React.FC<MapProps> = ({
           ]);
           onDrillDown?.(nextMapType);
           return;
+        } else if (currentMapType !== MapTypeEnum.area) {
+          // 如果是街道地图，尝试查找社区画像数据
+          const communityName = params.name;
+          // 从 mapTypeData 中查找对应社区的画像数据
+          const communityData = mapTypeData.find(
+            (item) =>
+              item.region_name === communityName ||
+              item.region_name === `${communityName}社区` ||
+              `${item.region_name}社区` === communityName
+          );
+
+          if (communityData?.allData) {
+            // 设置选中的社区信息
+            setSelectedCommunity({
+              name: communityName,
+              data: communityData.allData,
+            });
+
+            // 计算弹窗位置
+            setPopupPosition({
+              x: (params.event?.event as MouseEvent)?.clientX || 0,
+              y: (params.event?.event as MouseEvent)?.clientY || 0,
+            });
+
+            // 显示画像弹窗
+            setShowImagePopup(true);
+            setShowStationPopup(false);
+            setShowClusterPopup(false);
+
+            // 阻止事件冒泡
+            params.event?.stop();
+            return;
+          }
         }
       }
     }
@@ -1567,10 +1655,10 @@ const Map: React.FC<MapProps> = ({
               </p>
               {selectedCommunity.data && selectedCommunity.data.length > 0 ? (
                 <>
-                  <p>
+                  {/* <p>
                     <strong>画像概况：</strong>
                     包含 {selectedCommunity.data.length} 项画像数据
-                  </p>
+                  </p> */}
                   <div style={{ marginTop: "10px" }}>
                     <strong>详细画像：</strong>
                     <div

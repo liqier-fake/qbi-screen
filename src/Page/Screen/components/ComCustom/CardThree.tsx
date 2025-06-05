@@ -21,6 +21,7 @@ import {
 import WorkListModal from "../WorkMoal";
 import columns from "../CategoryModal/columns";
 import DividerTitle from "../DividerTitle";
+import { compact } from "lodash";
 
 interface CardThreeProps {
   list: ComCustomItemType[];
@@ -140,10 +141,15 @@ const CardThree = ({
   }, [selectedSmqt, smqtList]);
 
   const mapOptions = useMemo(() => {
-    return Object.values(MapSelectTypeEnum).map((item) => ({
-      label: item,
-      value: item,
-    }));
+    return Object.values(MapSelectTypeEnum).map((item) => {
+      if (item !== MapSelectTypeEnum.newGroupCount) {
+        return {
+          label: item,
+          value: item,
+        };
+      }
+      return null;
+    });
   }, []);
 
   return (
@@ -230,7 +236,7 @@ const CardThree = ({
                     >
                       <Select
                         defaultValue={currentSelectType}
-                        options={mapOptions}
+                        options={compact(mapOptions) || []}
                         onChange={onIconClick}
                         style={{ width: 100 }}
                       />
