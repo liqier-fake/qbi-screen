@@ -56,6 +56,7 @@ interface MapDataItem {
   region_name: string;
   people_count: number;
   count?: number;
+  allData?: any[];
 }
 
 // 定义通用数据项类型
@@ -254,7 +255,56 @@ const useMap = () => {
 
       // 处理画像数据
       if (currentMapSelectType === MapSelectTypeEnum.image) {
-        setMapTypeData(dataList as MapDataItem[]);
+        // 按社区名称对画像数据进行分组
+        const groupedImageData = (dataList as any[]).reduce((acc, curr) => {
+          const key = curr.region_name + "社区";
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(curr);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        // 为每个社区生成一个数据点
+        const processedData: MapDataItem[] = [];
+        
+        Object.entries(groupedImageData).forEach(([regionName, data]) => {
+          // 查找社区坐标
+          const communityInfo = getPointByCommunity(sip_comm as CommunityItem[], regionName);
+          
+          if (!communityInfo) {
+            console.warn(`未找到社区坐标: ${regionName}`);
+            return;
+          }
+
+          // 如果是街道地图，检查是否属于当前街道
+          if (currentMapType !== MapTypeEnum.area) {
+            const currentStreet = streetNameMap[currentMapType as keyof typeof streetNameMap];
+            if (communityInfo.street !== currentStreet) {
+              return;
+            }
+          }
+
+          // 获取转换后的坐标
+          const [x, y] = getMapDataXY({
+            name: regionName,
+            street: communityInfo.street,
+            x: communityInfo.x,
+            y: communityInfo.y
+          }, currentMapType);
+
+          // 确保 data 是数组类型
+          const profileData = Array.isArray(data) ? data : [];
+
+          processedData.push({
+            region_name: regionName,
+            value: [x, y, 1],
+            people_count: 0,
+            allData: profileData
+          });
+        });
+
+        setMapTypeData(processedData);
         return;
       }
     } catch (error) {
