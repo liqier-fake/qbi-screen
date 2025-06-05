@@ -110,6 +110,7 @@ const AiSummaryContent = ({ data }: AiSummaryContentProps) => {
       <ComContent
         content={aiLoading ? "加载中..." : aiSummary || ""}
         markdown={true}
+        // maxHeight={350}
       />
     </>
   );

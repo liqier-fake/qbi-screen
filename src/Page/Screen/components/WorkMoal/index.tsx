@@ -1,12 +1,13 @@
 import styles from "./index.module.less";
 import ComModal, { ComModalProps } from "../ComModal";
-import DividerTitle from "../DividerTitle";
+// import DividerTitle from "../DividerTitle";
 import AiSummaryContent from "../AiSummaryContent";
 import WorkTable from "../WorkTable";
 import { memo, useState } from "react";
 import { ColumnType, TableProps } from "antd/es/table";
 import { TicketRecord } from "../../types";
 import { TimeRange } from "../../api";
+import icon1 from "./icon1.png";
 
 /**
  * 请求函数类型
@@ -83,12 +84,17 @@ const WorkListModal = <T extends Record<string, unknown>>({
       <div className={styles.workModalContent}>
         {showAiSummary && (
           <>
-            <DividerTitle title="AI总结" />
+            {/* <DividerTitle title="AI总结" /> */}
+            <div className={styles.titleOne}>
+              <img src={icon1} alt="icon1" className={styles.icon1} />
+              AI总结
+            </div>
             <AiSummaryContent data={tableData} />
           </>
         )}
         {children}
-        <DividerTitle title="工单详情" />
+        {/* <DividerTitle title="工单详情s" /> */}
+        <div className={styles.titleTwo}>工单详情</div>
         {open && (
           <WorkTable
             key={`${JSON.stringify(fetchParams)}`}
