@@ -8,7 +8,11 @@ import { getPeopleGroupDescription } from "./categoryDescriptions";
 import Odometer from "react-odometerjs";
 import "odometer/themes/odometer-theme-default.css";
 import { useNumberAnimation } from "./useNumberAnimation";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  EnvironmentOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 
 // 导入地图选择类型枚举
 import { MapSelectTypeEnum } from "../Chart/Map/Map";
@@ -29,6 +33,10 @@ interface CardThreeProps {
   onIconClick?: () => void;
   currentSelectType?: MapSelectTypeEnum; // 添加当前选择类型参数
   timeRange: TimeRange; // 添加时间范围参数，使用TimeRange类型
+  // 新增：驿站显示控制回调
+  onStationToggle?: (showStation: boolean) => void;
+  // 新增：当前驿站显示状态
+  showStation?: boolean;
 }
 
 /**
@@ -36,7 +44,10 @@ interface CardThreeProps {
  * @param list 列表数据
  * @param onHoverItem hover回调
  * @param onIconClick 图标点击回调
+ * @param currentSelectType 当前选择类型
  * @param timeRange 时间范围
+ * @param onStationToggle 驿站显示状态控制回调
+ * @param showStation 当前驿站显示状态
  */
 const CardThree = ({
   list = [],
@@ -44,6 +55,8 @@ const CardThree = ({
   onIconClick,
   currentSelectType,
   timeRange,
+  onStationToggle,
+  showStation = false,
 }: CardThreeProps) => {
   // 存储实际值（不变）
   const [realValues, setRealValues] = useState<number[]>([]);
@@ -140,9 +153,13 @@ const CardThree = ({
     return selectedSmqt === "新就业群体" && smqtList.length > 0;
   }, [selectedSmqt, smqtList]);
 
+  // 修改：从select选项中移除驿站选项和新就业群体数量选项
   const mapOptions = useMemo(() => {
     return Object.values(MapSelectTypeEnum).map((item) => {
-      if (item !== MapSelectTypeEnum.newGroupCount) {
+      if (
+        item !== MapSelectTypeEnum.newGroupCount &&
+        item !== MapSelectTypeEnum.site
+      ) {
         return {
           label: item,
           value: item,
@@ -151,6 +168,16 @@ const CardThree = ({
       return null;
     });
   }, []);
+
+  // 新增：处理驿站图标点击
+  const handleStationIconClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      // 切换驿站显示状态
+      onStationToggle?.(!showStation);
+    },
+    [showStation, onStationToggle]
+  );
 
   return (
     <div className={styles.comCustom}>
@@ -208,22 +235,19 @@ const CardThree = ({
                     }
                   }}
                 >
-                  {/* {showIcon && (
-                <EnvironmentOutlined
-                  className={styles.clickableIcon}
-                  style={{
-                    fontSize: 20,
-                    color:
-                      currentSelectType === MapSelectTypeEnum.number
-                        ? "grey"
-                        : "#0cb4f0",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onIconClick?.();
-                  }}
-                />
-              )} */}
+                  {showIcon && (
+                    <EnvironmentOutlined
+                      className={styles.clickableIcon}
+                      style={{
+                        fontSize: 20,
+                        // 修改：根据驿站显示状态改变颜色，增加更明显的视觉反馈
+                        color: showStation ? "#0cb4f0" : "#666",
+                        // 增加过渡效果
+                        transition: "color 0.3s ease",
+                      }}
+                      onClick={handleStationIconClick}
+                    />
+                  )}
 
                   {showIcon && (
                     <div
@@ -232,7 +256,7 @@ const CardThree = ({
                       }}
                       onMouseEnter={(e) => e.stopPropagation()}
                       onMouseLeave={(e) => e.stopPropagation()}
-                      className={styles.clickableIcon}
+                      className={styles.clickableSelect}
                     >
                       <Select
                         defaultValue={currentSelectType}

@@ -142,6 +142,8 @@ interface MapProps {
   selectKey?: MapSelectTypeEnum;
   onAskQuestion?: (question: string) => void; // 添加提问回调函数
   currentMapSelectType: MapSelectTypeEnum; // 当前地图选择类型
+  // 新增：独立的驿站显示控制
+  showStation?: boolean; // 是否显示驿站图层
 }
 
 // 更新 EChartsParams 接口
@@ -385,6 +387,7 @@ const Map: React.FC<MapProps> = ({
   onDrillDown,
   onAskQuestion,
   currentMapSelectType,
+  showStation,
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -812,6 +815,14 @@ const Map: React.FC<MapProps> = ({
               }个驿站</div><div style="font-size: 12px;color: #fff;">点击查看详情</div>`;
             }
 
+            // 如果是驿站数据，优先显示驿站信息
+            if (
+              param.seriesName === "驿站" ||
+              param.seriesName === "驿站聚合"
+            ) {
+              return `${param.name}：驿站`;
+            }
+
             // 根据当前选择类型显示不同的tooltip内容
             if (currentMapSelectType === MapSelectTypeEnum.number) {
               // 工单数量模式：显示工单数量
@@ -831,9 +842,6 @@ const Map: React.FC<MapProps> = ({
               }
               const displayValue = isNaN(Number(value)) ? 0 : value;
               return `${param.name}: ${displayValue}人`;
-            } else if (currentMapSelectType === MapSelectTypeEnum.site) {
-              // 驿站模式：显示驿站信息
-              return `${param.name}：驿站`;
             } else if (
               currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
               currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
@@ -1108,8 +1116,8 @@ const Map: React.FC<MapProps> = ({
               ]
             : []),
 
-          // 普通驿站点 - 只在驿站模式下显示
-          ...(currentMapSelectType === MapSelectTypeEnum.site
+          // 普通驿站点 - 独立显示，不依赖于currentMapSelectType
+          ...(showStation
             ? [
                 {
                   name: "驿站",
@@ -1169,8 +1177,8 @@ const Map: React.FC<MapProps> = ({
               ]
             : []),
 
-          // 聚合驿站点 - 只在驿站模式下显示
-          ...(currentMapSelectType === MapSelectTypeEnum.site
+          // 聚合驿站点 - 独立显示，不依赖于currentMapSelectType
+          ...(showStation
             ? [
                 {
                   name: "驿站聚合",
@@ -1350,6 +1358,7 @@ const Map: React.FC<MapProps> = ({
     clusteredStations,
     currentMapSelectType,
     mapTypeData,
+    showStation,
   ]);
 
   // 地图点击事件处理函数

@@ -64,6 +64,9 @@ const Screen = () => {
   const [currentMapSelectType, setCurrentMapSelectType] =
     useState<MapSelectTypeEnum>(MapSelectTypeEnum.number);
 
+  // 新增：驿站显示状态
+  const [showStation, setShowStation] = useState<boolean>(false);
+
   // 添加工单数据状态
   const [ticketData, setTicketData] = useState<TicketCountData[][]>([]);
 
@@ -327,6 +330,7 @@ const Screen = () => {
           currentMapSelectType={currentMapSelectType}
           currentMapType={currentMapType}
           ticketData={ticketData}
+          showStation={showStation} // 独立控制驿站显示
           onDrillDown={(nextMapType) => {
             setCurrentMapType(nextMapType);
             // 获取新地图类型的工单数据
@@ -405,6 +409,9 @@ const Screen = () => {
                     onIconClick={handleCardThreeIconClick}
                     currentSelectType={currentMapSelectType}
                     timeRange={timeRange}
+                    // 新增：驿站显示状态控制
+                    onStationToggle={setShowStation}
+                    showStation={showStation}
                   />
                 </Flex>
               }
