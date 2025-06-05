@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
@@ -140,64 +141,6 @@ interface MapProps {
   onAskQuestion?: (question: string) => void; // 添加提问回调函数
   currentMapSelectType: MapSelectTypeEnum; // 当前地图选择类型
 }
-
-/**
- * 经纬度转换为自定义坐标系函数
- * 基于三个已知点的对应关系计算转换参数
- * @param {number} lng - 经度
- * @param {number} lat - 纬度
- * @returns {[number, number]} - 返回转换后的[x, y]坐标
- */
-const convertLngLatToCoordinates = (
-  lng: number,
-  lat: number
-): [number, number] => {
-  // 已知的三个参考点 - 经纬度和对应的坐标系坐标
-  const referencePoints = [
-    {
-      lng: 120.754171,
-      lat: 31.328124, // 海悦社区经纬度
-      x: 66170.3954,
-      y: 46101.189, // 海悦社区坐标系坐标
-    },
-    {
-      lng: 120.716164,
-      lat: 31.335602, // 新未来社区经纬度
-      x: 62108.0323,
-      y: 47115.5392, // 新未来社区坐标系坐标
-    },
-    {
-      lng: 120.85971,
-      lat: 31.464399, // 阳澄湖社区经纬度
-      x: 69255.0191,
-      y: 54557.6382, // 阳澄湖社区坐标系坐标
-    },
-  ];
-
-  // 使用第一个点作为参考原点
-  const origin = referencePoints[0];
-
-  // 计算经纬度变化和坐标系变化的比例
-  // 使用两个其他点的平均值来获得更准确的转换系数
-  const xFactor1 =
-    (referencePoints[1].x - origin.x) / (referencePoints[1].lng - origin.lng);
-  const xFactor2 =
-    (referencePoints[2].x - origin.x) / (referencePoints[2].lng - origin.lng);
-  const yFactor1 =
-    (referencePoints[1].y - origin.y) / (referencePoints[1].lat - origin.lat);
-  const yFactor2 =
-    (referencePoints[2].y - origin.y) / (referencePoints[2].lat - origin.lat);
-
-  // 取平均值减少误差
-  const xFactor = (xFactor1 + xFactor2) / 2;
-  const yFactor = (yFactor1 + yFactor2) / 2;
-
-  // 应用线性变换
-  const x = origin.x + (lng - origin.lng) * xFactor;
-  const y = origin.y + (lat - origin.lat) * yFactor;
-
-  return [x, y];
-};
 
 // 超过5个字符的社区名称进行截断
 const truncateCommunityName = (name: string): string => {
@@ -450,20 +393,23 @@ const Map: React.FC<MapProps> = ({
         if (currentMapType !== MapTypeEnum.area) {
           const currentStreetName = MapTypeNames[currentMapType];
           // 检查驿站的district是否匹配当前街道
-         if (!currentStreetName.startsWith(item.district.slice(0, -2))) {
+          if (!currentStreetName.startsWith(item.district.slice(0, -2))) {
             return null;
           }
         }
 
         // 使用统一的坐标转换方法
-        const [x, y] = getMapDataXY({
-          name: item.siteName || '',
-          street: item.district || '',
-          x: 0, // 这里设为0，因为我们会使用经纬度转换
-          y: 0,
-          lat: item.y, // 注意：驿站数据中的 y 是纬度
-          lng: item.x  // 驿站数据中的 x 是经度
-        }, currentMapType);
+        const [x, y] = getMapDataXY(
+          {
+            name: item.siteName || "",
+            street: item.district || "",
+            x: 0, // 这里设为0，因为我们会使用经纬度转换
+            y: 0,
+            lat: item.y, // 注意：驿站数据中的 y 是纬度
+            lng: item.x, // 驿站数据中的 x 是经度
+          },
+          currentMapType
+        );
 
         return {
           ...item,

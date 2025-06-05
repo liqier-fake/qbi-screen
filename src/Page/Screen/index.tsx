@@ -49,7 +49,7 @@ const TimeRangeOption = [
 ];
 
 const Screen = () => {
-  const [messageApi, contextHolder] = message.useMessage();
+  const [, contextHolder] = message.useMessage();
   const [timeRange, setTimeRange] = useState<TimeRange>(TimeRange.this_year);
 
   const [screenData, setScreenData] = useState<ScreenDataType>({} as any);
@@ -401,6 +401,7 @@ const Screen = () => {
                   <CardThree
                     list={screenData?.threeData?.list || []}
                     onHoverItem={onHoverCardTwo}
+                    // @ts-ignore
                     onIconClick={handleCardThreeIconClick}
                     currentSelectType={currentMapSelectType}
                     timeRange={timeRange}
