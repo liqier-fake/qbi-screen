@@ -1,8 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as echarts from "echarts";
-import type { EChartsOption, CallbackDataParams } from "echarts";
-import type { TooltipComponentFormatterCallback } from "echarts/types/src/component/tooltip/TooltipModel";
+import type { EChartsOption } from "echarts";
 import BaseChart, { BaseChartRef } from "../BaseChart";
 import { geojsonMap } from "./geojson";
 import station from "./geojson/station";
@@ -13,7 +12,6 @@ import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { convertCoordinates, getMapDataXY } from "./utils";
 import useMap from "./useMap";
-import { images } from "./geojson/image";
 
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
@@ -89,6 +87,16 @@ interface ClusterInfo {
   stations: StationInfo[];
 }
 
+// 定义画像数据类型
+interface ProfileData {
+  data_type: string;
+  group_type: string;
+  percentage: number;
+  profile_category: string;
+  profile_subcategory: string;
+  region_name: string;
+}
+
 // 定义ECharts参数类型
 interface EChartsParams {
   componentType: string;
@@ -104,7 +112,7 @@ interface EChartsParams {
     isCluster?: boolean;
     count?: number;
     stations?: StationInfo[];
-    allData?: any[]; // 添加 allData 字段
+    allData?: ProfileData[]; // 使用具体的类型替代any
   };
   value: number | number[];
   color: string;
@@ -146,120 +154,29 @@ interface MapProps {
   showStation?: boolean; // 是否显示驿站图层
 }
 
-// 更新 EChartsParams 接口
-interface EChartsParams {
-  componentType: string;
-  seriesType: string;
-  seriesId?: string;
-  seriesName?: string;
-  name: string;
-  dataIndex: number;
-  data: {
-    name: string;
-    value: number | number[];
-    stationInfo?: StationInfo;
-    isCluster?: boolean;
-    count?: number;
-    stations?: StationInfo[];
-    allData?: any[]; // 添加 allData 字段
-  };
-  value: number | number[];
-  color: string;
-  event?: {
-    stop: () => void;
-    event?: MouseEvent;
-  };
-}
-
-// 更新 tooltip formatter 类型
-type CustomTooltipFormatter =
-  TooltipComponentFormatterCallback<CallbackDataParams>;
-
-// 更新 MapDataItem 接口
-interface MapDataItem {
-  value: [number, number, number];
-  region_name: string;
-  people_count: number;
-  count?: number;
-  allData?: any[]; // 添加 allData 字段
-}
-
 /**
- * 经纬度转换为自定义坐标系函数
- * 基于三个已知点的对应关系计算转换参数
- * @param {number} lng - 经度
- * @param {number} lat - 纬度
- * @returns {[number, number]} - 返回转换后的[x, y]坐标
+ * 超过5个字符的社区名称进行截断
  */
-const convertLngLatToCoordinates = (
-  lng: number,
-  lat: number
-): [number, number] => {
-  // 已知的三个参考点 - 经纬度和对应的坐标系坐标
-  const referencePoints = [
-    {
-      lng: 120.754171,
-      lat: 31.328124, // 海悦社区经纬度
-      x: 66170.3954,
-      y: 46101.189, // 海悦社区坐标系坐标
-    },
-    {
-      lng: 120.716164,
-      lat: 31.335602, // 新未来社区经纬度
-      x: 62108.0323,
-      y: 47115.5392, // 新未来社区坐标系坐标
-    },
-    {
-      lng: 120.85971,
-      lat: 31.464399, // 阳澄湖社区经纬度
-      x: 69255.0191,
-      y: 54557.6382, // 阳澄湖社区坐标系坐标
-    },
-  ];
-
-  // 使用第一个点作为参考原点
-  const origin = referencePoints[0];
-
-  // 计算经纬度变化和坐标系变化的比例
-  // 使用两个其他点的平均值来获得更准确的转换系数
-  const xFactor1 =
-    (referencePoints[1].x - origin.x) / (referencePoints[1].lng - origin.lng);
-  const xFactor2 =
-    (referencePoints[2].x - origin.x) / (referencePoints[2].lng - origin.lng);
-  const yFactor1 =
-    (referencePoints[1].y - origin.y) / (referencePoints[1].lat - origin.lat);
-  const yFactor2 =
-    (referencePoints[2].y - origin.y) / (referencePoints[2].lat - origin.lat);
-
-  // 取平均值减少误差
-  const xFactor = (xFactor1 + xFactor2) / 2;
-  const yFactor = (yFactor1 + yFactor2) / 2;
-
-  // 应用线性变换
-  const x = origin.x + (lng - origin.lng) * xFactor;
-  const y = origin.y + (lat - origin.lat) * yFactor;
-
-  return [x, y];
-};
-
-// 超过5个字符的社区名称进行截断
 const truncateCommunityName = (name: string): string => {
   if (name.length <= 5) return name;
   return name.slice(0, 5) + "...";
 };
 
-/**
- * 对驿站点进行聚合的函数
- * @param stations 驿站点数据数组
- * @param distance 聚合距离阈值
- * @returns 聚合后的数据
- */
+// 优化的驿站聚合函数 - 街道地图取消聚合，显示全部驿站
 function processStationClusters(
   stations: StationInfo[],
-  distance: number
+  distance: number,
+  mapType: MapTypeEnum = MapTypeEnum.area
 ): (StationInfo | ClusterInfo)[] {
   if (!stations || stations.length === 0) return [];
 
+  // 街道地图下直接返回所有驿站，不进行聚合
+  if (mapType !== MapTypeEnum.area) {
+    // 街道地图：显示全部驿站，不聚合
+    return [...stations];
+  }
+
+  // 园区地图的聚合逻辑保持不变
   // 深拷贝站点数据，避免修改原始数据
   const points = [...stations];
   const clusters: (StationInfo | ClusterInfo)[] = [];
@@ -522,10 +439,15 @@ const Map: React.FC<MapProps> = ({
 
   // 根据当前地图类型和转换后的驿站数据计算聚合点
   const clusteredStations = useMemo(() => {
-    // 对驿站点进行聚合处理，不同地图类型使用不同的聚合距离
-    // 进一步扩大聚合范围，解决驿站重叠问题
-    const clusterDistance = currentMapType === MapTypeEnum.area ? 4000 : 2000;
-    return processStationClusters(transformedStationList, clusterDistance);
+    // 简化的聚合距离策略：街道地图不聚合，园区地图正常聚合
+    const clusterDistance = currentMapType === MapTypeEnum.area ? 4000 : 0; // 街道地图设为0表示不聚合
+
+    // 调用聚合函数，传递地图类型参数
+    return processStationClusters(
+      transformedStationList,
+      clusterDistance,
+      currentMapType
+    );
   }, [currentMapType, transformedStationList]);
 
   // 注册地图数据
@@ -808,10 +730,10 @@ const Map: React.FC<MapProps> = ({
             // 对于聚合点，显示特殊的提示
             if (
               param.componentType === "series" &&
-              (param.data as any)?.isCluster
+              (param.data as { isCluster?: boolean })?.isCluster
             ) {
               return `<div style="font-size: 12px;color: #fff;">该区域有${
-                (param.data as any).count
+                (param.data as { count?: number }).count
               }个驿站</div><div style="font-size: 12px;color: #fff;">点击查看详情</div>`;
             }
 
@@ -1052,9 +974,7 @@ const Map: React.FC<MapProps> = ({
                   symbolSize: (val: number[]) => Math.sqrt(val[2]) * 2,
                   tooltip: {
                     show: true,
-                    formatter: (
-                      params: echarts.ECElementEvent | echarts.ECElementEvent[]
-                    ) => {
+                    formatter: (params: any) => {
                       const param = Array.isArray(params) ? params[0] : params;
                       const value = Array.isArray(param.value)
                         ? param.value[2]
@@ -1097,9 +1017,7 @@ const Map: React.FC<MapProps> = ({
                   },
                   tooltip: {
                     show: true,
-                    formatter: (
-                      params: echarts.ECElementEvent | echarts.ECElementEvent[]
-                    ) => {
+                    formatter: (params: any) => {
                       const param = Array.isArray(params) ? params[0] : params;
                       const value = Array.isArray(param.value)
                         ? param.value[2]
@@ -1190,6 +1108,7 @@ const Map: React.FC<MapProps> = ({
                   symbolSize: (val: number[], params: EChartsParams) => {
                     // 根据聚合的驿站数量动态调整大小
                     // 优化聚合点尺寸计算，适应更多聚合的驿站
+                    console.log(val);
                     const count = params.data?.count || 0;
                     // 采用更平缓的增长曲线，防止大小增长过快
                     return Math.max(40, Math.min(70, 40 + count * 1.8));
@@ -1426,7 +1345,7 @@ const Map: React.FC<MapProps> = ({
       // 检查是否点击的是画像标记点
       if (params.seriesName === "画像标记") {
         // 从点击的数据中直接获取画像数据
-        const clickedPoint = params.data as any;
+        const clickedPoint = params.data as { allData?: ProfileData[] };
         const profileData = clickedPoint.allData || [];
 
         // 设置选中的社区信息
