@@ -393,7 +393,7 @@ const Map: React.FC<MapProps> = ({
         if (currentMapType !== MapTypeEnum.area) {
           const currentStreetName = MapTypeNames[currentMapType];
           // 检查驿站的district是否匹配当前街道
-          if (!currentStreetName.startsWith(item.district.slice(0, -2))) {
+          if (!item.district.startsWith(currentStreetName.slice(0, -2))) {
             return null;
           }
         }
