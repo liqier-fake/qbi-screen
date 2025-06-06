@@ -44,7 +44,7 @@ const WorkListWithDetail: React.FC<WorkListWithDetailProps> = ({
   fetchParams,
   pagination = {
     defaultCurrent: 1,
-    defaultPageSize: 10,
+    defaultPageSize: 100,
   },
 }) => {
   return (

@@ -10,7 +10,7 @@ import icon from "./icon.svg";
 import styles from "./map.module.less";
 import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
-import { convertCoordinates, getMapDataXY } from "./utils";
+import { convertCoordinates, getMapDataXY, swapArray } from "./utils";
 import useMap from "./useMap";
 
 // 导出枚举以便父组件使用
@@ -440,7 +440,8 @@ const Map: React.FC<MapProps> = ({
   // 根据当前地图类型和转换后的驿站数据计算聚合点
   const clusteredStations = useMemo(() => {
     // 简化的聚合距离策略：街道地图不聚合，园区地图正常聚合
-    const clusterDistance = currentMapType === MapTypeEnum.area ? 4000 : 0; // 街道地图设为0表示不聚合
+    // const clusterDistance = currentMapType === MapTypeEnum.area ? 4000 : 0; // 街道地图设为0表示不聚合
+    const clusterDistance = currentMapType === 0; // 街道地图设为0表示不聚合
 
     // 调用聚合函数，传递地图类型参数
     return processStationClusters(
@@ -1044,7 +1045,7 @@ const Map: React.FC<MapProps> = ({
                   geoIndex: 0,
                   zlevel: 2,
                   symbol: `image://${icon}`,
-                  symbolSize: [87, 20], // 使用固定数组值而不是函数
+                  symbolSize: [20, 20], // 使用固定数组值而不是函数
                   animation: false, // 禁用动画，防止闪烁
                   // 为驿站添加特殊的点击事件类型标记
                   seriesId: "station", // 添加唯一标识符，用于区分点击事件
@@ -1056,23 +1057,23 @@ const Map: React.FC<MapProps> = ({
                       opacity: 1, // 保持原有透明度
                     },
                   },
-                  label: {
-                    show: true,
-                    formatter: (params: EChartsParams) => {
-                      return params.name;
-                    },
-                    position: "inside", // 确保文字在图标内部
-                    color: "#fff",
-                    backgroundColor: "rgba(0,0,0,0)", // 透明背景
-                    fontSize: 9, // 减小字体，确保能放在图标内
-                    // align: "center",
-                    padding: [0, 0, 0, 5],
-                    verticalAlign: "middle", // 确保垂直居中
-                    textShadowColor: "#000", // 保留文字阴影增强可读性
-                    textShadowBlur: 2,
-                    textShadowOffsetX: 0,
-                    textShadowOffsetY: 0,
-                  },
+                  // label: {
+                  //   show: true,
+                  //   formatter: (params: EChartsParams) => {
+                  //     return params.name;
+                  //   },
+                  //   position: "inside", // 确保文字在图标内部
+                  //   color: "#fff",
+                  //   backgroundColor: "rgba(0,0,0,0)", // 透明背景
+                  //   fontSize: 9, // 减小字体，确保能放在图标内
+                  //   // align: "center",
+                  //   padding: [0, 0, 0, 5],
+                  //   verticalAlign: "middle", // 确保垂直居中
+                  //   textShadowColor: "#000", // 保留文字阴影增强可读性
+                  //   textShadowBlur: 2,
+                  //   textShadowOffsetX: 0,
+                  //   textShadowOffsetY: 0,
+                  // },
                   tooltip: {
                     show: false,
                     trigger: "item",
@@ -1621,22 +1622,24 @@ const Map: React.FC<MapProps> = ({
                           >
                             {groupType as string}
                           </div>
-                          {selectedCommunity
-                            .data!.filter(
+                          {swapArray(
+                            selectedCommunity.data!.filter(
                               (item) => item.group_type === groupType
-                            )
-                            .map((item, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  fontSize: "12px",
-                                  marginBottom: "3px",
-                                }}
-                              >
-                                {item.profile_category} -{" "}
-                                {item.profile_subcategory}: {item.percentage}%
-                              </div>
-                            ))}
+                            ),
+                            4,
+                            5
+                          ).map((item, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                fontSize: "12px",
+                                marginBottom: "3px",
+                              }}
+                            >
+                              {item.profile_category} -{" "}
+                              {item.profile_subcategory}: {item.percentage}%
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>

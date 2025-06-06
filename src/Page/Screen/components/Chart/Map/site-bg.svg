@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="221px" height="59px" viewBox="0 0 221 59" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 9备份 2</title>
+    <defs>
+        <path d="M212,30.041416 L193.474535,54.708292 C193.336673,54.891946 193.120358,55 192.890588,55 C192.890588,55 136.659797,55 24.198215,55 C23.969066,55 23.753165,54.892486 23.615096,54.709642 C23.615096,54.709642 17.410064,46.4869 5,30.041416 L23.618408,1.332856 C23.752958,1.12528 23.983556,1 24.231128,1 C24.231128,1 80.439908,1 192.857468,1 C193.105661,1 193.33688,1.125874 193.471223,1.334206 L212,30.041416 Z" id="path-1"></path>
+        <filter x="-6.5%" y="-25.0%" width="113.0%" height="150.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feGaussianBlur stdDeviation="13.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="0" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 1   0 0 0 0 0.913725495  0 0 0 0.580392182 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+        <mask id="mask-3" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="207" height="54" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-4">
+            <stop stop-color="#0CFDFF" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#08FBFE" offset="53.2427847%"></stop>
+            <stop stop-color="#05FAFD" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="49.9999%" y1="0%" x2="49.9999%" y2="100.0001%" id="linearGradient-5">
+            <stop stop-color="#0CFDFF" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#08FBFE" offset="53.2427847%"></stop>
+            <stop stop-color="#05FAFD" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="62.466395%" x2="22.2101%" y2="44.1482111%" id="linearGradient-6">
+            <stop stop-color="#03FBFF" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#06FCFF" stop-opacity="0" offset="57.6699078%"></stop>
+            <stop stop-color="#07FDFF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50.0001%" y1="60.0173791%" x2="22.2103%" y2="45.2977402%" id="linearGradient-7">
+            <stop stop-color="#03FBFF" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#06FCFF" stop-opacity="0" offset="72.2032785%"></stop>
+            <stop stop-color="#07FDFF" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="可视化大屏" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-dasharray="0,0">
+        <g id="添加热点图分类" transform="translate(-2840, -214)">
+            <g id="编组-9备份-2" transform="translate(2842, 215)">
+                <g id="路径">
+                    <use fill-opacity="0.00392156886" fill="#00FFF9" fill-rule="evenodd" xlink:href="#path-1"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                    <use stroke="#084F50" mask="url(#mask-3)" stroke-width="2" xlink:href="#path-1"></use>
+                </g>
+                <path d="M19,1 L0,30.384152 L19,57" id="路径" stroke="url(#linearGradient-4)" stroke-width="3.20000005"></path>
+                <path d="M30,14 L20,29.216793 L30,43" id="路径" stroke="url(#linearGradient-5)" stroke-width="3.20000005" opacity="0.860000014"></path>
+                <path d="M199,14 L189,29.216793 L199,43" id="路径" stroke="url(#linearGradient-5)" stroke-width="3.20000005" opacity="0.860000014" transform="translate(194, 28.5) scale(-1, 1) rotate(-360) translate(-194, -28.5)"></path>
+                <path d="M217,1 L198,30.384152 L217,57" id="路径" stroke="url(#linearGradient-4)" stroke-width="3.20000005" transform="translate(207.5, 29) scale(-1, 1) rotate(-360) translate(-207.5, -29)"></path>
+                <path d="M7,26 L23.807704,0.36413 L83,0" id="路径" stroke="url(#linearGradient-6)" stroke-width="1.60000002"></path>
+                <path d="M135,55 L151.39215,32.362756 L210,32" id="路径" stroke="url(#linearGradient-7)" stroke-width="1.60000002" transform="translate(172.5, 43.5) rotate(180) translate(-172.5, -43.5)"></path>
+            </g>
+        </g>
+    </g>
+</svg>
