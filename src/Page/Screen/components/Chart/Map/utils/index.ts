@@ -14,6 +14,67 @@ interface Point {
   lng?: number;
 }
 
+// 定义椭球参数
+const a = 6378245.0;  // 长半轴
+const ee = 0.00669342162296594323;  // 偏心率平方
+
+/**
+ * 判断坐标是否在中国境内
+ * @param lng 经度
+ * @param lat 纬度
+ * @returns boolean
+ */
+const isInChina = (lng: number, lat: number): boolean => {
+  // 粗略范围判断
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+};
+
+/**
+ * GCJ-02(高德)坐标转WGS84坐标
+ * @param lng 经度
+ * @param lat 纬度
+ * @returns [lng, lat] WGS84坐标
+ */
+const gcj02ToWGS84 = (lng: number, lat: number): [number, number] => {
+  if (!isInChina(lng, lat)) {
+    return [lng, lat];
+  }
+
+  let dlat = transformLat(lng - 105.0, lat - 35.0);
+  let dlng = transformLng(lng - 105.0, lat - 35.0);
+  const radlat = lat / 180.0 * Math.PI;
+  let magic = Math.sin(radlat);
+  magic = 1 - ee * magic * magic;
+  const sqrtmagic = Math.sqrt(magic);
+  dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * Math.PI);
+  dlng = (dlng * 180.0) / (a / sqrtmagic * Math.cos(radlat) * Math.PI);
+  const mglat = lat + dlat;
+  const mglng = lng + dlng;
+  return [lng * 2 - mglng, lat * 2 - mglat];
+};
+
+/**
+ * 转换经度
+ */
+const transformLng = (lng: number, lat: number): number => {
+  let ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng));
+  ret += (20.0 * Math.sin(6.0 * lng * Math.PI) + 20.0 * Math.sin(2.0 * lng * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(lng * Math.PI) + 40.0 * Math.sin(lng / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(lng / 12.0 * Math.PI) + 300.0 * Math.sin(lng / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+};
+
+/**
+ * 转换纬度
+ */
+const transformLat = (lng: number, lat: number): number => {
+  let ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng));
+  ret += (20.0 * Math.sin(6.0 * lng * Math.PI) + 20.0 * Math.sin(2.0 * lng * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(lat * Math.PI) + 40.0 * Math.sin(lat / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(lat / 12.0 * Math.PI) + 320 * Math.sin(lat * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+};
+
 /**
  * 经纬度转换为园区坐标系函数 (统一的基础转换)
  * 基于三个已知点的对应关系计算转换参数
@@ -277,7 +338,10 @@ export const getMapDataXY = (
     // area地图：优先使用经纬度转换（保持原有效果）
     if (lat && lng) {
       console.log(`area地图使用经纬度转换: lng=${lng}, lat=${lat}`);
-      const [areaX, areaY] = convertLngLatToCoordinates(lng, lat);
+      // 先将高德坐标转换为WGS84坐标
+      const [wgs84Lng, wgs84Lat] = gcj02ToWGS84(lng, lat);
+      console.log(`转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat}`);
+      const [areaX, areaY] = convertLngLatToCoordinates(wgs84Lng, wgs84Lat);
       console.log(`area地图最终坐标: x=${areaX}, y=${areaY}`);
       return [areaX, areaY];
     }
@@ -291,7 +355,10 @@ export const getMapDataXY = (
     // 街道地图：优先使用经纬度进行投影坐标转换
     if (lat && lng) {
       console.log(`街道地图使用投影坐标转换: lng=${lng}, lat=${lat}`);
-      const [projX, projY] = convertLngLatToProjection(lng, lat);
+      // 先将高德坐标转换为WGS84坐标
+      const [wgs84Lng, wgs84Lat] = gcj02ToWGS84(lng, lat);
+      console.log(`转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat}`);
+      const [projX, projY] = convertLngLatToProjection(wgs84Lng, wgs84Lat);
       console.log(`街道地图投影坐标: x=${projX}, y=${projY}`);
       return [projX, projY];
     }
