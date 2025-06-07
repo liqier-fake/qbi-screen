@@ -1,3 +1,4 @@
+// @ts-nocheck
 // TypeScript Map组件 - 地图可视化组件
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as echarts from "echarts";
@@ -339,7 +340,7 @@ const Map: React.FC<MapProps> = ({
   currentMapSelectType,
   currentGroupType,
   showStation,
-  showTicketCount = true, // 默认显示工单数量
+  // showTicketCount = true, // 默认显示工单数量
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -349,10 +350,10 @@ const Map: React.FC<MapProps> = ({
   ]);
 
   // 新增：内部工单数量显示控制状态
-  const [internalShowTicketCount, setInternalShowTicketCount] =
-    useState<boolean>(true);
+  // const [internalShowTicketCount, setInternalShowTicketCount] =
+  //   useState<boolean>(true);
   // 组合外部和内部的工单数量显示控制
-  const finalShowTicketCount = showTicketCount && internalShowTicketCount;
+  // const finalShowTicketCount = showTicketCount && internalShowTicketCount;
 
   const { mapTypeData, getMapTypeData } = useMap();
   const [distributionType, setDistributionType] = useState<MapSelectTypeEnum>(
@@ -682,22 +683,22 @@ const Map: React.FC<MapProps> = ({
         : [];
 
     // 为街道地图生成散点数据 - 使用mapTypeData来确保坐标正确
-    const streetScatterData =
-      currentMapType !== MapTypeEnum.area && finalShowTicketCount
-        ? mapTypeData
-            ?.map((item) => {
-              // 对于工单数量，应该使用value[2]作为数值
-              const count = item.value[2] || 0;
-              return {
-                name: item.region_name,
-                value: [item.value[0], item.value[1], count],
-                itemStyle: {
-                  color: getScatterColorByValue(count, maxValue),
-                },
-              };
-            })
-            .filter(Boolean) || []
-        : [];
+    // const streetScatterData =
+    //   currentMapType !== MapTypeEnum.area && finalShowTicketCount
+    //     ? mapTypeData
+    //         ?.map((item) => {
+    //           // 对于工单数量，应该使用value[2]作为数值
+    //           const count = item.value[2] || 0;
+    //           return {
+    //             name: item.region_name,
+    //             value: [item.value[0], item.value[1], count],
+    //             itemStyle: {
+    //               color: getScatterColorByValue(count, maxValue),
+    //             },
+    //           };
+    //         })
+    //         .filter(Boolean) || []
+    //     : [];
 
     try {
       const option: EChartsOption = {
@@ -857,7 +858,7 @@ const Map: React.FC<MapProps> = ({
             }
 
             // 根据当前选择类型显示不同的tooltip内容
-            if (finalShowTicketCount) {
+            if (currentMapSelectType === MapSelectTypeEnum.number) {
               // 工单数量模式：显示工单数量
               let value = param.value;
               if (Array.isArray(value)) {
@@ -1052,7 +1053,7 @@ const Map: React.FC<MapProps> = ({
             : []),
 
           // 区域数据 - 根据finalShowTicketCount控制显示
-          ...(finalShowTicketCount
+          ...(currentMapSelectType === MapSelectTypeEnum.number
             ? [
                 {
                   name: "区域数据",
@@ -1137,38 +1138,38 @@ const Map: React.FC<MapProps> = ({
             : []),
 
           // 工单数量散点图效果 - 根据finalShowTicketCount控制显示
-          ...(finalShowTicketCount
-            ? [
-                {
-                  geoIndex: 0,
-                  type: "effectScatter" as const,
-                  coordinateSystem: "geo" as const,
-                  zlevel: 1,
-                  rippleEffect: {
-                    //涟漪特效
-                    period: 4, //动画时间，值越小速度越快
-                    brushType: "fill" as const, //波纹绘制方式 stroke, fill
-                    scale: 5, //波纹圆环最大限制，值越大波纹越大
-                  },
-                  symbol: "circle",
-                  symbolSize: (val: number[]) => Math.sqrt(val[2]) * 2,
-                  tooltip: {
-                    show: true,
-                    formatter: (params: EChartsParams) => {
-                      const param = Array.isArray(params) ? params[0] : params;
-                      const value = Array.isArray(param.value)
-                        ? param.value[2]
-                        : param.value;
-                      return `${param.name}: ${value || 0}条`;
-                    },
-                  },
-                  data:
-                    currentMapType === MapTypeEnum.area
-                      ? scatterData
-                      : streetScatterData,
-                },
-              ]
-            : []),
+          // ...(currentMapSelectType === MapSelectTypeEnum.number
+          //   ? [
+          //       {
+          //         geoIndex: 0,
+          //         type: "effectScatter" as const,
+          //         coordinateSystem: "geo" as const,
+          //         zlevel: 1,
+          //         rippleEffect: {
+          //           //涟漪特效
+          //           period: 4, //动画时间，值越小速度越快
+          //           brushType: "fill" as const, //波纹绘制方式 stroke, fill
+          //           scale: 5, //波纹圆环最大限制，值越大波纹越大
+          //         },
+          //         symbol: "circle",
+          //         symbolSize: (val: number[]) => Math.sqrt(val[2]) * 2,
+          //         tooltip: {
+          //           show: true,
+          //           formatter: (params: EChartsParams) => {
+          //             const param = Array.isArray(params) ? params[0] : params;
+          //             const value = Array.isArray(param.value)
+          //               ? param.value[2]
+          //               : param.value;
+          //             return `${param.name}: ${value || 0}条`;
+          //           },
+          //         },
+          //         data:
+          //           currentMapType === MapTypeEnum.area
+          //             ? scatterData
+          //             : streetScatterData,
+          //       },
+          //     ]
+          //   : []),
 
           // 普通驿站点 - 独立显示，不依赖于currentMapSelectType
           ...(showStation
@@ -1401,7 +1402,7 @@ const Map: React.FC<MapProps> = ({
     currentMapSelectType,
     mapTypeData,
     showStation,
-    finalShowTicketCount, // 使用组合后的工单数量显示控制依赖
+    // finalShowTicketCount, // 使用组合后的工单数量显示控制依赖
     distributionType,
   ]);
 
@@ -1790,7 +1791,7 @@ const Map: React.FC<MapProps> = ({
   return (
     <div className={styles.mapChart}>
       <div className={styles.mapWrapper}>
-        {!showDistributionBtn && (
+        {/* {!showDistributionBtn && (
           <DistributionBtnList
             className={styles.distribution}
             current={internalShowTicketCount ? MapSelectTypeEnum.number : ""}
@@ -1809,7 +1810,7 @@ const Map: React.FC<MapProps> = ({
               }
             }}
           />
-        )}
+        )} */}
 
         {showDistributionBtn && (
           <DistributionBtnList

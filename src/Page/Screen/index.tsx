@@ -83,7 +83,7 @@ const Screen = () => {
   // 传递选中的默认街道
   const defaultStreet = useMemo(() => {
     if (currentMapType === MapTypeEnum.area) {
-      return;
+      return "all";
     }
     return MapTypeNames[currentMapType];
   }, [currentMapType]);
