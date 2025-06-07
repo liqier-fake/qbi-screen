@@ -1,4 +1,4 @@
-// @ts-nocheck
+// TypeScript Map组件 - 地图可视化组件
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
@@ -7,6 +7,7 @@ import { geojsonMap } from "./geojson";
 import station from "./geojson/station";
 import { flatten } from "lodash";
 import icon from "./icon.svg";
+import iconActive from "./icon-active.png";
 import styles from "./map.module.less";
 import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
@@ -274,6 +275,43 @@ const getScatterColorByValue = (value: number, maxValue: number): string => {
   return "rgba(0,255,204, 1)"; // 非常高
 };
 
+/**
+ * 计算两点间的欧几里得距离
+ * @param point1 第一个点的坐标 [x, y]
+ * @param point2 第二个点的坐标 [x, y]
+ * @returns 距离值
+ */
+const calculateDistance = (
+  point1: [number, number],
+  point2: [number, number]
+): number => {
+  const [x1, y1] = point1;
+  const [x2, y2] = point2;
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+};
+
+/**
+ * 检查驿站周边指定距离内是否有分布点
+ * @param stationPosition 驿站坐标
+ * @param distributionData 分布数据
+ * @param threshold 距离阈值（默认800）
+ * @returns 是否有分布点
+ */
+const hasDistributionNearby = (
+  stationPosition: [number, number],
+  distributionData: Array<{ value: [number, number, number] }>,
+  threshold: number = 800
+): boolean => {
+  return distributionData.some((item) => {
+    const distributionPosition: [number, number] = [
+      item.value[0],
+      item.value[1],
+    ];
+    const distance = calculateDistance(stationPosition, distributionPosition);
+    return distance <= threshold;
+  });
+};
+
 // 根据社区名称获取坐标
 const getCommunityCoordinates = (name: string): [number, number] => {
   // 从sip_comm数据中查找对应社区的中心点坐标
@@ -484,7 +522,7 @@ const Map: React.FC<MapProps> = ({
   const clusteredStations = useMemo(() => {
     // 简化的聚合距离策略：街道地图不聚合，园区地图正常聚合
     // const clusterDistance = currentMapType === MapTypeEnum.area ? 4000 : 0; // 街道地图设为0表示不聚合
-    const clusterDistance = currentMapType === 0; // 街道地图设为0表示不聚合
+    const clusterDistance = 0; // 街道地图设为0表示不聚合
 
     // 调用聚合函数，传递地图类型参数
     return processStationClusters(
@@ -797,7 +835,7 @@ const Map: React.FC<MapProps> = ({
         },
         tooltip: {
           trigger: "item",
-          formatter: function (params: any) {
+          formatter: function (params: EChartsParams | EChartsParams[]) {
             const param = Array.isArray(params) ? params[0] : params;
 
             // 对于聚合点，显示特殊的提示
@@ -838,10 +876,7 @@ const Map: React.FC<MapProps> = ({
               const displayValue = isNaN(Number(value)) ? 0 : value;
               return `${param.name}: ${displayValue}人`;
             } else if (
-              currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
-              currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
-              currentMapSelectType === MapSelectTypeEnum.workDistribution ||
-              currentMapSelectType === MapSelectTypeEnum.liveDistribution
+              currentMapSelectType === MapSelectTypeEnum.distribution
             ) {
               // 分布类型模式：显示分布密度
               let value = param.value;
@@ -1119,7 +1154,7 @@ const Map: React.FC<MapProps> = ({
                   symbolSize: (val: number[]) => Math.sqrt(val[2]) * 2,
                   tooltip: {
                     show: true,
-                    formatter: (params: any) => {
+                    formatter: (params: EChartsParams) => {
                       const param = Array.isArray(params) ? params[0] : params;
                       const value = Array.isArray(param.value)
                         ? param.value[2]
@@ -1187,11 +1222,25 @@ const Map: React.FC<MapProps> = ({
                     .filter(
                       (item): item is StationInfo => !("count" in item) // 过滤出单个驿站点
                     )
-                    .map((station) => ({
-                      name: station.name,
-                      value: [...station.position, 1],
-                      stationInfo: station,
-                    })),
+                    .map((station) => {
+                      // 检查是否同时显示分布图，如果是，则根据周边分布点情况设置颜色
+                      const isDistributionMode =
+                        currentMapSelectType === MapSelectTypeEnum.distribution;
+                      const hasNearbyDistribution =
+                        isDistributionMode && mapTypeData
+                          ? hasDistributionNearby(station.position, mapTypeData)
+                          : false;
+
+                      return {
+                        name: station.name,
+                        value: [...station.position, 1],
+                        stationInfo: station,
+                        // 根据周边是否有分布点设置不同的样式
+                        symbol: hasNearbyDistribution
+                          ? `image://${iconActive}`
+                          : `image://${icon}`,
+                      };
+                    }),
                 },
               ]
             : []),
@@ -1216,13 +1265,6 @@ const Map: React.FC<MapProps> = ({
                   },
                   animation: false,
                   seriesId: "stationCluster",
-                  itemStyle: {
-                    color: "rgba(0,202,255,0.8)",
-                    borderColor: "#fff",
-                    borderWidth: 1,
-                    shadowColor: "rgba(0,202,255,0.5)",
-                    shadowBlur: 10,
-                  },
                   emphasis: {
                     scale: 1.1,
                     itemStyle: {
@@ -1246,13 +1288,32 @@ const Map: React.FC<MapProps> = ({
                       (item): item is ClusterInfo =>
                         "count" in item && item.count > 1 // 过滤出聚合点
                     )
-                    .map((cluster) => ({
-                      name: `${cluster.count}个驿站`,
-                      value: [...cluster.position, cluster.count],
-                      isCluster: true,
-                      count: cluster.count,
-                      stations: cluster.stations,
-                    })),
+                    .map((cluster) => {
+                      // 检查聚合点内是否有驿站周边存在分布点
+                      const isDistributionMode =
+                        currentMapSelectType === MapSelectTypeEnum.distribution;
+                      const hasNearbyDistribution =
+                        isDistributionMode && mapTypeData
+                          ? cluster.stations.some((station) =>
+                              hasDistributionNearby(
+                                station.position,
+                                mapTypeData
+                              )
+                            )
+                          : false;
+
+                      return {
+                        name: `${cluster.count}个驿站`,
+                        value: [...cluster.position, cluster.count],
+                        isCluster: true,
+                        count: cluster.count,
+                        stations: cluster.stations,
+                        // 根据聚合点内驿站是否有周边分布点设置不同样式
+                        symbol: hasNearbyDistribution
+                          ? `image://${iconActive}`
+                          : `image://${icon}`,
+                      };
+                    }),
                 },
               ]
             : []),
