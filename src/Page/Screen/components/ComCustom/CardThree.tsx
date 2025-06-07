@@ -26,6 +26,7 @@ import WorkListModal from "../WorkMoal";
 import columns from "../CategoryModal/columns";
 import DividerTitle from "../DividerTitle";
 import { compact } from "lodash";
+import { GroupTypeEnum } from "../Chart/Map/type";
 
 interface CardThreeProps {
   list: ComCustomItemType[];
@@ -155,18 +156,24 @@ const CardThree = ({
 
   // 修改：从select选项中移除驿站选项和新就业群体数量选项
   const mapOptions = useMemo(() => {
-    return Object.values(MapSelectTypeEnum).map((item) => {
-      if (
-        item !== MapSelectTypeEnum.newGroupCount &&
-        item !== MapSelectTypeEnum.site
-      ) {
-        return {
-          label: item,
-          value: item,
-        };
-      }
-      return null;
+    const group = Object.values(GroupTypeEnum).map((item) => {
+      return {
+        label: item,
+        value: item,
+      };
     });
+
+    return [
+      ...group,
+      {
+        label: MapSelectTypeEnum.image,
+        value: MapSelectTypeEnum.image,
+      },
+      {
+        label: MapSelectTypeEnum.newGroupCount,
+        value: MapSelectTypeEnum.newGroupCount,
+      },
+    ];
   }, []);
 
   // 新增：处理驿站图标点击

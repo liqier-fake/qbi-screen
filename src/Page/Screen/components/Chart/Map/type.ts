@@ -18,6 +18,13 @@ export enum MapSelectTypeEnum {
   "site" = "驿站",
   "number" = "工单数量",
 }
+// 群体类型
+export enum GroupTypeEnum {
+  "rideHailing" = "网约车群体",
+  "foodDelivery" = "外卖群体",
+  "courier" = "快递群体",
+  "designatedDriver" = "代驾群体",
+}
 
 // 导出常量，让父组件可以使用地图类型名称
 export const MapTypeNames: Record<MapTypeEnum, string> = {

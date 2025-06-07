@@ -1,0 +1,25 @@
+.distributionBtnList {
+  display: flex;
+  .distributionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 130px;
+    aspect-ratio: 217/57;
+    font-size: 12px;
+    text-align: center;
+    color: #ffffff;
+    cursor: pointer;
+    background-image: url("./site-bg.svg");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    &.active {
+      font-weight: bold;
+      background-image: url("./site-bg-active.svg");
+    }
+    &:not(:last-child) {
+      margin-right: 10px;
+    }
+  }
+}

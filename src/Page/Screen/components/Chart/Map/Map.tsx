@@ -12,6 +12,7 @@ import ReactDOM from "react-dom"; // 导入ReactDOM用于创建Portal
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { convertCoordinates, getMapDataXY, swapArray } from "./utils";
 import useMap from "./useMap";
+import DistributionBtnList from "./component/DistributionBtn";
 
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
@@ -320,6 +321,14 @@ const Map: React.FC<MapProps> = ({
     console.log(currentMapSelectType, "currentMapSelectType改变");
   }, [currentMapSelectType, currentMapType]);
 
+  const [distributionType, setDistributionType] = useState<MapSelectTypeEnum>(
+    MapSelectTypeEnum.dayDistribution
+  );
+  const onDistributionSelect = (type: MapSelectTypeEnum) => {
+    setDistributionType(type);
+    getMapTypeData(type, currentMapType);
+  };
+
   // 添加视图状态同步处理函数
   const handleViewChange = () => {
     const chart = chartRef.current?.getChartInstance();
@@ -514,7 +523,7 @@ const Map: React.FC<MapProps> = ({
       1
     ); // 至少为1，防止除0错误
 
-    // 转换坐标
+    //  工单数量颜色
     const seriesData = currentTicketData?.map((item) => {
       // 确保item包含x和y属性，如果没有则使用默认值
       const itemWithCoords = {
@@ -546,6 +555,36 @@ const Map: React.FC<MapProps> = ({
               },
       };
     });
+
+    console.log(mapTypeData, "mapTypeData99999999999999999");
+
+    // 新就业群体数量
+    let newGroupCountData = [];
+
+    if (currentMapSelectType === MapSelectTypeEnum.newGroupCount) {
+      // 计算最大值用于颜色映射
+      const newGroupCountMaxValue = Math.max(
+        ...(mapTypeData || []).map((item) => item.people_count || 0),
+        1
+      ); // 至少为1，防止除0错误
+
+      newGroupCountData = mapTypeData?.map((item) => {
+        const { region_name, value, people_count, street } = item;
+        return {
+          name: region_name || street,
+          value: people_count || 0,
+          coord: [value?.[0], value?.[1]],
+          itemStyle: {
+            areaColor: getColorByValue(
+              people_count || 0,
+              newGroupCountMaxValue
+            ),
+          },
+        };
+      });
+    }
+
+    console.log(newGroupCountData, "newGroupCountData99999999999999999");
 
     // 生成散点数据，使用社区地图数据
     const scatterData =
@@ -914,6 +953,40 @@ const Map: React.FC<MapProps> = ({
           },
         ],
         series: [
+          // 添加热力图配置 - 改进视觉效果，类似图片
+          ...(distributionType
+            ? [
+                {
+                  type: "heatmap" as const,
+                  coordinateSystem: "geo" as const,
+                  name: "分布热力图",
+                  data: mapTypeData,
+                  pointSize:
+                    distributionType === MapSelectTypeEnum.dayDistribution &&
+                    currentMapType !== MapTypeEnum.area
+                      ? 40
+                      : 20, // 增大点的基础大小
+                  blurSize: 25, // 增大模糊半径，创造更柔和的渐变效果
+                  minOpacity: 0.1, // 降低最小透明度
+                  maxOpacity: 0.9, // 提高最大透明度
+                  zlevel: 1,
+                  emphasis: {
+                    itemStyle: {
+                      shadowBlur: 15,
+                      shadowColor: "rgba(0, 0, 0, 0.3)",
+                    },
+                  },
+                  itemStyle: {
+                    opacity: 0.8,
+                    shadowBlur: 5, // 添加阴影效果增强立体感
+                    shadowColor: "rgba(0, 0, 0, 0.2)",
+                  },
+                  progressive: 1000,
+                  animation: false,
+                },
+              ]
+            : []),
+
           // 区域数据 - 只在工单数量模式下显示
           ...(currentMapSelectType === MapSelectTypeEnum.number
             ? [
@@ -956,6 +1029,48 @@ const Map: React.FC<MapProps> = ({
                 },
               ]
             : []),
+          // 新就业群体数量
+          ...(currentMapSelectType === MapSelectTypeEnum.newGroupCount
+            ? [
+                {
+                  name: "新就业群体数量",
+                  type: "map" as const,
+                  map: currentMapType,
+                  aspectScale: 1,
+                  zoom: 1.0,
+                  roam: true, // 启用地图缩放和平移
+                  showLegendSymbol: true,
+                  label: {
+                    show: false,
+                    textStyle: { color: "#fff", fontSize: "120%" },
+                    emphasis: {
+                      show: false,
+                    },
+                  },
+                  itemStyle: {
+                    areaColor: seriesItemAreaColor,
+                    borderColor: "#fff",
+                    borderWidth: 0.2,
+                  },
+                  emphasis: {
+                    label: {
+                      show: false,
+                    },
+                    itemStyle: {
+                      show: false,
+                      borderColor: "#fff",
+                      areaColor: "rgba(0,254,233,0.6)",
+                    },
+                  },
+                  select: {
+                    disabled: true,
+                  },
+                  layoutCenter: ["50%", "50%"],
+                  layoutSize: "90%",
+                  data: newGroupCountData,
+                },
+              ]
+            : []),
 
           // 工单数量散点图效果 - 支持所有地图类型
           ...(currentMapSelectType === MapSelectTypeEnum.number
@@ -987,50 +1102,6 @@ const Map: React.FC<MapProps> = ({
                     currentMapType === MapTypeEnum.area
                       ? scatterData
                       : streetScatterData,
-                },
-              ]
-            : []),
-
-          // 新市民群体数量散点图 - 支持所有地图类型
-          ...(currentMapSelectType === MapSelectTypeEnum?.newGroupCount
-            ? [
-                {
-                  name: "新市民群体数量",
-                  type: "scatter" as const,
-                  coordinateSystem: "geo" as const,
-                  geoIndex: 0,
-                  zlevel: 1,
-                  symbol: "circle",
-                  symbolSize: (val: number[]) =>
-                    Math.max(6, Math.sqrt(val[2]) * 0.8), // 大幅缩小散点图大小
-                  itemStyle: {
-                    color: "rgba(255, 165, 0, 0.8)", // 橙色主题
-                    borderColor: "#fff",
-                    borderWidth: 1,
-                    shadowColor: "rgba(255, 165, 0, 0.5)",
-                    shadowBlur: 10,
-                  },
-                  emphasis: {
-                    scale: 1.2,
-                    itemStyle: {
-                      color: "rgba(255, 140, 0, 0.9)",
-                    },
-                  },
-                  tooltip: {
-                    show: true,
-                    formatter: (params: any) => {
-                      const param = Array.isArray(params) ? params[0] : params;
-                      const value = Array.isArray(param.value)
-                        ? param.value[2]
-                        : param.value;
-                      return `${param.name}: ${value || 0}人`;
-                    },
-                  },
-                  data:
-                    mapTypeData?.map((item) => ({
-                      name: item.region_name,
-                      value: [item.value[0], item.value[1], item.people_count],
-                    })) || [],
                 },
               ]
             : []),
@@ -1157,46 +1228,9 @@ const Map: React.FC<MapProps> = ({
               ]
             : []),
 
-          // 添加热力图配置 - 改进视觉效果，类似图片
-          ...(currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
-          currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
-          currentMapSelectType === MapSelectTypeEnum.workDistribution ||
-          currentMapSelectType === MapSelectTypeEnum.liveDistribution
-            ? [
-                {
-                  type: "heatmap" as const,
-                  coordinateSystem: "geo" as const,
-                  name: "分布热力图",
-                  data: mapTypeData,
-                  pointSize:
-                    currentMapSelectType ===
-                      MapSelectTypeEnum.dayDistribution &&
-                    currentMapType !== MapTypeEnum.area
-                      ? 40
-                      : 20, // 增大点的基础大小
-                  blurSize: 25, // 增大模糊半径，创造更柔和的渐变效果
-                  minOpacity: 0.1, // 降低最小透明度
-                  maxOpacity: 0.9, // 提高最大透明度
-                  zlevel: 1,
-                  emphasis: {
-                    itemStyle: {
-                      shadowBlur: 15,
-                      shadowColor: "rgba(0, 0, 0, 0.3)",
-                    },
-                  },
-                  itemStyle: {
-                    opacity: 0.8,
-                    shadowBlur: 5, // 添加阴影效果增强立体感
-                    shadowColor: "rgba(0, 0, 0, 0.2)",
-                  },
-                  progressive: 1000,
-                  animation: false,
-                },
-              ]
-            : []),
-
           // 画像模式标记点 - 引导用户点击
-          ...(currentMapSelectType === MapSelectTypeEnum.image
+          ...(currentMapSelectType === MapSelectTypeEnum.image &&
+          currentMapType === MapTypeEnum.area
             ? [
                 {
                   name: "画像标记",
@@ -1234,10 +1268,7 @@ const Map: React.FC<MapProps> = ({
             : []),
         ].filter(Boolean), // 过滤掉false值
         // 添加热力图的visualMap配置到主配置层级
-        ...(currentMapSelectType === MapSelectTypeEnum.dayDistribution ||
-        currentMapSelectType === MapSelectTypeEnum.nightDistribution ||
-        currentMapSelectType === MapSelectTypeEnum.workDistribution ||
-        currentMapSelectType === MapSelectTypeEnum.liveDistribution
+        ...(distributionType
           ? {
               visualMap: {
                 show: false, // 隐藏图例
@@ -1249,6 +1280,7 @@ const Map: React.FC<MapProps> = ({
                   1
                 ),
                 calculable: false,
+                seriesIndex: distributionType ? 0 : 0,
                 // 根据不同分布类型设置不同的颜色渐变
                 inRange: {
                   color: [
@@ -1279,6 +1311,7 @@ const Map: React.FC<MapProps> = ({
     currentMapSelectType,
     mapTypeData,
     showStation,
+    distributionType,
   ]);
 
   // 地图点击事件处理函数
@@ -1659,11 +1692,16 @@ const Map: React.FC<MapProps> = ({
     );
   };
 
-  console.log(currentMapSelectType, "currentMapSelectType");
-
   return (
     <div className={styles.mapChart}>
       <div className={styles.mapWrapper}>
+        <DistributionBtnList
+          className={styles.distribution}
+          current={currentMapSelectType}
+          onSelect={(type) => {
+            onDistributionSelect?.(type);
+          }}
+        />
         <BaseChart
           ref={chartRef}
           option={chartOption}

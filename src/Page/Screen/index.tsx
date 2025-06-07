@@ -217,6 +217,16 @@ const Screen = () => {
     setCurrentMapSelectType(value);
   };
 
+  // // 处理分布类型选择
+  // const handleDistributionSelect = (type: MapSelectTypeEnum | null) => {
+  //   if (type === null) {
+  //     // 如果传入null，表示要隐藏当前分布，可以切换到默认的地图模式
+  //     setCurrentMapSelectType(MapSelectTypeEnum.newGroupCount); // 切换到默认模式
+  //   } else {
+  //     setCurrentMapSelectType(type);
+  //   }
+  // };
+
   useEffect(() => {
     // 数据来源
     getSourceCountData();

@@ -424,3 +424,28 @@ export function swapArray(arr: unknown[], index1: number, index2: number) {
   [arr[index1], arr[index2]] = [arr[index2], arr[index1]];
   return arr;
 }
+
+export const aggregateData = (
+  dataList: any[],
+  countField: string,
+  regionField: string
+): any[] => {
+  const aggregatedData = new Map<string, number>();
+
+  dataList.forEach((item) => {
+    const regionName = item[regionField] as string;
+    const currentCount = aggregatedData.get(regionName) || 0;
+    aggregatedData.set(
+      regionName,
+      currentCount + ((item[countField] as number) || 0)
+    );
+  });
+
+  return Array.from(aggregatedData.entries()).map(
+    ([regionName, count, ...rest]) => ({
+      [regionField]: regionName,
+      [countField]: count,
+      ...rest,
+    })
+  ) as any[];
+};

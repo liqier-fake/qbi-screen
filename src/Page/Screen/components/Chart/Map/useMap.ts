@@ -1,7 +1,7 @@
 import { MapSelectTypeEnum, MapTypeEnum } from "./Map";
 import { useState } from "react";
 import sip_comm from "./geojson/sip_comm.json";
-import { getPointByCommunity, getMapDataXY } from "./utils";
+import { getPointByCommunity, getMapDataXY, aggregateData } from "./utils";
 import { dayDistribution } from "./geojson/dayDistribution";
 import { newGroupCount } from "./geojson/newGroupCount";
 import { nightDistribution } from "./geojson/nightDistribution";
@@ -57,6 +57,7 @@ interface MapDataItem {
   people_count: number;
   count?: number;
   allData?: any[];
+  street: string;
 }
 
 // 定义通用数据项类型
@@ -182,7 +183,8 @@ const useMap = () => {
         );
 
         return {
-          region_name: regionName,
+          street: communityInfo.street,
+          region_name: regionName + "社区",
           people_count: (item[countField] as number) || 0,
           value: [x, y, (item[countField] as number) || 1] as [
             number,
@@ -240,7 +242,7 @@ const useMap = () => {
 
       // 处理新就业群体数量
       if (currentMapSelectType === MapSelectTypeEnum?.newGroupCount) {
-        const processedData = processMapData(
+        let processedData = processMapData(
           dataList as ExtendedNewGroupItem[],
           currentMapType,
           {
@@ -249,6 +251,17 @@ const useMap = () => {
             regionField: "region_name",
           }
         );
+
+        if (currentMapType === MapTypeEnum.area) {
+          processedData = aggregateData(
+            processedData,
+            "people_count",
+            "street"
+          );
+        }
+
+        console.log(processedData, "processedData99999999999999999");
+
         setMapTypeData(processedData);
         return;
       }
@@ -304,6 +317,7 @@ const useMap = () => {
           const profileData = Array.isArray(data) ? data : [];
 
           processedData.push({
+            street: communityInfo.street,
             region_name: regionName,
             value: [x, y, 1],
             people_count: 0,
