@@ -281,12 +281,16 @@
         right: 8px;
       }
 
-      // 添加可点击图标的样式
-      .clickableSelect {
-        cursor: pointer;
-        position: absolute;
+      .groupSelect {
         bottom: 0;
         right: 0;
+      }
+
+      // 添加可点击图标的样式
+      .clickableSelect,
+      .groupSelect {
+        cursor: pointer;
+        position: absolute;
 
         :global {
           .ant-select {
@@ -328,6 +332,15 @@
               }
             }
           }
+        }
+      }
+
+      .clickableSelect {
+        left: -5px;
+        top: 0;
+
+        .ant-select-selection-item {
+          text-align: left !important;
         }
       }
     }

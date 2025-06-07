@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, memo } from "react";
 import styles from "./index.module.less";
 import threeIcon from "./img/three_icon.png";
 import { Flex, Select, Tag } from "antd";
@@ -15,7 +15,6 @@ import {
 } from "@ant-design/icons";
 
 // 导入地图选择类型枚举
-import { MapSelectTypeEnum } from "../Chart/Map/Map";
 import {
   apiGetTicketList,
   TimeRange,
@@ -26,13 +25,17 @@ import WorkListModal from "../WorkMoal";
 import columns from "../CategoryModal/columns";
 import DividerTitle from "../DividerTitle";
 import { compact } from "lodash";
-import { GroupTypeEnum } from "../Chart/Map/type";
+import { GroupTypeEnum, MapSelectTypeEnum } from "../Chart/Map/type";
 
 interface CardThreeProps {
   list: ComCustomItemType[];
   onHoverItem?: (content: string) => void;
-  onIconClick?: () => void;
-  currentSelectType?: MapSelectTypeEnum; // 添加当前选择类型参数
+  onIconClick?: (
+    value: MapSelectTypeEnum | GroupTypeEnum,
+    type: "mapType" | "group"
+  ) => void;
+  currentSelectType?: MapSelectTypeEnum; // 当前地图选择类型
+  currentGroupType?: GroupTypeEnum; // 新增：当前群体选择类型
   timeRange: TimeRange; // 添加时间范围参数，使用TimeRange类型
   // 新增：驿站显示控制回调
   onStationToggle?: (showStation: boolean) => void;
@@ -45,7 +48,8 @@ interface CardThreeProps {
  * @param list 列表数据
  * @param onHoverItem hover回调
  * @param onIconClick 图标点击回调
- * @param currentSelectType 当前选择类型
+ * @param currentSelectType 当前地图选择类型
+ * @param currentGroupType 当前群体选择类型
  * @param timeRange 时间范围
  * @param onStationToggle 驿站显示状态控制回调
  * @param showStation 当前驿站显示状态
@@ -55,6 +59,7 @@ const CardThree = ({
   onHoverItem,
   onIconClick,
   currentSelectType,
+  currentGroupType,
   timeRange,
   onStationToggle,
   showStation = false,
@@ -154,17 +159,9 @@ const CardThree = ({
     return selectedSmqt === "新就业群体" && smqtList.length > 0;
   }, [selectedSmqt, smqtList]);
 
-  // 修改：从select选项中移除驿站选项和新就业群体数量选项
+  // // 修改：从select选项中移除驿站选项和新就业群体数量选项
   const mapOptions = useMemo(() => {
-    const group = Object.values(GroupTypeEnum).map((item) => {
-      return {
-        label: item,
-        value: item,
-      };
-    });
-
     return [
-      ...group,
       {
         label: MapSelectTypeEnum.image,
         value: MapSelectTypeEnum.image,
@@ -173,7 +170,20 @@ const CardThree = ({
         label: MapSelectTypeEnum.newGroupCount,
         value: MapSelectTypeEnum.newGroupCount,
       },
+      {
+        label: MapSelectTypeEnum.distribution,
+        value: MapSelectTypeEnum.distribution,
+      },
     ];
+  }, []);
+
+  const groupOptions = useMemo(() => {
+    return Object.values(GroupTypeEnum).map((item) => {
+      return {
+        label: item,
+        value: item,
+      };
+    });
   }, []);
 
   // 新增：处理驿站图标点击
@@ -268,7 +278,25 @@ const CardThree = ({
                       <Select
                         defaultValue={currentSelectType}
                         options={compact(mapOptions) || []}
-                        onChange={onIconClick}
+                        onChange={(value) => onIconClick?.(value, "mapType")}
+                        style={{ width: 80 }}
+                      />
+                    </div>
+                  )}
+
+                  {showIcon && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onMouseEnter={(e) => e.stopPropagation()}
+                      onMouseLeave={(e) => e.stopPropagation()}
+                      className={styles.groupSelect}
+                    >
+                      <Select
+                        defaultValue={currentGroupType}
+                        options={compact(groupOptions) || []}
+                        onChange={(value) => onIconClick?.(value, "group")}
                         style={{ width: 100 }}
                       />
                     </div>

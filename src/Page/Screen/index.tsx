@@ -14,12 +14,14 @@ import {
 
 import { AuthChangeEventDetail } from "../../types/events";
 import Map, {
-  MapSelectTypeEnum,
   MapTypeEnum,
   MapTypeNames,
   TicketCountData,
   // streetNameToEnum,
 } from "./components/Chart/Map/Map.tsx";
+
+import { MapSelectTypeEnum } from "./components/Chart/Map/type.ts";
+import { GroupTypeEnum } from "./components/Chart/Map/type.ts";
 
 // 定义AIChat组件的ref类型
 interface AIChatRef {
@@ -37,6 +39,7 @@ import {
   GovernanceProfilePanel,
 } from "./components/Panel";
 import PanelItem from "./components/PanelItem/index.tsx";
+
 const TimeRangeOption = [
   { label: "近7天", value: TimeRange.last_7_days },
   { label: "近30天", value: TimeRange.last_30_days },
@@ -63,6 +66,11 @@ const Screen = () => {
 
   const [currentMapSelectType, setCurrentMapSelectType] =
     useState<MapSelectTypeEnum>(MapSelectTypeEnum.number);
+
+  // 新增：群体类型状态
+  const [currentGroupType, setCurrentGroupType] = useState<GroupTypeEnum>(
+    GroupTypeEnum.rideHailing
+  );
 
   // 新增：驿站显示状态
   const [showStation, setShowStation] = useState<boolean>(false);
@@ -212,20 +220,17 @@ const Screen = () => {
     setCurrentMapType(value);
   };
 
-  // 地图选择类型变化处理
-  const handleCardThreeIconClick = (value: MapSelectTypeEnum) => {
-    setCurrentMapSelectType(value);
+  // 修改：地图选择类型和群体类型变化处理
+  const handleCardThreeIconClick = (
+    value: MapSelectTypeEnum | GroupTypeEnum,
+    type: "mapType" | "group"
+  ) => {
+    if (type === "mapType") {
+      setCurrentMapSelectType(value as MapSelectTypeEnum);
+    } else if (type === "group") {
+      setCurrentGroupType(value as GroupTypeEnum);
+    }
   };
-
-  // // 处理分布类型选择
-  // const handleDistributionSelect = (type: MapSelectTypeEnum | null) => {
-  //   if (type === null) {
-  //     // 如果传入null，表示要隐藏当前分布，可以切换到默认的地图模式
-  //     setCurrentMapSelectType(MapSelectTypeEnum.newGroupCount); // 切换到默认模式
-  //   } else {
-  //     setCurrentMapSelectType(type);
-  //   }
-  // };
 
   useEffect(() => {
     // 数据来源
@@ -338,6 +343,7 @@ const Screen = () => {
         {/* 地图 - 传递地图类型和工单数据 */}
         <Map
           currentMapSelectType={currentMapSelectType}
+          currentGroupType={currentGroupType}
           currentMapType={currentMapType}
           ticketData={ticketData}
           showStation={showStation} // 独立控制驿站显示
@@ -415,9 +421,9 @@ const Screen = () => {
                   <CardThree
                     list={screenData?.threeData?.list || []}
                     onHoverItem={onHoverCardTwo}
-                    // @ts-ignore
                     onIconClick={handleCardThreeIconClick}
                     currentSelectType={currentMapSelectType}
+                    currentGroupType={currentGroupType}
                     timeRange={timeRange}
                     // 新增：驿站显示状态控制
                     onStationToggle={setShowStation}

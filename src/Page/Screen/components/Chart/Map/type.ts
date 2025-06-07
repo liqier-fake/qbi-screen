@@ -8,22 +8,30 @@ export enum MapTypeEnum {
   xtstreet = "xtstreet", // 斜塘街道
 }
 
+export enum DistributionTypeEnum {
+  "dayDistribution" = "日间休息点分布",
+  "nightDistribution" = "夜间休息点分布",
+  "workDistribution" = "工作点分布",
+  "liveDistribution" = "居住点分布",
+}
+
 export enum MapSelectTypeEnum {
   "dayDistribution" = "日间休息点分布",
   "nightDistribution" = "夜间休息点分布",
   "workDistribution" = "工作点分布",
   "liveDistribution" = "居住点分布",
-  "newGroupCount" = "新就业群体数量",
+  "newGroupCount" = "数量",
   "image" = "画像",
   "site" = "驿站",
   "number" = "工单数量",
+  "distribution" = "分布",
 }
 // 群体类型
 export enum GroupTypeEnum {
-  "rideHailing" = "网约车群体",
-  "foodDelivery" = "外卖群体",
-  "courier" = "快递群体",
-  "designatedDriver" = "代驾群体",
+  "rideHailing" = "网约车人群",
+  "foodDelivery" = "外卖人群",
+  "courier" = "快递人群",
+  "designatedDriver" = "代驾人群",
 }
 
 // 导出常量，让父组件可以使用地图类型名称
@@ -143,6 +151,7 @@ export interface MapProps {
   selectKey?: MapSelectTypeEnum;
   onAskQuestion?: (question: string) => void; // 添加提问回调函数
   currentMapSelectType: MapSelectTypeEnum; // 当前地图选择类型
+  currentGroupType?: GroupTypeEnum; // 新增：当前群体类型
   // 新增：独立的驿站显示控制
   showStation?: boolean; // 是否显示驿站图层
 }

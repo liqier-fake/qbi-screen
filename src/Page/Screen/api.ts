@@ -212,8 +212,10 @@ export enum DistributionType {
 
 // 新就业人群统计信息-地图热力图
 export function apiGetNewGroupCount(params: {
-  data_type: string | undefined;
+  data_type?: string | undefined;
   distribution_type?: string | undefined;
+  street?: string | undefined;
+  group_type?: string | undefined;
 }) {
   return axios({
     url: "/new_group/count",

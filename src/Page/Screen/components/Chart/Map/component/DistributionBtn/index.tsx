@@ -4,8 +4,8 @@ import classNames from "classnames";
 import { MapSelectTypeEnum } from "../../type";
 
 interface DistributionBtnProps {
-  current: number | string;
-  options: {
+  current?: number | string;
+  options?: {
     key: string;
     name: string;
   }[];
@@ -23,7 +23,7 @@ const DistributionBtnList = ({
     },
     {
       key: MapSelectTypeEnum.nightDistribution,
-      name: MapSelectTypeEnum.dayDistribution,
+      name: MapSelectTypeEnum.nightDistribution,
     },
     {
       key: MapSelectTypeEnum.liveDistribution,
@@ -36,11 +36,11 @@ const DistributionBtnList = ({
   ],
   onSelect,
 }: DistributionBtnProps) => {
-  const [selected, setSelected] = useState<string | number>(current);
+  const [selected, setSelected] = useState<string | number>(current || "");
 
   const handleSelect = (key: string) => {
     if (selected === key) {
-      setSelected("");
+      setSelected(current || "");
       onSelect("");
       return;
     }

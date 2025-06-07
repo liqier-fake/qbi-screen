@@ -13,6 +13,7 @@ import { ArrowRightOutlined } from "@ant-design/icons";
 import { convertCoordinates, getMapDataXY, swapArray } from "./utils";
 import useMap from "./useMap";
 import DistributionBtnList from "./component/DistributionBtn";
+import { MapSelectTypeEnum, GroupTypeEnum } from "./type";
 
 // 导出枚举以便父组件使用
 export enum MapTypeEnum {
@@ -24,16 +25,6 @@ export enum MapTypeEnum {
   xtstreet = "xtstreet", // 斜塘街道
 }
 
-export enum MapSelectTypeEnum {
-  "dayDistribution" = "日间休息点分布",
-  "nightDistribution" = "夜间休息点分布",
-  "workDistribution" = "工作点分布",
-  "liveDistribution" = "居住点分布",
-  "newGroupCount" = "新就业群体数量",
-  "image" = "画像",
-  "site" = "驿站",
-  "number" = "工单数量",
-}
 // 定义地图层级路径
 interface MapBreadcrumb {
   type: MapTypeEnum;
@@ -151,6 +142,7 @@ interface MapProps {
   selectKey?: MapSelectTypeEnum;
   onAskQuestion?: (question: string) => void; // 添加提问回调函数
   currentMapSelectType: MapSelectTypeEnum; // 当前地图选择类型
+  currentGroupType?: GroupTypeEnum; // 新增：当前群体类型
   // 新增：独立的驿站显示控制
   showStation?: boolean; // 是否显示驿站图层
 }
@@ -305,6 +297,7 @@ const Map: React.FC<MapProps> = ({
   onDrillDown,
   onAskQuestion,
   currentMapSelectType,
+  currentGroupType,
   showStation,
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
@@ -315,18 +308,47 @@ const Map: React.FC<MapProps> = ({
   ]);
 
   const { mapTypeData, getMapTypeData } = useMap();
-
-  useEffect(() => {
-    getMapTypeData(currentMapSelectType, currentMapType);
-    console.log(currentMapSelectType, "currentMapSelectType改变");
-  }, [currentMapSelectType, currentMapType]);
-
   const [distributionType, setDistributionType] = useState<MapSelectTypeEnum>(
     MapSelectTypeEnum.dayDistribution
   );
+  useEffect(() => {
+    const parma = {
+      currentMapSelectType:
+        currentMapSelectType === MapSelectTypeEnum.newGroupCount
+          ? "新就业群体数量"
+          : currentMapSelectType,
+      currentMapType,
+      params: {
+        data_type: distributionType ? undefined : currentMapSelectType,
+        distribution_type: distributionType ?? undefined,
+        group_type: currentGroupType,
+        street:
+          currentMapType === MapTypeEnum.area
+            ? undefined
+            : MapTypeNames[currentMapType],
+      },
+    };
+
+    console.log(parma, "parma");
+
+    getMapTypeData(
+      parma.currentMapSelectType,
+      parma.currentMapType,
+      parma.params
+    );
+  }, [
+    currentMapSelectType,
+    currentMapType,
+    distributionType,
+    currentGroupType,
+  ]);
+
   const onDistributionSelect = (type: MapSelectTypeEnum) => {
     setDistributionType(type);
-    getMapTypeData(type, currentMapType);
+    // getMapTypeData(type, currentMapType, {
+    //   distribution_type: type,
+    //   group_type: currentMapSelectType,
+    // });
   };
 
   // 添加视图状态同步处理函数
@@ -954,7 +976,7 @@ const Map: React.FC<MapProps> = ({
         ],
         series: [
           // 添加热力图配置 - 改进视觉效果，类似图片
-          ...(distributionType
+          ...(currentMapSelectType === MapSelectTypeEnum.distribution
             ? [
                 {
                   type: "heatmap" as const,
@@ -962,7 +984,7 @@ const Map: React.FC<MapProps> = ({
                   name: "分布热力图",
                   data: mapTypeData,
                   pointSize:
-                    distributionType === MapSelectTypeEnum.dayDistribution &&
+                    currentMapSelectType === MapSelectTypeEnum.distribution &&
                     currentMapType !== MapTypeEnum.area
                       ? 40
                       : 20, // 增大点的基础大小
@@ -1268,7 +1290,7 @@ const Map: React.FC<MapProps> = ({
             : []),
         ].filter(Boolean), // 过滤掉false值
         // 添加热力图的visualMap配置到主配置层级
-        ...(distributionType
+        ...(currentMapSelectType === MapSelectTypeEnum.distribution
           ? {
               visualMap: {
                 show: false, // 隐藏图例
@@ -1669,8 +1691,8 @@ const Map: React.FC<MapProps> = ({
                                 marginBottom: "3px",
                               }}
                             >
-                              {item.profile_category} -{" "}
-                              {item.profile_subcategory}: {item.percentage}%
+                              {item?.profile_category} -{" "}
+                              {item?.profile_subcategory}: {item.percentage}%
                             </div>
                           ))}
                         </div>

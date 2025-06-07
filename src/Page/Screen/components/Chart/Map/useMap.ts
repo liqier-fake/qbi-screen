@@ -1,13 +1,14 @@
-import { MapSelectTypeEnum, MapTypeEnum } from "./Map";
 import { useState } from "react";
 import sip_comm from "./geojson/sip_comm.json";
 import { getPointByCommunity, getMapDataXY, aggregateData } from "./utils";
-import { dayDistribution } from "./geojson/dayDistribution";
-import { newGroupCount } from "./geojson/newGroupCount";
-import { nightDistribution } from "./geojson/nightDistribution";
-import { workDistribution } from "./geojson/workDistribution";
-import { liveDistribution } from "./geojson/liveDistribution";
-import { images } from "./geojson/image";
+// import { dayDistribution } from "./geojson/dayDistribution";
+// import { newGroupCount } from "./geojson/newGroupCount";
+// import { nightDistribution } from "./geojson/nightDistribution";
+// import { workDistribution } from "./geojson/workDistribution";
+// import { liveDistribution } from "./geojson/liveDistribution";
+// import { images } from "./geojson/image";
+import { apiGetNewGroupCount } from "../../../api";
+import { MapSelectTypeEnum, MapTypeEnum } from "./type";
 
 // 定义分布数据项的类型（包含经纬度）
 interface DistributionItem {
@@ -78,6 +79,9 @@ type DataItem = ExtendedDistributionItem | ExtendedNewGroupItem | BaseDataItem;
 
 const useMap = () => {
   const [mapTypeData, setMapTypeData] = useState<MapDataItem[]>([]);
+
+  // 地图数据
+  // const [mapList, setMapList] = useState<MapDataItem[]>([]);
 
   // 街道名称映射
   const streetNameMap = {
@@ -196,46 +200,48 @@ const useMap = () => {
       .filter((item): item is MapDataItem => item !== null);
   };
 
-  // 地图数据映射
-  const MapListEnum: Record<MapSelectTypeEnum, unknown[]> = {
-    [MapSelectTypeEnum.dayDistribution]: dayDistribution,
-    [MapSelectTypeEnum.newGroupCount]: newGroupCount,
-    [MapSelectTypeEnum.nightDistribution]: nightDistribution,
-    [MapSelectTypeEnum.workDistribution]: workDistribution,
-    [MapSelectTypeEnum.liveDistribution]: liveDistribution,
-    [MapSelectTypeEnum.image]: images,
-    [MapSelectTypeEnum.site]: [],
-    [MapSelectTypeEnum.number]: [],
-  };
+  // // 地图数据映射
+  // const MapListEnum: Record<MapSelectTypeEnum, unknown[]> = {
+  //   [MapSelectTypeEnum.dayDistribution]: dayDistribution,
+  //   [MapSelectTypeEnum.newGroupCount]: newGroupCount,
+  //   [MapSelectTypeEnum.nightDistribution]: nightDistribution,
+  //   [MapSelectTypeEnum.workDistribution]: workDistribution,
+  //   [MapSelectTypeEnum.liveDistribution]: liveDistribution,
+  //   [MapSelectTypeEnum.image]: images,
+  //   [MapSelectTypeEnum.site]: [],
+  //   [MapSelectTypeEnum.number]: [],
+  // };
 
   // 获取地图类型数据
   const getMapTypeData = async (
     currentMapSelectType: MapSelectTypeEnum,
-    currentMapType: MapTypeEnum
+    currentMapType: MapTypeEnum,
+    params: {
+      data_type?: string;
+      distribution_type?: string;
+      street?: string;
+      group_type?: string;
+    }
   ) => {
-    console.log(
-      "getMapTypeData",
-      currentMapSelectType,
-      "地图类型:",
-      currentMapType
-    );
-
     try {
-      const dataList = MapListEnum[currentMapSelectType] || [];
+      const {
+        data: { data: resData },
+      } = await apiGetNewGroupCount({
+        ...params,
+      });
+
+      const dataList = resData || [];
+
+      console.log(currentMapSelectType, "currentMapSelectType");
 
       // 处理分布类型数据
-      if (
-        [
-          MapSelectTypeEnum.dayDistribution,
-          MapSelectTypeEnum.nightDistribution,
-          MapSelectTypeEnum.workDistribution,
-          MapSelectTypeEnum.liveDistribution,
-        ].includes(currentMapSelectType)
-      ) {
+      if (currentMapSelectType === MapSelectTypeEnum.distribution) {
         const processedData = processMapData(
           dataList as ExtendedDistributionItem[],
           currentMapType
         );
+        console.log(dataList, "data111111");
+
         setMapTypeData(processedData);
         return;
       }
