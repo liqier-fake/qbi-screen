@@ -19,13 +19,14 @@ const GovernanceChallengePanel: React.FC<{
   onChange?: (value: string) => void;
 }> = ({ timeRange, defautValue, onChange }) => {
   const [dataSource, setDataSource] = useState<TicketRecord[]>([]);
-  const [value, setValue] = useState(defautValue || areaOption[1].value);
+  const [value, setValue] = useState(areaOption[1].value);
 
   // 使用详情弹窗Hook
   const detailModal = useDetailModal();
 
   useEffect(() => {
     if (!defautValue) return;
+    if (defautValue === "all") return;
     setValue(defautValue);
   }, [defautValue]);
 
