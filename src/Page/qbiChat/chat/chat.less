@@ -73,9 +73,56 @@
 
 .tool-messages {
   color: #000;
+
+  .tool-typography {
+    color: #000 !important;
+
+    .tool-content-rendered {
+      /* 工具内容区域样式固定，防止闪烁 */
+      color: #000 !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+
+      * {
+        color: #000 !important;
+        transition: none !important;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: #000 !important;
+        font-weight: 600 !important;
+        margin: 8px 0 !important;
+      }
+
+      p {
+        color: #000 !important;
+        margin: 4px 0 !important;
+        padding: 0 !important;
+      }
+
+      ul,
+      ol,
+      li {
+        color: #000 !important;
+      }
+
+      code,
+      pre {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+        color: #000 !important;
+        border-radius: 4px !important;
+        padding: 2px 4px !important;
+      }
+    }
+  }
 }
 
-/* 确保markdown渲染的内容是白色 */
+/* 确保markdown渲染的内容是黑色 */
 .tool-messages .ant-typography * {
   color: #000;
 }
@@ -239,5 +286,90 @@ textarea::-webkit-input-placeholder {
   p {
     padding: 0;
     margin: 0;
+  }
+}
+
+/* 修复markdown渲染闪烁问题 */
+.render-bubble-content {
+  .markdown-content {
+    color: #fff !important;
+
+    .markdown-rendered {
+      /* 防止样式闪烁，从一开始就设置正确的样式 */
+      color: #fff !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+
+      /* 确保所有子元素都继承正确的样式 */
+      * {
+        color: #fff !important;
+        transition: none !important; /* 禁用过渡动画防止闪烁 */
+      }
+
+      /* 特定元素样式 */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: #fff !important;
+        font-weight: 600 !important;
+        margin: 8px 0 !important;
+      }
+
+      p {
+        color: #fff !important;
+        margin: 4px 0 !important;
+        padding: 0 !important;
+      }
+
+      ul,
+      ol,
+      li {
+        color: #fff !important;
+      }
+
+      code,
+      pre {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-radius: 4px !important;
+        padding: 2px 4px !important;
+      }
+
+      blockquote {
+        border-left: 3px solid #43cdff !important;
+        padding-left: 12px !important;
+        color: #fff !important;
+        margin: 8px 0 !important;
+      }
+
+      /* 流式输入指示器样式 */
+      .typing-indicator {
+        position: relative;
+        display: inline-block;
+        color: #fff !important;
+
+        .cursor {
+          display: inline-block;
+          margin-left: 2px;
+          color: #43cdff !important;
+          font-weight: bold;
+          animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+          0%,
+          50% {
+            opacity: 1;
+          }
+          51%,
+          100% {
+            opacity: 0;
+          }
+        }
+      }
+    }
   }
 }

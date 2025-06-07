@@ -5,18 +5,44 @@
   opacity: 0.85;
   padding: 30px 40px;
 
+  // 防止滚动条出现的样式设置
   :global {
+    body.ant-scrolling-effect {
+      overflow: hidden !important;
+    }
+
+    .ant-modal-root .ant-modal-wrap {
+      overflow: hidden !important;
+    }
+
     .ant-modal-content {
       padding: 0 !important;
       background-color: transparent !important;
+      // 添加防闪烁设置
+      transition: none !important;
     }
 
     .ant-modal-body {
       padding: 0 !important;
+      // 确保容器大小稳定
+      min-height: 100px;
+      overflow: hidden;
     }
 
     .ant-modal-mask {
       background-color: rgba(0, 0, 0, 0.6) !important;
+    }
+
+    // 针对confirm modal的特定样式
+    .confirm-modal-wrap {
+      overflow: hidden !important;
+
+      .ant-modal {
+        margin: 0 auto;
+        top: 50%;
+        transform: translateY(-50%);
+        max-height: 90vh;
+      }
     }
   }
 

@@ -91,6 +91,32 @@
     overflow-y: auto;
     padding: 25px;
 
+    /* 流式输入指示器样式 */
+    :global(.typing-indicator) {
+      position: relative;
+      display: inline-block;
+      color: #fff !important;
+
+      .cursor {
+        display: inline-block;
+        margin-left: 2px;
+        color: #1ffff7 !important;
+        font-weight: bold;
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+    }
+
     :global {
       .ant-typography * {
         color: #fff !important;

@@ -8,6 +8,7 @@ interface ComContentProps {
   markdown?: boolean;
   maxHeight?: number;
   ghost?: boolean;
+  isStreaming?: boolean; // 新增：标识是否为流式输出
 }
 
 const ComContent = ({
@@ -15,6 +16,7 @@ const ComContent = ({
   markdown = false,
   maxHeight = 160,
   ghost = false,
+  isStreaming = false,
 }: ComContentProps) => {
   const [userScrolled, setUserScrolled] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,51 @@ const ComContent = ({
     breaks: true, // 转换换行符为 <br>
     linkify: true, // 自动转换 URL 为链接
   });
+
+  /**
+   * 判断markdown内容是否可能不完整
+   * @param content markdown内容
+   * @returns 是否可能不完整
+   */
+  const isMarkdownLikelyIncomplete = (content: string): boolean => {
+    if (!content) return false;
+
+    // 检查是否有未闭合的markdown标记
+    const patterns = [
+      /\*\*[^*]*$/, // 未闭合的粗体 **text
+      /\*[^*]*$/, // 未闭合的斜体 *text
+      /`[^`]*$/, // 未闭合的行内代码 `text
+      /```[^`]*$/, // 未闭合的代码块 ```text
+      /#{1,6}\s*$/, // 只有标题标记但没有内容 #
+      /^\s*[-*+]\s*$/, // 只有列表标记但没有内容
+      /^\s*\d+\.\s*$/, // 只有数字列表标记但没有内容
+      /\[[^\]]*$/, // 未闭合的链接文本 [text
+      /!\[[^\]]*$/, // 未闭合的图片文本 ![text
+    ];
+
+    return patterns.some((pattern) => pattern.test(content));
+  };
+
+  /**
+   * 对markdown内容进行安全渲染
+   * @param content 原始内容
+   * @returns 渲染后的HTML或原始文本
+   */
+  const safeRenderMarkdown = (content: string): string => {
+    if (!content) return "";
+
+    // 如果是流式输出且内容可能不完整，返回原始文本并添加输入提示
+    if (isStreaming && isMarkdownLikelyIncomplete(content)) {
+      return `<span class="typing-indicator">${content}<span class="cursor">|</span></span>`;
+    }
+
+    try {
+      return md.render(content);
+    } catch (error) {
+      console.error("Markdown渲染错误:", error);
+      return content; // 渲染失败时返回原始内容
+    }
+  };
 
   // 处理滚动事件（添加防抖机制）
   const handleScroll = () => {
@@ -179,7 +226,9 @@ const ComContent = ({
       >
         {markdown ? (
           <Typography style={{ width: "100%", height: "100%" }}>
-            <div dangerouslySetInnerHTML={{ __html: md.render(content) }} />
+            <div
+              dangerouslySetInnerHTML={{ __html: safeRenderMarkdown(content) }}
+            />
           </Typography>
         ) : (
           content
