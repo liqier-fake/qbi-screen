@@ -79,7 +79,6 @@ type DataItem = ExtendedDistributionItem | ExtendedNewGroupItem | BaseDataItem;
 
 const useMap = () => {
   const [mapTypeData, setMapTypeData] = useState<MapDataItem[]>([]);
-
   // 地图数据
   // const [mapList, setMapList] = useState<MapDataItem[]>([]);
 
@@ -274,6 +273,8 @@ const useMap = () => {
 
       // 处理画像数据
       if (currentMapSelectType === MapSelectTypeEnum.image) {
+        console.log(dataList, "imageDataaaaaaaaaaaaaaaaaaa");
+
         // 按社区名称对画像数据进行分组
         const groupedImageData = (dataList as any[]).reduce((acc, curr) => {
           const key = curr.region_name + "社区";

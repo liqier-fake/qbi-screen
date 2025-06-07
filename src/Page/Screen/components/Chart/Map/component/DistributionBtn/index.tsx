@@ -40,7 +40,7 @@ const DistributionBtnList = ({
 
   const handleSelect = (key: string) => {
     if (selected === key) {
-      setSelected(current || "");
+      setSelected("");
       onSelect("");
       return;
     }

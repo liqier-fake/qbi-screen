@@ -145,6 +145,8 @@ interface MapProps {
   currentGroupType?: GroupTypeEnum; // 新增：当前群体类型
   // 新增：独立的驿站显示控制
   showStation?: boolean; // 是否显示驿站图层
+  // 新增：工单数量显示控制
+  showTicketCount?: boolean; // 是否显示工单数量图层
 }
 
 /**
@@ -299,6 +301,7 @@ const Map: React.FC<MapProps> = ({
   currentMapSelectType,
   currentGroupType,
   showStation,
+  showTicketCount = true, // 默认显示工单数量
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -307,20 +310,29 @@ const Map: React.FC<MapProps> = ({
     { type: MapTypeEnum.area, name: MapTypeNames[MapTypeEnum.area] },
   ]);
 
+  // 新增：内部工单数量显示控制状态
+  const [internalShowTicketCount, setInternalShowTicketCount] =
+    useState<boolean>(true);
+  // 组合外部和内部的工单数量显示控制
+  const finalShowTicketCount = showTicketCount && internalShowTicketCount;
+
   const { mapTypeData, getMapTypeData } = useMap();
   const [distributionType, setDistributionType] = useState<MapSelectTypeEnum>(
     MapSelectTypeEnum.dayDistribution
   );
   useEffect(() => {
     const parma = {
-      currentMapSelectType:
-        currentMapSelectType === MapSelectTypeEnum.newGroupCount
-          ? "新就业群体数量"
-          : currentMapSelectType,
+      currentMapSelectType: currentMapSelectType,
       currentMapType,
       params: {
-        data_type: distributionType ? undefined : currentMapSelectType,
-        distribution_type: distributionType ?? undefined,
+        data_type:
+          currentMapSelectType === MapSelectTypeEnum.newGroupCount
+            ? "新就业群体数量"
+            : currentMapSelectType,
+        distribution_type:
+          currentMapSelectType === MapSelectTypeEnum.distribution
+            ? distributionType
+            : undefined,
         group_type: currentGroupType,
         street:
           currentMapType === MapTypeEnum.area
@@ -633,8 +645,7 @@ const Map: React.FC<MapProps> = ({
 
     // 为街道地图生成散点数据 - 使用mapTypeData来确保坐标正确
     const streetScatterData =
-      currentMapType !== MapTypeEnum.area &&
-      currentMapSelectType === MapSelectTypeEnum.number
+      currentMapType !== MapTypeEnum.area && finalShowTicketCount
         ? mapTypeData
             ?.map((item) => {
               // 对于工单数量，应该使用value[2]作为数值
@@ -808,7 +819,7 @@ const Map: React.FC<MapProps> = ({
             }
 
             // 根据当前选择类型显示不同的tooltip内容
-            if (currentMapSelectType === MapSelectTypeEnum.number) {
+            if (finalShowTicketCount) {
               // 工单数量模式：显示工单数量
               let value = param.value;
               if (Array.isArray(value)) {
@@ -983,12 +994,8 @@ const Map: React.FC<MapProps> = ({
                   coordinateSystem: "geo" as const,
                   name: "分布热力图",
                   data: mapTypeData,
-                  pointSize:
-                    currentMapSelectType === MapSelectTypeEnum.distribution &&
-                    currentMapType !== MapTypeEnum.area
-                      ? 40
-                      : 20, // 增大点的基础大小
-                  blurSize: 25, // 增大模糊半径，创造更柔和的渐变效果
+                  pointSize: 20, // 增大点的基础大小
+                  blurSize: 20, // 增大模糊半径，创造更柔和的渐变效果
                   minOpacity: 0.1, // 降低最小透明度
                   maxOpacity: 0.9, // 提高最大透明度
                   zlevel: 1,
@@ -1009,8 +1016,8 @@ const Map: React.FC<MapProps> = ({
               ]
             : []),
 
-          // 区域数据 - 只在工单数量模式下显示
-          ...(currentMapSelectType === MapSelectTypeEnum.number
+          // 区域数据 - 根据finalShowTicketCount控制显示
+          ...(finalShowTicketCount
             ? [
                 {
                   name: "区域数据",
@@ -1094,8 +1101,8 @@ const Map: React.FC<MapProps> = ({
               ]
             : []),
 
-          // 工单数量散点图效果 - 支持所有地图类型
-          ...(currentMapSelectType === MapSelectTypeEnum.number
+          // 工单数量散点图效果 - 根据finalShowTicketCount控制显示
+          ...(finalShowTicketCount
             ? [
                 {
                   geoIndex: 0,
@@ -1333,6 +1340,7 @@ const Map: React.FC<MapProps> = ({
     currentMapSelectType,
     mapTypeData,
     showStation,
+    finalShowTicketCount, // 使用组合后的工单数量显示控制依赖
     distributionType,
   ]);
 
@@ -1714,16 +1722,42 @@ const Map: React.FC<MapProps> = ({
     );
   };
 
+  const showDistributionBtn = useMemo(() => {
+    return currentMapSelectType === MapSelectTypeEnum.distribution;
+  }, [currentMapSelectType]);
+
   return (
     <div className={styles.mapChart}>
       <div className={styles.mapWrapper}>
         <DistributionBtnList
           className={styles.distribution}
-          current={currentMapSelectType}
+          current={internalShowTicketCount ? MapSelectTypeEnum.number : ""}
+          options={[
+            {
+              key: MapSelectTypeEnum.number,
+              name: "工单数量",
+            },
+          ]}
           onSelect={(type) => {
-            onDistributionSelect?.(type);
+            // 通过onSelect控制工单数量显示与否
+            if (type === MapSelectTypeEnum.number) {
+              setInternalShowTicketCount(true);
+            } else {
+              setInternalShowTicketCount(false);
+            }
           }}
         />
+
+        {showDistributionBtn && (
+          <DistributionBtnList
+            className={styles.distribution}
+            current={distributionType}
+            onSelect={(type) => {
+              onDistributionSelect?.(type);
+            }}
+          />
+        )}
+
         <BaseChart
           ref={chartRef}
           option={chartOption}
