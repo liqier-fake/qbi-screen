@@ -1729,24 +1729,26 @@ const Map: React.FC<MapProps> = ({
   return (
     <div className={styles.mapChart}>
       <div className={styles.mapWrapper}>
-        <DistributionBtnList
-          className={styles.distribution}
-          current={internalShowTicketCount ? MapSelectTypeEnum.number : ""}
-          options={[
-            {
-              key: MapSelectTypeEnum.number,
-              name: "工单数量",
-            },
-          ]}
-          onSelect={(type) => {
-            // 通过onSelect控制工单数量显示与否
-            if (type === MapSelectTypeEnum.number) {
-              setInternalShowTicketCount(true);
-            } else {
-              setInternalShowTicketCount(false);
-            }
-          }}
-        />
+        {!showDistributionBtn && (
+          <DistributionBtnList
+            className={styles.distribution}
+            current={internalShowTicketCount ? MapSelectTypeEnum.number : ""}
+            options={[
+              {
+                key: MapSelectTypeEnum.number,
+                name: "工单数量",
+              },
+            ]}
+            onSelect={(type) => {
+              // 通过onSelect控制工单数量显示与否
+              if (type === MapSelectTypeEnum.number) {
+                setInternalShowTicketCount(true);
+              } else {
+                setInternalShowTicketCount(false);
+              }
+            }}
+          />
+        )}
 
         {showDistributionBtn && (
           <DistributionBtnList
