@@ -1205,6 +1205,7 @@ const Map: React.FC<MapProps> = ({
                   zlevel: 2,
                   symbol: `image://${icon}`,
                   symbolSize: [20, 20], // 使用固定数组值而不是函数
+                  symbolOffset: ['-43.5', 0],
                   animation: false, // 禁用动画，防止闪烁
                   // 为驿站添加特殊的点击事件类型标记
                   seriesId: "station", // 添加唯一标识符，用于区分点击事件
