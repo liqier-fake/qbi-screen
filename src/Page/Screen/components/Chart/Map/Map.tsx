@@ -340,7 +340,7 @@ const Map: React.FC<MapProps> = ({
   currentMapSelectType,
   currentGroupType,
   showStation,
-  // showTicketCount = true, // 默认显示工单数量
+  showTicketCount = true, // 默认显示工单数量
 }) => {
   const chartRef = useRef<BaseChartRef>(null);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -350,10 +350,10 @@ const Map: React.FC<MapProps> = ({
   ]);
 
   // 新增：内部工单数量显示控制状态
-  // const [internalShowTicketCount, setInternalShowTicketCount] =
-  //   useState<boolean>(true);
+  const [internalShowTicketCount, setInternalShowTicketCount] =
+    useState<boolean>(true);
   // 组合外部和内部的工单数量显示控制
-  // const finalShowTicketCount = showTicketCount && internalShowTicketCount;
+  const finalShowTicketCount = showTicketCount && internalShowTicketCount;
 
   const { mapTypeData, getMapTypeData } = useMap();
   const [distributionType, setDistributionType] = useState<MapSelectTypeEnum>(
@@ -564,7 +564,7 @@ const Map: React.FC<MapProps> = ({
   // 更新图表配置
   useEffect(() => {
     const seriesItemAreaColor = {
-      type: "linear" as const,
+      type: "linear",
       x: 0,
       y: 0,
       x2: 1,
@@ -631,8 +631,15 @@ const Map: React.FC<MapProps> = ({
 
     console.log(mapTypeData, "mapTypeData99999999999999999");
 
-    // 新就业群体数量
-    let newGroupCountData = [];
+    // 新就业群体数量 - 明确指定类型
+    let newGroupCountData: Array<{
+      name: string;
+      value: number;
+      coord: [number, number];
+      itemStyle: {
+        areaColor: string;
+      };
+    }> = [];
 
     if (currentMapSelectType === MapSelectTypeEnum.newGroupCount) {
       // 计算最大值用于颜色映射
@@ -641,20 +648,21 @@ const Map: React.FC<MapProps> = ({
         1
       ); // 至少为1，防止除0错误
 
-      newGroupCountData = mapTypeData?.map((item) => {
-        const { region_name, value, people_count, street } = item;
-        return {
-          name: region_name || street,
-          value: people_count || 0,
-          coord: [value?.[0], value?.[1]],
-          itemStyle: {
-            areaColor: getColorByValue(
-              people_count || 0,
-              newGroupCountMaxValue
-            ),
-          },
-        };
-      });
+      newGroupCountData =
+        mapTypeData?.map((item) => {
+          const { region_name, value, people_count, street } = item;
+          return {
+            name: region_name || street,
+            value: people_count || 0,
+            coord: [value?.[0], value?.[1]],
+            itemStyle: {
+              areaColor: getColorByValue(
+                people_count || 0,
+                newGroupCountMaxValue
+              ),
+            },
+          };
+        }) || [];
     }
 
     console.log(newGroupCountData, "newGroupCountData99999999999999999");
@@ -836,7 +844,7 @@ const Map: React.FC<MapProps> = ({
         },
         tooltip: {
           trigger: "item",
-          formatter: function (params: EChartsParams | EChartsParams[]) {
+          formatter: function (params: any) {
             const param = Array.isArray(params) ? params[0] : params;
 
             // 对于聚合点，显示特殊的提示
@@ -858,7 +866,7 @@ const Map: React.FC<MapProps> = ({
             }
 
             // 根据当前选择类型显示不同的tooltip内容
-            if (currentMapSelectType === MapSelectTypeEnum.number) {
+            if (finalShowTicketCount) {
               // 工单数量模式：显示工单数量
               let value = param.value;
               if (Array.isArray(value)) {
@@ -1026,8 +1034,8 @@ const Map: React.FC<MapProps> = ({
           ...(currentMapSelectType === MapSelectTypeEnum.distribution
             ? [
                 {
-                  type: "heatmap" as const,
-                  coordinateSystem: "geo" as const,
+                  type: "heatmap",
+                  coordinateSystem: "geo",
                   name: "分布热力图",
                   data: mapTypeData,
                   pointSize: 20, // 增大点的基础大小
@@ -1053,11 +1061,11 @@ const Map: React.FC<MapProps> = ({
             : []),
 
           // 区域数据 - 根据finalShowTicketCount控制显示
-          ...(currentMapSelectType === MapSelectTypeEnum.number
+          ...(finalShowTicketCount
             ? [
                 {
                   name: "区域数据",
-                  type: "map" as const,
+                  type: "map",
                   map: currentMapType,
                   aspectScale: 1,
                   zoom: 1.0,
@@ -1099,7 +1107,7 @@ const Map: React.FC<MapProps> = ({
             ? [
                 {
                   name: "新就业群体数量",
-                  type: "map" as const,
+                  type: "map",
                   map: currentMapType,
                   aspectScale: 1,
                   zoom: 1.0,
@@ -1138,46 +1146,61 @@ const Map: React.FC<MapProps> = ({
             : []),
 
           // 工单数量散点图效果 - 根据finalShowTicketCount控制显示
-          // ...(currentMapSelectType === MapSelectTypeEnum.number
-          //   ? [
-          //       {
-          //         geoIndex: 0,
-          //         type: "effectScatter" as const,
-          //         coordinateSystem: "geo" as const,
-          //         zlevel: 1,
-          //         rippleEffect: {
-          //           //涟漪特效
-          //           period: 4, //动画时间，值越小速度越快
-          //           brushType: "fill" as const, //波纹绘制方式 stroke, fill
-          //           scale: 5, //波纹圆环最大限制，值越大波纹越大
-          //         },
-          //         symbol: "circle",
-          //         symbolSize: (val: number[]) => Math.sqrt(val[2]) * 2,
-          //         tooltip: {
-          //           show: true,
-          //           formatter: (params: EChartsParams) => {
-          //             const param = Array.isArray(params) ? params[0] : params;
-          //             const value = Array.isArray(param.value)
-          //               ? param.value[2]
-          //               : param.value;
-          //             return `${param.name}: ${value || 0}条`;
-          //           },
-          //         },
-          //         data:
-          //           currentMapType === MapTypeEnum.area
-          //             ? scatterData
-          //             : streetScatterData,
-          //       },
-          //     ]
-          //   : []),
+          ...(finalShowTicketCount
+            ? [
+                {
+                  geoIndex: 0,
+                  type: "effectScatter",
+                  coordinateSystem: "geo",
+                  zlevel: 1,
+                  rippleEffect: {
+                    //涟漪特效
+                    period: 4, //动画时间，值越小速度越快
+                    brushType: "fill", //波纹绘制方式 stroke, fill
+                    scale: 5, //波纹圆环最大限制，值越大波纹越大
+                  },
+                  symbol: "circle",
+                  symbolSize: (val: number[]) => {
+                    // 根据当前数据计算占比大小
+                    const currentValue = val[2] || 0;
+                    if (currentValue === 0) return 0;
+
+                    // 计算占比 (当前值 / 最大值)
+                    const ratio = currentValue / maxValue;
+
+                    // 基础大小 + 占比调整，确保最小可见大小为8，最大为40
+                    const baseSize = 8;
+                    const maxSize = 200;
+                    const size = baseSize + (maxSize - baseSize) * ratio;
+
+                    return Math.max(baseSize, Math.min(maxSize, size));
+                  },
+                  tooltip: {
+                    show: true,
+                    formatter: (params: any) => {
+                      const param = Array.isArray(params) ? params[0] : params;
+                      const value = Array.isArray(param.value)
+                        ? param.value[2]
+                        : param.value;
+                      return `${param.name}: ${value || 0}条`;
+                    },
+                  },
+                  // data:
+                  //   currentMapType === MapTypeEnum.area
+                  //     ? scatterData
+                  //     : streetScatterData,
+                  data: scatterData,
+                },
+              ]
+            : []),
 
           // 普通驿站点 - 独立显示，不依赖于currentMapSelectType
           ...(showStation
             ? [
                 {
                   name: "驿站",
-                  type: "scatter" as const,
-                  coordinateSystem: "geo" as const,
+                  type: "scatter",
+                  coordinateSystem: "geo",
                   geoIndex: 0,
                   zlevel: 2,
                   symbol: `image://${icon}`,
@@ -1251,8 +1274,8 @@ const Map: React.FC<MapProps> = ({
             ? [
                 {
                   name: "驿站聚合",
-                  type: "scatter" as const,
-                  coordinateSystem: "geo" as const,
+                  type: "scatter",
+                  coordinateSystem: "geo",
                   geoIndex: 0,
                   zlevel: 3,
                   symbol: "circle",
@@ -1325,8 +1348,8 @@ const Map: React.FC<MapProps> = ({
             ? [
                 {
                   name: "画像标记",
-                  type: "scatter" as const,
-                  coordinateSystem: "geo" as const,
+                  type: "scatter",
+                  coordinateSystem: "geo",
                   geoIndex: 0,
                   zlevel: 1,
                   symbol: "diamond",
@@ -1354,7 +1377,7 @@ const Map: React.FC<MapProps> = ({
                       value: [item.value[0], item.value[1], 1],
                       allData: item.allData || [],
                     })) || [],
-                } as echarts.ScatterSeriesOption,
+                },
               ]
             : []),
         ].filter(Boolean), // 过滤掉false值
@@ -1402,7 +1425,7 @@ const Map: React.FC<MapProps> = ({
     currentMapSelectType,
     mapTypeData,
     showStation,
-    // finalShowTicketCount, // 使用组合后的工单数量显示控制依赖
+    finalShowTicketCount, // 使用组合后的工单数量显示控制依赖
     distributionType,
   ]);
 
@@ -1761,8 +1784,9 @@ const Map: React.FC<MapProps> = ({
                                 marginBottom: "3px",
                               }}
                             >
-                              {item?.profile_category} -{" "}
-                              {item?.profile_subcategory}: {item.percentage}%
+                              {(item as ProfileData)?.profile_category} -{" "}
+                              {(item as ProfileData)?.profile_subcategory}:{" "}
+                              {(item as ProfileData)?.percentage}%
                             </div>
                           ))}
                         </div>
@@ -1817,7 +1841,7 @@ const Map: React.FC<MapProps> = ({
             className={styles.distribution}
             current={distributionType}
             onSelect={(type) => {
-              onDistributionSelect?.(type);
+              onDistributionSelect?.(type as MapSelectTypeEnum);
             }}
           />
         )}

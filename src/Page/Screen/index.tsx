@@ -5,6 +5,7 @@ import AIChat from "./components/AIChat";
 import { CardOne, CardTwo, CardThree } from "./components/ComCustom";
 import { ScreenDataType } from "./mock";
 import { Flex, Button, Select, message } from "antd";
+import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import {
   apiGetStaticBasic,
   apiGetTicketCount,
@@ -74,6 +75,8 @@ const Screen = () => {
 
   // 新增：驿站显示状态
   const [showStation, setShowStation] = useState<boolean>(false);
+  // 添加一个状态来控制工单数量的显示和隐藏
+  const [showTicketCount, setShowTicketCount] = useState<boolean>(true);
 
   // 添加工单数据状态
   const [ticketData, setTicketData] = useState<TicketCountData[][]>([]);
@@ -347,6 +350,7 @@ const Screen = () => {
           currentMapType={currentMapType}
           ticketData={ticketData}
           showStation={showStation} // 独立控制驿站显示
+          showTicketCount={showTicketCount} // 独立控制工单数量显示
           onDrillDown={(nextMapType) => {
             setCurrentMapType(nextMapType);
             // 获取新地图类型的工单数据
@@ -370,6 +374,21 @@ const Screen = () => {
           <div className={styles.leftItem}>
             <PanelItem
               title="民有所呼 我有所为"
+              rightIcon={
+                showTicketCount ? (
+                  <EyeOutlined
+                    style={{ color: "#00ABFF", fontSize: "16px" }}
+                    onClick={() => setShowTicketCount(false)}
+                    title="隐藏工单数量"
+                  />
+                ) : (
+                  <EyeInvisibleOutlined
+                    style={{ color: "#666", fontSize: "16px" }}
+                    onClick={() => setShowTicketCount(true)}
+                    title="显示工单数量"
+                  />
+                )
+              }
               render={
                 <CardTwo
                   list={screenData?.twoData?.list || []}

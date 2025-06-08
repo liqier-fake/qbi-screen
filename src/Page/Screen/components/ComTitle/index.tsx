@@ -4,12 +4,14 @@ import classNames from "classnames";
 interface ComTitleProps {
   title: string;
   type: "default" | "middle";
+  rightIcon?: React.ReactNode; // 新增：右侧icon支持
 }
 
-const ComTitle = ({ title, type = "default" }: ComTitleProps) => {
+const ComTitle = ({ title, type = "default", rightIcon }: ComTitleProps) => {
   return (
     <div className={classNames(styles.comTitle, styles[type], styles.default)}>
-      {title}
+      <span>{title}</span>
+      {rightIcon && <span className={styles.rightIcon}>{rightIcon}</span>}
     </div>
   );
 };

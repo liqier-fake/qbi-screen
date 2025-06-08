@@ -13,10 +13,18 @@
   padding-bottom: var(--comtitle-padding-bottom);
   background-size: 100% 100%;
   background-repeat: no-repeat;
+  display: flex;
+  justify-content: space-between;
   &.default {
     background-image: url("./part_title_bg.png");
   }
   &.middle {
     background-image: url("./part_right_title_bg.png");
   }
+}
+
+.rightIcon {
+  padding-right: 10px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
 }
