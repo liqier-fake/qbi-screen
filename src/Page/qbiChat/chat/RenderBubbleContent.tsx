@@ -5,12 +5,11 @@ import { BubbleReplayType, ToolName, ToolSectionType } from "../common";
 
 import "./chat.less";
 import markdownit from "markdown-it";
-import { useMemo } from "react";
+// import { useMemo } from "react";
 import { ThoughtChain } from "@ant-design/x";
 import { DownCircleFilled, LoadingOutlined } from "@ant-design/icons";
 import ChartView from "../chat-content/chat-view";
 
-// 为ToolSection添加防闪烁的样式类
 const ToolSection = (msg: ToolSectionType) => {
   /**
    * 尝试格式化代码字符串
@@ -99,9 +98,8 @@ const ToolSection = (msg: ToolSectionType) => {
         <div className="tool-section">
           <div className="code-block">
             {msg.name !== "execute_sql" && (
-              <Typography className="tool-typography">
+              <Typography>
                 <div
-                  className="tool-content-rendered"
                   dangerouslySetInnerHTML={{ __html: md.render(msg.result) }}
                 />
               </Typography>
@@ -113,59 +111,6 @@ const ToolSection = (msg: ToolSectionType) => {
     </div>
   );
 };
-
-/**
- * 判断markdown内容是否可能不完整
- * @param content markdown内容
- * @returns 是否可能不完整
- */
-// const isMarkdownLikelyIncomplete = (content: string): boolean => {
-//   if (!content) return false;
-
-//   // 检查是否有未闭合的markdown标记
-//   const patterns = [
-//     /\*\*[^*]*$/, // 未闭合的粗体 **text
-//     /\*[^*]*$/, // 未闭合的斜体 *text
-//     /`[^`]*$/, // 未闭合的行内代码 `text
-//     /```[^`]*$/, // 未闭合的代码块 ```text
-//     /#{1,6}\s*$/, // 只有标题标记但没有内容 #
-//     /^\s*[-*+]\s*$/, // 只有列表标记但没有内容
-//     /^\s*\d+\.\s*$/, // 只有数字列表标记但没有内容
-//     /\[[^\]]*$/, // 未闭合的链接文本 [text
-//     /!\[[^\]]*$/, // 未闭合的图片文本 ![text
-//   ];
-
-//   return patterns.some((pattern) => pattern.test(content));
-// };
-
-/**
- * 对markdown内容进行安全渲染
- * @param content 原始内容
- * @param isComplete 内容是否完整
- * @returns 渲染后的HTML或原始文本
- */
-// const safeRenderMarkdown = (content: string, isComplete: boolean): string => {
-//   if (!content) return "";
-
-//   // 如果内容不完整且看起来像markdown，返回原始文本并添加输入提示
-//   if (!isComplete && isMarkdownLikelyIncomplete(content)) {
-//     return `<span class="typing-indicator">${content}<span class="cursor">|</span></span>`;
-//   }
-
-//   // 初始化 markdown-it
-//   const md = markdownit({
-//     html: true,
-//     breaks: true,
-//     linkify: true,
-//   });
-
-//   try {
-//     return md.render(content);
-//   } catch (error) {
-//     console.error("Markdown渲染错误:", error);
-//     return content; // 渲染失败时返回原始内容
-//   }
-// };
 
 // 创建 markdown 渲染函数
 const RenderBubbleContent: BubbleProps["messageRender"] = (content: string) => {
@@ -186,7 +131,7 @@ const RenderBubbleContent: BubbleProps["messageRender"] = (content: string) => {
   //   };
   // }, [content]);
 
-  const getContentPaseResul = useMemo(() => {
+  const getContentPaseResul = (content: string) => {
     if (!content) return { thinkList: [], list: [], sendOver: false };
     let c: BubbleReplayType = {};
     try {
@@ -201,9 +146,9 @@ const RenderBubbleContent: BubbleProps["messageRender"] = (content: string) => {
       list: c?.msg?.filter((item) => item.type === "normal") || [],
       sendOver: c?.sendOver,
     };
-  }, [content]);
+  };
 
-  const { thinkList, list, sendOver } = getContentPaseResul;
+  const { thinkList, list, sendOver } = getContentPaseResul(content);
 
   // 初始化 markdown-it
   const md = markdownit({
@@ -213,7 +158,7 @@ const RenderBubbleContent: BubbleProps["messageRender"] = (content: string) => {
   });
 
   return (
-    <div className="render-bubble-content">
+    <div>
       {thinkList.length > 0 && (
         <Collapse defaultActiveKey={["thinking"]}>
           <Collapse.Panel
@@ -256,10 +201,10 @@ const RenderBubbleContent: BubbleProps["messageRender"] = (content: string) => {
         </Collapse>
       )}
 
-      {list.map((item, index) => {
+      {list.map((item) => {
         const { content: normalContent } = item;
         return (
-          <Typography key={index} className="markdown-content">
+          <Typography>
             <div
               dangerouslySetInnerHTML={{ __html: md.render(normalContent) }}
             />
