@@ -90,12 +90,34 @@ const SocialChallengePanel: React.FC<{
       },
       {
         key: "llm_hot_items",
-        label: "下阶段立项参考（智能推荐）",
+        label: "下阶段立项参考（智能推荐）1",
         value: llm_hot_items || "",
       },
       {
         key: "llm_intro",
-        label: "下阶段立项简介（智能推荐）",
+        label: "下阶段立项简介（智能推荐）1",
+        value: llm_intro || "",
+        // type: "comcontent" as const,
+      },
+      {
+        key: "llm_hot_items1",
+        label: "下阶段立项参考（智能推荐）2",
+        value: llm_hot_items || "",
+      },
+      {
+        key: "llm_intro1",
+        label: "下阶段立项简介（智能推荐）2",
+        value: llm_intro || "",
+        // type: "comcontent" as const,
+      },
+      {
+        key: "llm_hot_items2",
+        label: "下阶段立项参考（智能推荐）3",
+        value: llm_hot_items || "",
+      },
+      {
+        key: "llm_intro2",
+        label: "下阶段立项简介（智能推荐）3",
         value: llm_intro || "",
         // type: "comcontent" as const,
       },
