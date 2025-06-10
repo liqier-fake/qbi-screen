@@ -76,8 +76,18 @@ const SocialChallengePanel: React.FC<{
 
   // 使用useMemo优化表单数据生成
   const formData = useMemo(() => {
-    const { challenge, intro, llm_hot_items, llm_intro, community, street } =
-      record || {};
+    const {
+      challenge,
+      intro,
+      llm_hot_items,
+      llm_intro,
+      community,
+      street,
+      llm_hot_items1,
+      llm_intro1,
+      llm_hot_items2,
+      llm_intro2,
+    } = record || {};
 
     return [
       { key: "street", label: "街道", value: street || "" },
@@ -102,23 +112,23 @@ const SocialChallengePanel: React.FC<{
       {
         key: "llm_hot_items1",
         label: "下阶段立项参考（智能推荐）2",
-        value: llm_hot_items || "",
+        value: llm_hot_items1 || "",
       },
       {
         key: "llm_intro1",
         label: "下阶段立项简介（智能推荐）2",
-        value: llm_intro || "",
+        value: llm_intro1 || "",
         // type: "comcontent" as const,
       },
       {
         key: "llm_hot_items2",
         label: "下阶段立项参考（智能推荐）3",
-        value: llm_hot_items || "",
+        value: llm_hot_items2 || "",
       },
       {
         key: "llm_intro2",
         label: "下阶段立项简介（智能推荐）3",
-        value: llm_intro || "",
+        value: llm_intro2 || "",
         // type: "comcontent" as const,
       },
     ] as DetailModalProps["formData"];
