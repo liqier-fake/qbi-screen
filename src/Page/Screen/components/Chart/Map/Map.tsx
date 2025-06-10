@@ -350,8 +350,7 @@ const Map: React.FC<MapProps> = ({
   ]);
 
   // 新增：内部工单数量显示控制状态
-  const [internalShowTicketCount, setInternalShowTicketCount] =
-    useState<boolean>(true);
+  const [internalShowTicketCount] = useState<boolean>(true);
   // 组合外部和内部的工单数量显示控制
   const finalShowTicketCount = showTicketCount && internalShowTicketCount;
 
@@ -483,6 +482,7 @@ const Map: React.FC<MapProps> = ({
   } | null>(null);
 
   // 将驿站数据的经纬度转换为坐标系坐标
+  // 注意：驿站数据使用百度坐标系（BD-09），需要先转换为WGS84再进行地图坐标转换
   const transformedStationList = useMemo(() => {
     return station
       .map((item) => {
@@ -497,7 +497,7 @@ const Map: React.FC<MapProps> = ({
             return null;
           }
         }
-        // 使用统一的坐标转换方法
+        // 使用统一的坐标转换方法，驿站数据使用百度坐标系
         const [x, y] = getMapDataXY(
           {
             name: item.siteName || "",
@@ -507,7 +507,8 @@ const Map: React.FC<MapProps> = ({
             lat: item.y, // 注意：驿站数据中的 y 是纬度
             lng: item.x, // 驿站数据中的 x 是经度
           },
-          currentMapType
+          currentMapType,
+          true
         );
 
         return {
@@ -1038,8 +1039,8 @@ const Map: React.FC<MapProps> = ({
                   coordinateSystem: "geo",
                   name: "分布热力图",
                   data: mapTypeData,
-                  pointSize: 20, // 增大点的基础大小
-                  blurSize: 20, // 增大模糊半径，创造更柔和的渐变效果
+                  pointSize: 10, // 增大点的基础大小
+                  blurSize: 10, // 增大模糊半径，创造更柔和的渐变效果
                   minOpacity: 0.1, // 降低最小透明度
                   maxOpacity: 0.9, // 提高最大透明度
                   zlevel: 1,
@@ -1205,7 +1206,7 @@ const Map: React.FC<MapProps> = ({
                   zlevel: 2,
                   symbol: `image://${icon}`,
                   symbolSize: [20, 20], // 使用固定数组值而不是函数
-                  symbolOffset: ['-43.5', 0],
+                  symbolOffset: [0, 0],
                   animation: false, // 禁用动画，防止闪烁
                   // 为驿站添加特殊的点击事件类型标记
                   seriesId: "station", // 添加唯一标识符，用于区分点击事件

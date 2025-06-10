@@ -16,7 +16,7 @@ interface Point {
 
 // 定义椭球参数
 const a = 6378245.0; // 长半轴
-const ee = 0.00669342162296594323; // 偏心率平方
+const ee = 0.006693421622965943; // 偏心率平方（修正精度）
 
 /**
  * 判断坐标是否在中国境内
@@ -51,6 +51,43 @@ const gcj02ToWGS84 = (lng: number, lat: number): [number, number] => {
   const mglat = lat + dlat;
   const mglng = lng + dlng;
   return [lng * 2 - mglng, lat * 2 - mglat];
+};
+
+/**
+ * BD-09(百度)坐标转GCJ-02(高德)坐标
+ * @param lng 百度经度
+ * @param lat 百度纬度
+ * @returns [lng, lat] GCJ-02坐标
+ */
+const bd09ToGCJ02 = (lng: number, lat: number): [number, number] => {
+  const x = lng - 0.0065;
+  const y = lat - 0.006;
+  const z =
+    Math.sqrt(x * x + y * y) -
+    0.00002 * Math.sin((y * Math.PI * 3000.0) / 180.0);
+  const theta =
+    Math.atan2(y, x) - 0.000003 * Math.cos((x * Math.PI * 3000.0) / 180.0);
+  const gcjLng = z * Math.cos(theta);
+  const gcjLat = z * Math.sin(theta);
+  return [gcjLng, gcjLat];
+};
+
+/**
+ * BD-09(百度)坐标转WGS84坐标
+ * @param lng 百度经度
+ * @param lat 百度纬度
+ * @returns [lng, lat] WGS84坐标
+ */
+export const bd09ToWGS84 = (lng: number, lat: number): [number, number] => {
+  if (!isInChina(lng, lat)) {
+    return [lng, lat];
+  }
+
+  // 先将百度坐标转换为GCJ-02坐标
+  const [gcjLng, gcjLat] = bd09ToGCJ02(lng, lat);
+
+  // 再将GCJ-02坐标转换为WGS84坐标
+  return gcj02ToWGS84(gcjLng, gcjLat);
 };
 
 /**
@@ -157,14 +194,14 @@ export const convertLngLatToCoordinates = (
     (referencePoints[2].y - origin.y) / (referencePoints[2].lat - origin.lat);
 
   // 取平均值减少误差
-  const xFactor = (xFactor1 + xFactor2) / 2;
-  const yFactor = (yFactor1 + yFactor2) / 2;
+  const xFactor = ((xFactor1 + xFactor2) / 2) * 1.4;
+  const yFactor = ((yFactor1 + yFactor2) / 2) * 1.1;
 
   // 应用线性变换
   const x = origin.x + (lng - origin.lng) * xFactor;
   const y = origin.y + (lat - origin.lat) * yFactor;
 
-  return [x, y];
+  return [x + 800, y + 500];
 };
 
 /**
@@ -245,6 +282,7 @@ export const convertLngLatToProjection = (
  */
 export function convertCoordinates(point: Point): Point {
   const { street, x, y } = point;
+  console.log(street, x, y, "convertCoordinatesData");
 
   switch (street) {
     case "唯亭街道":
@@ -354,16 +392,22 @@ export function getPointByCommunity(
  * 获取地图数据点坐标 (统一坐标转换方法)
  * @param point 包含坐标信息的点
  * @param mapType 地图类型
+ * @param useBaiduCoords 是否使用百度坐标系转换（默认false，使用高德坐标系）
  * @returns 返回转换后的坐标 [x, y]
  */
 export const getMapDataXY = (
   point: Point,
-  mapType: MapTypeEnum
+  mapType: MapTypeEnum,
+  useBaiduCoords: boolean = false
 ): [number, number] => {
   const { lat, lng, x, y, street, name } = point;
 
   console.log(
-    `处理坐标转换: ${name || "未知"}, 地图类型: ${mapType}, 街道: ${street}`,
+    `处理坐标转换: ${
+      name || "未知"
+    }, 地图类型: ${mapType}, 街道: ${street}, 坐标系: ${
+      useBaiduCoords ? "百度" : "高德"
+    }`,
     point
   );
 
@@ -371,12 +415,33 @@ export const getMapDataXY = (
   if (mapType === MapTypeEnum.area) {
     // area地图：优先使用经纬度转换（保持原有效果）
     if (lat && lng) {
-      console.log(`area地图使用经纬度转换: lng=${lng}, lat=${lat}`);
-      // 先将高德坐标转换为WGS84坐标
-      const [wgs84Lng, wgs84Lat] = gcj02ToWGS84(lng, lat);
-      console.log(`转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat}`);
+      console.log(
+        `area地图使用经纬度转换: lng=${lng}, lat=${lat}, 坐标系: ${
+          useBaiduCoords ? "百度" : "高德"
+        }`
+      );
+
+      let wgs84Lng: number, wgs84Lat: number;
+
+      if (useBaiduCoords) {
+        // 使用百度坐标转换为WGS84坐标
+        [wgs84Lng, wgs84Lat] = bd09ToWGS84(lng, lat);
+        console.log(
+          `百度坐标转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat} , street=${street} name=${name}`
+        );
+      } else {
+        // 使用高德坐标转换为WGS84坐标
+        [wgs84Lng, wgs84Lat] = gcj02ToWGS84(lng, lat);
+        console.log(
+          `高德坐标转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat} , street=${street} name=${name}`
+        );
+      }
+
+      // const [areaX, areaY] = convertLngLatToCoordinates(wgs84Lng, wgs84Lat);
       const [areaX, areaY] = convertLngLatToCoordinates(wgs84Lng, wgs84Lat);
-      console.log(`area地图最终坐标: x=${areaX}, y=${areaY}`);
+      console.log(
+        `area地图最终坐标: x=${areaX}, y=${areaY} , street=${street} name=${name}`
+      );
       return [areaX, areaY];
     }
 
@@ -388,13 +453,35 @@ export const getMapDataXY = (
   } else {
     // 街道地图：优先使用经纬度进行投影坐标转换
     if (lat && lng) {
-      console.log(`街道地图使用投影坐标转换: lng=${lng}, lat=${lat}`);
-      // 先将高德坐标转换为WGS84坐标
-      const [wgs84Lng, wgs84Lat] = gcj02ToWGS84(lng, lat);
-      console.log(`转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat}`);
+      console.log(
+        `街道地图使用投影坐标转换: lng=${lng}, lat=${lat}, 坐标系: ${
+          useBaiduCoords ? "百度" : "高德"
+        }`
+      );
+
+      let wgs84Lng: number, wgs84Lat: number;
+
+      if (useBaiduCoords) {
+        // 使用百度坐标转换为WGS84坐标
+        [wgs84Lng, wgs84Lat] = bd09ToWGS84(lng, lat);
+        console.log(
+          `百度坐标转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat} , street=${street} name=${name}`
+        );
+      } else {
+        // 使用高德坐标转换为WGS84坐标
+        [wgs84Lng, wgs84Lat] = gcj02ToWGS84(lng, lat);
+        console.log(
+          `高德坐标转换为WGS84坐标: lng=${wgs84Lng}, lat=${wgs84Lat} , street=${street} name=${name}`
+        );
+      }
+
       const [projX, projY] = convertLngLatToProjection(wgs84Lng, wgs84Lat);
-      console.log(`街道地图投影坐标: x=${projX}, y=${projY}`);
-      return [projX, projY];
+      console.log(
+        `街道地图投影坐标: x=${projX}, y=${projY} , street=${street} name=${name}`
+      );
+      return useBaiduCoords
+        ? [projX - 20, projY + 100]
+        : [projX + 400, projY - 300];
     }
 
     // 备用：使用社区数据中的准确坐标

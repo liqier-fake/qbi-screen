@@ -52,13 +52,17 @@ interface CommunityItem {
   y: number;
 }
 
-interface MapDataItem {
+export interface MapDataItem {
   value: [number, number, number];
   region_name: string;
   people_count: number;
   count?: number;
   allData?: ProfileData[];
   street: string;
+  // 新增分布相关信息
+  group_type?: string;
+  distribution_type?: string;
+  data_type?: string;
 }
 
 // 定义画像数据类型
